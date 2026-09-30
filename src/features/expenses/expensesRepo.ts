@@ -14,6 +14,11 @@ export function getMonthExpenses(now: Date) {
   return expensesRepo.since(startOfMonth(now))
 }
 
+// For other features that record an expense (e.g. finishing a purchase)
+export function addExpense(data: NewExpense) {
+  return expensesRepo.add(data)
+}
+
 // Single entry point to local expenses: components never touch Dexie directly
 export const expensesRepo = {
   async add(data: NewExpense, now = new Date()) {

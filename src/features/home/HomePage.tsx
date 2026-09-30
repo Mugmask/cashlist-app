@@ -9,6 +9,7 @@ import {
   totalsByCategory,
   useMonthExpenses,
 } from '@/features/expenses'
+import { ShoppingHomeCard } from '@/features/shopping'
 import { Amount, Card, EmptyState, ProgressBar, Stack } from '@/ui'
 import { formatMonthName } from '@/utils/dates'
 import styles from './HomePage.module.css'
@@ -43,6 +44,7 @@ export function HomePage() {
       </Card>
 
       <BudgetHomeCard />
+      <ShoppingHomeCard />
 
       {expenses.length === 0 ? (
         <EmptyState

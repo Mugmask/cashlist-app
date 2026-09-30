@@ -1,9 +1,10 @@
-import { useId, type InputHTMLAttributes } from 'react'
+import { useId, type ComponentPropsWithRef } from 'react'
 import { cx } from '../cx'
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden'
 import styles from './TextField.module.css'
 
-export interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+// ComponentPropsWithRef: in React 19 `ref` is a regular prop, forwarded to the <input>
+export interface TextFieldProps extends ComponentPropsWithRef<'input'> {
   label: string
   hideLabel?: boolean
   hint?: string

@@ -38,3 +38,19 @@
   border-color: var(--color-border);
   color: var(--color-text);
 }
+
+.accent {
+  width: 48px;
+  height: 48px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.accent:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}

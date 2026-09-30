@@ -9,7 +9,7 @@ export interface IconButtonProps extends Omit<
   // Required: icon-only buttons need an accessible name
   label: string
   icon: ReactNode
-  variant?: 'ghost' | 'secondary'
+  variant?: 'ghost' | 'secondary' | 'accent'
 }
 
 export function IconButton({

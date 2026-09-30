@@ -21,6 +21,16 @@ export interface Budget extends Syncable {
   amount: number
 }
 
+export type ShoppingItemStatus = 'to_buy' | 'in_cart' | 'bought'
+
+// A shopping list entry. Bought items are kept as history for "buy again" suggestions.
+export interface ShoppingItem extends Syncable {
+  name: string
+  quantity: number
+  status: ShoppingItemStatus
+  boughtAt?: string // ISO, set when a purchase is finished
+}
+
 interface SyncState {
   key: string
   value: string
@@ -29,6 +39,7 @@ interface SyncState {
 export const db = new Dexie('cashlist') as Dexie & {
   expenses: EntityTable<Expense, 'id'>
   budgets: EntityTable<Budget, 'id'>
+  shoppingItems: EntityTable<ShoppingItem, 'id'>
   syncState: EntityTable<SyncState, 'key'>
 }
 
@@ -93,6 +104,10 @@ db.version(4).stores({
 
 db.version(5).stores({
   budgets: 'id, pending',
+})
+
+db.version(6).stores({
+  shoppingItems: 'id, status, pending',
 })
 
 // Asks the browser not to evict IndexedDB when storage runs low

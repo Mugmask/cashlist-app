@@ -3,7 +3,7 @@ export { EXPENSE_CATEGORIES, getCategory, type ExpenseCategoryId } from './categ
 export { CategoryIcon } from './components/CategoryIcon'
 export { ExpenseRow } from './components/ExpenseRow'
 export { NewExpenseForm } from './components/NewExpenseForm'
-export { getMonthExpenses } from './expensesRepo'
+export { addExpense, getMonthExpenses } from './expensesRepo'
 export { ExpensesPage } from './ExpensesPage'
 export { totalsByCategory } from './selectors'
 export { useMonthExpenses } from './useMonthExpenses'

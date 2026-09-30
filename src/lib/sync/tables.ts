@@ -1,4 +1,4 @@
-import { db, type Budget, type Expense } from '@/lib/db'
+import { db, type Budget, type Expense, type ShoppingItem, type ShoppingItemStatus } from '@/lib/db'
 import { toSyncTask, type SyncedTable } from './engine'
 
 interface ExpenseRow {
@@ -65,5 +65,45 @@ export const budgetsTable: SyncedTable<Budget, BudgetRow> = {
   }),
 }
 
+interface ShoppingItemRow {
+  id: string
+  name: string
+  quantity: number
+  status: ShoppingItemStatus
+  bought_at: string | null
+  updated_at: string
+  deleted: boolean
+  synced_at: string
+}
+
+export const shoppingItemsTable: SyncedTable<ShoppingItem, ShoppingItemRow> = {
+  name: 'shopping_items',
+  local: db.shoppingItems,
+  columns: 'id, name, quantity, status, bought_at, updated_at, deleted, synced_at',
+  toRow: (i) => ({
+    id: i.id,
+    name: i.name,
+    quantity: i.quantity,
+    status: i.status,
+    bought_at: i.boughtAt ?? null,
+    updated_at: i.updatedAt,
+    deleted: i.deleted,
+  }),
+  fromRow: (row) => ({
+    id: row.id,
+    name: row.name,
+    quantity: row.quantity,
+    status: row.status,
+    boughtAt: row.bought_at ?? undefined,
+    updatedAt: row.updated_at,
+    deleted: row.deleted,
+    pending: 0,
+  }),
+}
+
 // Every synced table; each one syncs independently of the others
-export const SYNCED_TABLES = [toSyncTask(expensesTable), toSyncTask(budgetsTable)]
+export const SYNCED_TABLES = [
+  toSyncTask(expensesTable),
+  toSyncTask(budgetsTable),
+  toSyncTask(shoppingItemsTable),
+]
