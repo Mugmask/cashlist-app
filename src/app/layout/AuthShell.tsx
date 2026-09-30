@@ -17,7 +17,6 @@ export function AuthShell({ children }: { children: ReactNode }) {
           <p className={styles.wordmark}>
             cash<span className={styles.accent}>list</span>
           </p>
-          <p className={styles.tagline}>Tus gastos, tus fijos y el súper, bajo control.</p>
         </div>
 
         {children}
