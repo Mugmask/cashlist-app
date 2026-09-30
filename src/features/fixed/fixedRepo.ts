@@ -1,11 +1,12 @@
 import { addExpense, removeExpense } from '@/features/expenses'
-import { db, type FixedExpense } from '@/lib/db'
+import { db, type FixedExpense, type PaymentMethod } from '@/lib/db'
 
 export interface FixedExpenseInput {
   name: string
   category: string
   amount: number
   dueDay?: number
+  paymentMethod: PaymentMethod
 }
 
 // Single entry point to local fixed expenses: components never touch Dexie directly
@@ -53,6 +54,7 @@ export const fixedRepo = {
       note: fixed.name,
       fixedExpenseId: fixed.id,
       fixedPeriod: period,
+      paymentMethod: fixed.paymentMethod ?? 'cash',
     })
     if (amount !== fixed.amount) {
       await db.fixedExpenses.update(fixed.id, {

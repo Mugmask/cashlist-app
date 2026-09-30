@@ -3,10 +3,18 @@ import {
   daysInMonth,
   formatDayHeading,
   formatDaysAgo,
+  shiftMonth,
   startOfMonth,
   toDayKey,
   toPeriod,
 } from './dates'
+
+describe('shiftMonth', () => {
+  it('moves whole months, across years, landing on day 1', () => {
+    expect(shiftMonth(new Date(2026, 0, 31), -1)).toEqual(new Date(2025, 11, 1))
+    expect(shiftMonth(new Date(2026, 11, 15), 1)).toEqual(new Date(2027, 0, 1))
+  })
+})
 
 describe('toPeriod / daysInMonth', () => {
   it('uses the local calendar month', () => {

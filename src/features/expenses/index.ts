@@ -6,11 +6,13 @@ export { CategoryIcon } from './components/CategoryIcon'
 export { ExpenseRow } from './components/ExpenseRow'
 export {
   addExpense,
+  getExpensesSince,
   getFixedPayments,
   getMonthExpenses,
   removeExpense,
   type NewExpense,
 } from './expensesRepo'
 export { ExpensesPage } from './ExpensesPage'
+export { PAYMENT_METHOD_OPTIONS } from './paymentMethods'
 export { isFixed, totalsByCategory } from './selectors'
 export { useMonthExpenses } from './useMonthExpenses'

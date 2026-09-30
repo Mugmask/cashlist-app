@@ -1,10 +1,11 @@
-import { db, type Expense } from '@/lib/db'
+import { db, type Expense, type PaymentMethod } from '@/lib/db'
 import { startOfMonth } from '@/utils/dates'
 
 export interface NewExpense {
   amount: number
   category: string // an ExpenseCategoryId; unknown ids show as "Otros"
   note?: string
+  paymentMethod?: PaymentMethod // cash when missing
   // Only for the payment of a fixed expense
   fixedExpenseId?: string
   fixedPeriod?: string
@@ -14,6 +15,11 @@ export interface NewExpense {
 // so other features can combine it with their own data in a single query.
 export function getMonthExpenses(now: Date) {
   return expensesRepo.since(startOfMonth(now))
+}
+
+// Non-deleted expenses since a date, newest first. For live queries in other features.
+export function getExpensesSince(date: Date) {
+  return expensesRepo.since(date)
 }
 
 // Payments of fixed expenses for a month ("2026-09"), whenever they were paid

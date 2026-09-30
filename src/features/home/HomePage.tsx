@@ -1,6 +1,7 @@
 import { ChevronRight, Plus, Sparkles } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { CardHomeCard } from '@/features/card'
 import {
   CategoryIcon,
   ExpenseRow,
@@ -59,6 +60,7 @@ export function HomePage() {
       </Card>
 
       <FixedHomeCard />
+      <CardHomeCard />
       <ShoppingHomeCard />
 
       {expenses.length === 0 ? (

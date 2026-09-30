@@ -15,6 +15,7 @@ describe('fixedRepo', () => {
       category: 'utilities',
       amount: 20000,
       dueDay: 10,
+      paymentMethod: 'cash',
     })
     const fixed = (await db.fixedExpenses.get(id))!
 
@@ -33,14 +34,24 @@ describe('fixedRepo', () => {
   })
 
   it('paying a different amount makes it the suggested one from then on', async () => {
-    const id = await fixedRepo.create({ name: 'Alquiler', category: 'rent', amount: 300000 })
+    const id = await fixedRepo.create({
+      name: 'Alquiler',
+      category: 'rent',
+      amount: 300000,
+      paymentMethod: 'cash',
+    })
     await fixedRepo.pay((await db.fixedExpenses.get(id))!, 345000, '2026-09')
 
     expect((await db.fixedExpenses.get(id))?.amount).toBe(345000)
   })
 
   it('undoPayment removes the payment, so the month shows it as unpaid again', async () => {
-    const id = await fixedRepo.create({ name: 'Luz', category: 'utilities', amount: 15000 })
+    const id = await fixedRepo.create({
+      name: 'Luz',
+      category: 'utilities',
+      amount: 15000,
+      paymentMethod: 'cash',
+    })
     const expenseId = await fixedRepo.pay((await db.fixedExpenses.get(id))!, 15000, '2026-09')
 
     await fixedRepo.undoPayment(expenseId)
@@ -49,9 +60,32 @@ describe('fixedRepo', () => {
   })
 
   it('update can clear the due day', async () => {
-    const id = await fixedRepo.create({ name: 'Gym', category: 'health', amount: 30000, dueDay: 5 })
-    await fixedRepo.update(id, { name: 'Gym', category: 'health', amount: 32000 })
+    const id = await fixedRepo.create({
+      name: 'Gym',
+      category: 'health',
+      amount: 30000,
+      dueDay: 5,
+      paymentMethod: 'cash',
+    })
+    await fixedRepo.update(id, {
+      name: 'Gym',
+      category: 'health',
+      amount: 32000,
+      paymentMethod: 'cash',
+    })
 
     expect(await db.fixedExpenses.get(id)).toMatchObject({ amount: 32000, dueDay: undefined })
+  })
+
+  it('a fixed expense paid by card records its payment as a card expense', async () => {
+    const id = await fixedRepo.create({
+      name: 'Netflix',
+      category: 'subscriptions',
+      amount: 9990,
+      paymentMethod: 'card',
+    })
+    const expenseId = await fixedRepo.pay((await db.fixedExpenses.get(id))!, 9990, '2026-09')
+
+    expect((await db.expenses.get(expenseId))?.paymentMethod).toBe('card')
   })
 })

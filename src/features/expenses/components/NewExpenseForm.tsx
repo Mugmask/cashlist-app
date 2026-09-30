@@ -4,6 +4,11 @@ import { AmountField, Button, ChipGroup, Stack, TextField } from '@/ui'
 import { parseAmount } from '@/utils/currency'
 import { EXPENSE_CATEGORIES, type ExpenseCategoryId } from '../categories'
 import { expensesRepo } from '../expensesRepo'
+import {
+  PAYMENT_METHOD_OPTIONS,
+  readLastPaymentMethod,
+  rememberPaymentMethod,
+} from '../paymentMethods'
 
 const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map(({ id, label, icon: Icon }) => ({
   value: id,
@@ -19,13 +24,20 @@ export function NewExpenseForm({ onSaved }: NewExpenseFormProps) {
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState<ExpenseCategoryId>(EXPENSE_CATEGORIES[0].id)
   const [note, setNote] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState(readLastPaymentMethod)
   const isValid = parseAmount(amount) !== null
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const value = parseAmount(amount)
     if (value === null) return
-    await expensesRepo.add({ amount: value, category, note: note.trim() || undefined })
+    await expensesRepo.add({
+      amount: value,
+      category,
+      paymentMethod,
+      note: note.trim() || undefined,
+    })
+    rememberPaymentMethod(paymentMethod)
     setAmount('')
     setNote('')
     runSync().catch(() => {}) // on failure it stays pending and retries on its own
@@ -38,9 +50,17 @@ export function NewExpenseForm({ onSaved }: NewExpenseFormProps) {
         <AmountField label="Monto" value={amount} onValueChange={setAmount} autoFocus required />
         <ChipGroup
           label="Categoría"
+          showLabel
           options={CATEGORY_OPTIONS}
           value={category}
           onChange={setCategory}
+        />
+        <ChipGroup
+          label="Cómo lo pagaste"
+          showLabel
+          options={PAYMENT_METHOD_OPTIONS}
+          value={paymentMethod}
+          onChange={setPaymentMethod}
         />
         <TextField
           label="Nota"

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { EXPENSE_CATEGORIES } from '@/features/expenses'
+import { EXPENSE_CATEGORIES, PAYMENT_METHOD_OPTIONS } from '@/features/expenses'
 import type { FixedExpense } from '@/lib/db'
 import { runSync } from '@/lib/sync'
 import { AmountField, Button, ChipGroup, Stack, TextField, useToast } from '@/ui'
@@ -30,6 +30,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
   const [amount, setAmount] = useState(fixed ? amountToInput(fixed.amount) : '')
   const [category, setCategory] = useState(fixed?.category ?? 'rent')
   const [dueDay, setDueDay] = useState(fixed?.dueDay ? String(fixed.dueDay) : '')
+  const [paymentMethod, setPaymentMethod] = useState(fixed?.paymentMethod ?? 'cash')
 
   const parsedAmount = parseAmount(amount)
   const parsedDueDay = parseDueDay(dueDay)
@@ -43,6 +44,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
       category,
       amount: parsedAmount!,
       dueDay: parsedDueDay ?? undefined,
+      paymentMethod,
     }
     if (fixed) await fixedRepo.update(fixed.id, input)
     else await fixedRepo.create(input)
@@ -73,9 +75,17 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
         <AmountField label="Monto mensual" value={amount} onValueChange={setAmount} required />
         <ChipGroup
           label="Categoría"
+          showLabel
           options={CATEGORY_OPTIONS}
           value={category}
           onChange={setCategory}
+        />
+        <ChipGroup
+          label="Cómo lo pagás"
+          showLabel
+          options={PAYMENT_METHOD_OPTIONS}
+          value={paymentMethod}
+          onChange={setPaymentMethod}
         />
         <TextField
           label="Día de vencimiento (opcional)"

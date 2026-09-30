@@ -36,6 +36,8 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
       <Stack gap={4}>
         <p className={styles.hint}>
           Pago de <strong>{fixed.name}</strong> de {monthName}. Si aumentó, cambiá el monto.
+          {fixed.paymentMethod === 'card' &&
+            ' Va a la tarjeta: lo pagás con el resumen del mes que viene.'}
         </p>
         <AmountField
           label={`Monto de ${fixed.name}`}

@@ -10,6 +10,11 @@ export function startOfMonth(date = new Date()) {
   return new Date(date.getFullYear(), date.getMonth(), 1)
 }
 
+// First day of the month `offset` months away: -1 = previous month, 1 = next month
+export function shiftMonth(date: Date, offset: number) {
+  return new Date(date.getFullYear(), date.getMonth() + offset, 1)
+}
+
 // Local calendar month as "2026-09"
 export function toPeriod(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`

@@ -9,6 +9,10 @@ export interface Syncable {
   pending: 0 | 1 // 1 = local change not uploaded yet (a number because IndexedDB can't index booleans)
 }
 
+// Cash covers debit and transfers too: money that leaves right away. Card spending of a month
+// is paid in one statement the next month. Missing means cash (rows from before cards existed).
+export type PaymentMethod = 'cash' | 'card'
+
 export interface Expense extends Syncable {
   amount: number
   category: string
@@ -17,6 +21,7 @@ export interface Expense extends Syncable {
   // Set when this expense is the payment of a fixed expense for a given month
   fixedExpenseId?: string
   fixedPeriod?: string // "2026-09": the month it pays, which may differ from spentAt's month
+  paymentMethod?: PaymentMethod
 }
 
 // Something charged every month (rent, internet...). Its amount is the one suggested next
@@ -26,6 +31,13 @@ export interface FixedExpense extends Syncable {
   category: string
   amount: number
   dueDay?: number // 1-31, day of the month it's due
+  paymentMethod?: PaymentMethod // how its payments are made
+}
+
+// A card statement marked as paid. The id is the month of the purchases ("2026-09").
+// Paying it isn't an expense: the purchases were counted when they were made.
+export interface CardStatement extends Syncable {
+  paidAt: string // ISO
 }
 
 export type ShoppingItemStatus = 'in_stock' | 'to_buy' | 'in_cart'
@@ -49,6 +61,7 @@ export const db = new Dexie('cashlist') as Dexie & {
   expenses: EntityTable<Expense, 'id'>
   shoppingItems: EntityTable<ShoppingItem, 'id'>
   fixedExpenses: EntityTable<FixedExpense, 'id'>
+  cardStatements: EntityTable<CardStatement, 'id'>
   syncState: EntityTable<SyncState, 'key'>
 }
 
@@ -187,6 +200,11 @@ db.version(7)
 // rows are kept, in case the feature comes back.
 db.version(8).stores({
   budgets: null,
+})
+
+// v9: credit card statements (payment methods need no migration: missing means cash)
+db.version(9).stores({
+  cardStatements: 'id, pending',
 })
 
 // Asks the browser not to evict IndexedDB when storage runs low

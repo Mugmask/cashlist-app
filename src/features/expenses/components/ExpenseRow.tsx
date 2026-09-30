@@ -29,6 +29,7 @@ export function ExpenseRow({ expense, showDate = true, onRemove }: ExpenseRowPro
         <span className={styles.titleLine}>
           <span className={styles.title}>{title}</span>
           {fixed && <span className={styles.badge}>Fijo</span>}
+          {expense.paymentMethod === 'card' && <span className={styles.badge}>Tarjeta</span>}
         </span>
         {meta && <span className={styles.meta}>{meta}</span>}
       </div>
