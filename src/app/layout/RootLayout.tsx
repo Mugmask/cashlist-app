@@ -1,6 +1,6 @@
 import { LogOut } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
-import { Outlet, ScrollRestoration } from 'react-router'
+import { Outlet, ScrollRestoration, useSearchParams } from 'react-router'
 import { Login, useSession } from '@/features/auth'
 import { NewExpenseForm } from '@/features/expenses'
 import { requestPersistentStorage } from '@/lib/db'
@@ -11,6 +11,10 @@ import { UpdatePrompt } from '../UpdatePrompt'
 import { BottomNav } from './BottomNav'
 import { Brand } from './Brand'
 import styles from './RootLayout.module.css'
+import { SplashScreen } from './SplashScreen'
+
+// Home screen shortcut (manifest) that opens the app straight into adding an expense
+const ADD_EXPENSE_ACTION = 'add-expense'
 
 // Root route: gates everything behind the session and hosts the shared chrome
 export function RootLayout() {
@@ -28,7 +32,9 @@ export function RootLayout() {
             Falta configurar Supabase (VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY).
           </Alert>
         </AuthShell>
-      ) : session === undefined ? null : session ? (
+      ) : session === undefined ? (
+        <SplashScreen />
+      ) : session ? (
         <AppShell />
       ) : (
         <AuthShell>
@@ -43,7 +49,16 @@ export function RootLayout() {
 
 function AppShell() {
   const syncError = useAutoSync()
-  const [isAdding, setIsAdding] = useState(false)
+  const [params, setParams] = useSearchParams()
+  const [isAdding, setIsAdding] = useState(() => params.get('action') === ADD_EXPENSE_ACTION)
+
+  // Drop the shortcut's ?action once used, so a reload or going back doesn't reopen the sheet
+  useEffect(() => {
+    if (params.get('action') !== ADD_EXPENSE_ACTION) return
+    const next = new URLSearchParams(params)
+    next.delete('action')
+    setParams(next, { replace: true })
+  }, [params, setParams])
 
   return (
     <div className={styles.shell}>

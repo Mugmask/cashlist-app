@@ -37,19 +37,19 @@ export function HomePage() {
           <div className={styles.stat}>
             <dt>Variables</dt>
             <dd>
-              <Amount value={variableTotal} size="sm" />
+              <Amount value={variableTotal} size="sm" compactFrom={1_000_000} />
             </dd>
           </div>
           <div className={styles.stat}>
             <dt>Fijos</dt>
             <dd>
-              <Amount value={fixedTotal} size="sm" />
+              <Amount value={fixedTotal} size="sm" compactFrom={1_000_000} />
             </dd>
           </div>
           <div className={styles.stat}>
             <dt>Por día</dt>
             <dd>
-              <Amount value={dailyAverage} size="sm" />
+              <Amount value={dailyAverage} size="sm" compactFrom={1_000_000} />
             </dd>
           </div>
         </dl>
@@ -79,7 +79,7 @@ export function HomePage() {
                         <div className={styles.categoryBody}>
                           <div className={styles.categoryLine}>
                             <span className={styles.categoryLabel}>{label}</span>
-                            <Amount value={c.total} size="sm" />
+                            <Amount value={c.total} size="sm" compactFrom={10_000_000} />
                           </div>
                           <div className={styles.categoryLine}>
                             <ProgressBar

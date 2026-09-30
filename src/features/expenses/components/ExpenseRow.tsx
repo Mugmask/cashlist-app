@@ -35,7 +35,7 @@ export function ExpenseRow({ expense, showDate = true, onRemove }: ExpenseRowPro
       {expense.pending === 1 && (
         <CloudOff className={styles.pending} role="img" aria-label="Sin sincronizar" />
       )}
-      <Amount value={expense.amount} />
+      <Amount value={expense.amount} compactFrom={10_000_000} />
       {onRemove && (
         <IconButton label="Borrar gasto" icon={<Trash2 />} onClick={() => onRemove(expense.id)} />
       )}

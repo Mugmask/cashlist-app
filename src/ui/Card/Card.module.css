@@ -1,4 +1,6 @@
+/* A size container, so big amounts inside can fit its width (see Amount) */
 .card {
+  container-type: inline-size;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);

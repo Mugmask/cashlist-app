@@ -8,6 +8,8 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* No pull-to-refresh or rubber-band bounce: it should feel like an app, not a page */
+  overscroll-behavior: none;
 }
 
 body {
@@ -21,6 +23,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
+  /* Long words (a product name, a note) break instead of widening the page */
+  overflow-wrap: break-word;
+  /* Safety net: nothing may widen the page. Layout bugs still get fixed where they happen. */
+  overflow-x: clip;
 }
 
 h1,
@@ -49,4 +55,21 @@ select {
 /* Lock page scroll while a modal (e.g. the bottom sheet) is open */
 html:has(dialog[open]) {
   overflow: hidden;
+}
+
+/* Native feel: taps respond immediately (no double-tap zoom wait), and long-pressing
+   buttons or links doesn't select text or open the iOS callout. Inputs are untouched. */
+button,
+a,
+[role='tab'],
+[role='checkbox'] {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+img,
+svg {
+  -webkit-user-drag: none;
 }

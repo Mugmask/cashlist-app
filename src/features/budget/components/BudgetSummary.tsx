@@ -17,10 +17,10 @@ export function BudgetSummary({ totals }: Pick<BudgetOverview, 'totals'>) {
       />
       <div className={styles.footer}>
         <span>
-          Gastado <Amount value={totals.spent} size="sm" />
+          Gastado <Amount value={totals.spent} size="sm" compactFrom={1_000_000} />
         </span>
         <span>
-          de <Amount value={totals.limit} size="sm" />
+          de <Amount value={totals.limit} size="sm" compactFrom={1_000_000} />
         </span>
       </div>
     </Card>

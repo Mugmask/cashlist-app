@@ -20,7 +20,7 @@ export function ExpenseList({ expenses }: { expenses: readonly Expense[] }) {
         <section key={day.key} aria-label={formatDayHeading(day.date)}>
           <header className={styles.dayHeader}>
             <h2 className={styles.dayTitle}>{formatDayHeading(day.date)}</h2>
-            <Amount value={day.total} size="sm" tone="muted" />
+            <Amount value={day.total} size="sm" tone="muted" compactFrom={10_000_000} />
           </header>
           <Card padding="none">
             <ul className={styles.list}>

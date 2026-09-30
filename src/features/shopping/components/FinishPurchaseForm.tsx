@@ -45,7 +45,7 @@ export function FinishPurchaseForm({ itemCount, onDone }: FinishPurchaseFormProp
         <AmountField
           label="Total de la compra"
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onValueChange={setAmount}
           autoFocus
         />
         <Button type="submit" size="lg" fullWidth disabled={!isValid} loading={saving}>

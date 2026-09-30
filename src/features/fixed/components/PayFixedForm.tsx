@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { runSync } from '@/lib/sync'
 import { AmountField, Button, Stack } from '@/ui'
-import { parseAmount } from '@/utils/currency'
+import { amountToInput, parseAmount } from '@/utils/currency'
 import { fixedRepo } from '../fixedRepo'
 import type { FixedLine } from '../overview'
 import styles from './PayFixedForm.module.css'
@@ -15,7 +15,7 @@ export interface PayFixedFormProps {
 
 export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormProps) {
   const { fixed } = line
-  const [amount, setAmount] = useState(String(fixed.amount))
+  const [amount, setAmount] = useState(amountToInput(fixed.amount))
   const [saving, setSaving] = useState(false) // guards against a double tap paying twice
   const parsed = parseAmount(amount)
   const changed = parsed !== null && parsed !== fixed.amount
@@ -38,7 +38,7 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
         <AmountField
           label={`Monto de ${fixed.name}`}
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onValueChange={setAmount}
           autoFocus
           required
         />

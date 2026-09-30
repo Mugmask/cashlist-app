@@ -27,6 +27,7 @@
 }
 
 .content {
+  container-type: inline-size;
   padding: var(--space-3) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
 }
 

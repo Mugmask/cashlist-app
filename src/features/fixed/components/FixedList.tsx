@@ -38,7 +38,11 @@ export function FixedList({ lines, onEdit, onPay }: FixedListProps) {
                 <span className={cx(styles.due, styles[due.tone])}>{due.text}</span>
               </span>
             </button>
-            <Amount value={line.amount} tone={isPaid ? 'muted' : 'default'} />
+            <Amount
+              value={line.amount}
+              tone={isPaid ? 'muted' : 'default'}
+              compactFrom={10_000_000}
+            />
             {isPaid ? (
               <IconButton
                 label={`Deshacer pago de ${line.fixed.name}`}

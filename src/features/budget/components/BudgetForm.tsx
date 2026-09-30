@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { getCategory } from '@/features/expenses'
 import { runSync } from '@/lib/sync'
 import { AmountField, Button, Stack } from '@/ui'
-import { formatCurrencyShort, parseAmount } from '@/utils/currency'
+import { amountToInput, formatCurrencyShort, parseAmount } from '@/utils/currency'
 import { budgetsRepo } from '../budgetsRepo'
 import styles from './BudgetForm.module.css'
 
@@ -14,7 +14,7 @@ export interface BudgetFormProps {
 }
 
 export function BudgetForm({ category, currentLimit, spent, onDone }: BudgetFormProps) {
-  const [amount, setAmount] = useState(currentLimit ? String(currentLimit) : '')
+  const [amount, setAmount] = useState(currentLimit ? amountToInput(currentLimit) : '')
   const isValid = parseAmount(amount) !== null
   const { label } = getCategory(category)
 
@@ -43,7 +43,7 @@ export function BudgetForm({ category, currentLimit, spent, onDone }: BudgetForm
         <AmountField
           label={`Presupuesto para ${label}`}
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onValueChange={setAmount}
           autoFocus
           required
         />

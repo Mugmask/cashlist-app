@@ -19,12 +19,18 @@
   font-size: var(--text-md);
 }
 
+/*
+ * Big sizes fit their container: never larger than the design size, and shrunk so that
+ * `--amount-chars` characters fit in the container width (100cqi). A Sora digit is about
+ * 0.62em wide, 0.64 leaves a small margin. Cards and sheets are the containers (ui/tokens:
+ * container-type), and without one cqi falls back to the viewport.
+ */
 .lg {
-  font-size: var(--text-xl);
+  font-size: min(var(--text-xl), 100cqi / (var(--amount-chars) * 0.64));
 }
 
 .xl {
-  font-size: var(--text-3xl);
+  font-size: min(var(--text-3xl), 100cqi / (var(--amount-chars) * 0.64));
   font-weight: var(--weight-bold);
   line-height: 1.1;
 }

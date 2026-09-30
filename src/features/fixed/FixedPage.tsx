@@ -87,10 +87,10 @@ export function FixedPage() {
             />
             <div className={styles.footer}>
               <span>
-                Pagado <Amount value={totals.paid} size="sm" />
+                Pagado <Amount value={totals.paid} size="sm" compactFrom={1_000_000} />
               </span>
               <span>
-                de <Amount value={totals.expected} size="sm" />
+                de <Amount value={totals.expected} size="sm" compactFrom={1_000_000} />
               </span>
             </div>
           </Card>

@@ -2,12 +2,79 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- resizes-content: the on-screen keyboard shrinks the layout, so sheets stay above it -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content"
+    />
     <meta name="theme-color" content="#0a0b0d" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="Controlá tus gastos, tus fijos del mes y la lista del súper."
+    />
+    <meta name="application-name" content="Cashlist" />
+    <!-- iOS home screen app: full screen, content under a translucent status bar -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Cashlist" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
     <title>Cashlist</title>
+    <!--
+      Boot splash: painted before any JS loads, then replaced by React. SplashScreen.tsx renders
+      the same markup while the session loads, so the handoff is seamless. Inline on purpose.
+    -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #0a0b0d;
+      }
+      .boot-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        background: #0a0b0d;
+        color: #f4f5f7;
+        font:
+          700 22px/1 system-ui,
+          sans-serif;
+        letter-spacing: -0.02em;
+      }
+      .boot-splash img {
+        width: 96px;
+        height: 96px;
+        border-radius: 26px;
+        animation: boot-splash-pulse 1.6s ease-in-out infinite;
+      }
+      .boot-splash span {
+        color: #2cff8f;
+      }
+      @keyframes boot-splash-pulse {
+        50% {
+          transform: scale(0.94);
+          opacity: 0.85;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-splash img {
+          animation: none;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="boot-splash" aria-hidden="true">
+        <img src="/logo.svg" alt="" />
+        <div>cash<span>list</span></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

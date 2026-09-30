@@ -17,7 +17,7 @@ import styles from './UiPlayground.module.css'
 // Dev-only catalog of the design system, served at /ui
 export default function UiPlayground() {
   const [chip, setChip] = useState('groceries')
-  const [amount, setAmount] = useState('12500')
+  const [amount, setAmount] = useState('12.500')
 
   return (
     <main className={styles.page}>
@@ -58,7 +58,7 @@ export default function UiPlayground() {
 
       <Section title="AmountField">
         <Card>
-          <AmountField label="Monto" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <AmountField label="Monto" value={amount} onValueChange={setAmount} />
         </Card>
       </Section>
 

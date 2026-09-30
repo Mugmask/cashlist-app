@@ -3,7 +3,7 @@ import { EXPENSE_CATEGORIES } from '@/features/expenses'
 import type { FixedExpense } from '@/lib/db'
 import { runSync } from '@/lib/sync'
 import { AmountField, Button, ChipGroup, Stack, TextField } from '@/ui'
-import { parseAmount } from '@/utils/currency'
+import { amountToInput, parseAmount } from '@/utils/currency'
 import { fixedRepo } from '../fixedRepo'
 
 const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map(({ id, label, icon: Icon }) => ({
@@ -26,7 +26,7 @@ export interface FixedExpenseFormProps {
 
 export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
   const [name, setName] = useState(fixed?.name ?? '')
-  const [amount, setAmount] = useState(fixed ? String(fixed.amount) : '')
+  const [amount, setAmount] = useState(fixed ? amountToInput(fixed.amount) : '')
   const [category, setCategory] = useState(fixed?.category ?? 'rent')
   const [dueDay, setDueDay] = useState(fixed?.dueDay ? String(fixed.dueDay) : '')
 
@@ -67,12 +67,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
           autoFocus={!fixed}
           required
         />
-        <AmountField
-          label="Monto mensual"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          required
-        />
+        <AmountField label="Monto mensual" value={amount} onValueChange={setAmount} required />
         <ChipGroup
           label="Categoría"
           options={CATEGORY_OPTIONS}

@@ -35,13 +35,7 @@ export function NewExpenseForm({ onSaved }: NewExpenseFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       <Stack gap={4}>
-        <AmountField
-          label="Monto"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          autoFocus
-          required
-        />
+        <AmountField label="Monto" value={amount} onValueChange={setAmount} autoFocus required />
         <ChipGroup
           label="Categoría"
           options={CATEGORY_OPTIONS}

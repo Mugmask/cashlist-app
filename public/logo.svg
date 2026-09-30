@@ -1,9 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0a0b0d"/>
-  <g fill="none" stroke="#2cff8f" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M140 188l34 34 62-68"/>
-    <path d="M296 188h80"/>
-    <path d="M140 318l34 34 62-68"/>
-    <path d="M296 318h80"/>
+  <!--
+    Full-bleed on purpose: launchers apply their own mask (circle, squircle...) to maskable
+    icons, and iOS rounds the corners itself. The mark stays inside the central safe zone.
+  -->
+  <defs>
+    <!-- centered glow that reaches the flat background color before any edge, so the icon
+         blends seamlessly into splash screens drawn on that same color -->
+    <radialGradient id="bg" cx="0.5" cy="0.47" r="0.6">
+      <stop offset="0" stop-color="#11462c" />
+      <stop offset="0.45" stop-color="#0d1c14" />
+      <stop offset="0.76" stop-color="#0a0b0d" />
+    </radialGradient>
+    <linearGradient id="neon" x1="0.15" y1="0.1" x2="0.85" y2="0.95">
+      <stop offset="0" stop-color="#8dffc4" />
+      <stop offset="1" stop-color="#2cff8f" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="14" />
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)" />
+
+  <!-- soft glow behind the mark -->
+  <g opacity="0.55" filter="url(#glow)">
+    <path d="M349 173 A124 124 0 1 0 349 339" fill="none" stroke="#2cff8f" stroke-width="54" stroke-linecap="round" />
   </g>
+
+  <!-- the "C" of cashlist, closed by a check -->
+  <path d="M349 173 A124 124 0 1 0 349 339" fill="none" stroke="url(#neon)" stroke-width="54" stroke-linecap="round" />
+  <path d="M214 258 L247 291 L305 226" fill="none" stroke="#f4f5f7" stroke-width="36" stroke-linecap="round" stroke-linejoin="round" />
 </svg>

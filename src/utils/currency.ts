@@ -4,15 +4,34 @@ const arsWhole = new Intl.NumberFormat('es-AR', {
   currency: 'ARS',
   maximumFractionDigits: 0,
 })
+const millionsOneDecimal = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 })
+const millionsWhole = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 })
+
+const MILLION = 1_000_000
+
+// The database stores numeric(14, 2): 12 integer digits. Anything bigger would never sync.
+export const MAX_AMOUNT = 999_999_999_999.99
+const MAX_INTEGER_DIGITS = 12
 
 // "$ 12.500,00"
 export function formatCurrency(amount: number) {
   return ars.format(amount)
 }
 
-// "$ 12.500" for whole amounts, "$ 12.500,50" otherwise: for secondary text, where ",00" is noise
-export function formatCurrencyShort(amount: number) {
+// "$ 12.500" for whole amounts, "$ 12.500,50" otherwise: for secondary text, where ",00" is noise.
+// From a million on it abbreviates ("$ 38,9 M"), so inline text never blows up the layout.
+export function formatCurrencyShort(amount: number): string {
+  if (Math.abs(amount) >= MILLION) return formatCurrencyCompact(amount)
   return Number.isInteger(amount) ? arsWhole.format(amount) : ars.format(amount)
+}
+
+// "$ 38,9 M", "$ 1.618 M". Below a million, the full amount: rounding 999.999 to "1 M" misleads.
+export function formatCurrencyCompact(amount: number): string {
+  const abs = Math.abs(amount)
+  if (abs < MILLION) return formatCurrencyShort(amount)
+  const millions = abs / MILLION
+  const number = (millions < 100 ? millionsOneDecimal : millionsWhole).format(millions)
+  return `${amount < 0 ? '-' : ''}$ ${number} M`
 }
 
 // "$ 12.500,00" → { whole: "$ 12.500", fraction: ",00" }, so the cents can be styled apart
@@ -24,8 +43,27 @@ export function splitCurrency(amount: number) {
   return { whole: join(parts.slice(0, cut)), fraction: join(parts.slice(cut)) }
 }
 
-// Accepts "1500", "1500,50" or "1500.50"; returns null if it isn't a valid amount
+// Reads an amount typed the Argentine way: "." groups thousands, "," is the decimal separator.
+// "12.500" → 12500, "1500,5" → 1500.5. Null if it isn't a positive amount within range.
 export function parseAmount(text: string) {
-  const value = Number(text.trim().replace(',', '.'))
-  return Number.isFinite(value) && value > 0 ? value : null
+  const clean = text.trim().replace(/\./g, '').replace(',', '.')
+  if (!/^\d+(\.\d{0,2})?$/.test(clean)) return null
+  const value = Number(clean)
+  return value > 0 && value <= MAX_AMOUNT ? value : null
+}
+
+// Formats what the user is typing: groups thousands and keeps up to two decimals.
+// "12500" → "12.500", "12500,5" → "12.500,5". Dots typed by the user are dropped.
+export function formatAmountInput(text: string) {
+  const clean = text.replace(/[^\d,]/g, '')
+  const [rawInteger, ...rest] = clean.split(',')
+  const integer = rawInteger.replace(/^0+(?=\d)/, '').slice(0, MAX_INTEGER_DIGITS)
+  const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  if (rest.length === 0) return grouped
+  return `${grouped || '0'},${rest.join('').slice(0, 2)}`
+}
+
+// A stored amount as the input shows it: 24500 → "24.500", 1500.5 → "1.500,5"
+export function amountToInput(amount: number) {
+  return formatAmountInput(String(amount).replace('.', ','))
 }
