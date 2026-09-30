@@ -39,8 +39,8 @@ export function FinishPurchaseForm({ itemCount, onDone }: FinishPurchaseFormProp
     <form onSubmit={handleSubmit}>
       <Stack gap={4}>
         <p className={styles.hint}>
-          Tenés <strong>{products}</strong> en el carrito. ¿Cuánto pagaste? Se carga como gasto de
-          Súper.
+          Tenés <strong>{products}</strong> en el carrito: pasan a «En casa». ¿Cuánto pagaste? Se
+          carga como gasto de Súper.
         </p>
         <AmountField
           label="Total de la compra"

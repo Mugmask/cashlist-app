@@ -16,12 +16,28 @@ export interface CategoryTotal {
 
 export interface MonthSummary {
   total: number
-  dailyAverage: number // over the days elapsed so far, today included
+  fixedTotal: number // payments of fixed expenses
+  variableTotal: number // everything else: what you actually control day to day
+  dailyAverage: number // of variable spending, over the days elapsed so far, today included
+}
+
+export function isFixed(expense: Expense) {
+  return expense.fixedExpenseId !== undefined
 }
 
 export function summarizeMonth(expenses: readonly Expense[], now: Date): MonthSummary {
-  const total = expenses.reduce((sum, e) => sum + e.amount, 0)
-  return { total, dailyAverage: total / now.getDate() }
+  let fixedTotal = 0
+  let variableTotal = 0
+  for (const e of expenses) {
+    if (isFixed(e)) fixedTotal += e.amount
+    else variableTotal += e.amount
+  }
+  return {
+    total: fixedTotal + variableTotal,
+    fixedTotal,
+    variableTotal,
+    dailyAverage: variableTotal / now.getDate(),
+  }
 }
 
 // Groups consecutive expenses by local day, keeping the input order (newest first)

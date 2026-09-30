@@ -1,4 +1,11 @@
-import { ChartPie, House, type LucideIcon, Plus, ReceiptText, ShoppingBasket } from 'lucide-react'
+import {
+  CalendarCheck,
+  House,
+  type LucideIcon,
+  Plus,
+  ReceiptText,
+  ShoppingBasket,
+} from 'lucide-react'
 import { NavLink } from 'react-router'
 import { cx } from '@/ui'
 import styles from './BottomNav.module.css'
@@ -15,7 +22,7 @@ const LEFT_ITEMS: NavItem[] = [
 ]
 
 const RIGHT_ITEMS: NavItem[] = [
-  { to: '/budget', label: 'Presupuesto', icon: ChartPie },
+  { to: '/fixed', label: 'Fijos', icon: CalendarCheck },
   { to: '/shopping', label: 'Compras', icon: ShoppingBasket },
 ]
 

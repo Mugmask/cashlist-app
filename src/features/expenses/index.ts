@@ -3,7 +3,13 @@ export { EXPENSE_CATEGORIES, getCategory, type ExpenseCategoryId } from './categ
 export { CategoryIcon } from './components/CategoryIcon'
 export { ExpenseRow } from './components/ExpenseRow'
 export { NewExpenseForm } from './components/NewExpenseForm'
-export { addExpense, getMonthExpenses } from './expensesRepo'
+export {
+  addExpense,
+  getFixedPayments,
+  getMonthExpenses,
+  removeExpense,
+  type NewExpense,
+} from './expensesRepo'
 export { ExpensesPage } from './ExpensesPage'
-export { totalsByCategory } from './selectors'
+export { isFixed, totalsByCategory } from './selectors'
 export { useMonthExpenses } from './useMonthExpenses'

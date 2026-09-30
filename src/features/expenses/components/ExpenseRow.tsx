@@ -3,6 +3,7 @@ import type { Expense } from '@/lib/db'
 import { Amount, IconButton } from '@/ui'
 import { formatShortDay } from '@/utils/dates'
 import { getCategory } from '../categories'
+import { isFixed } from '../selectors'
 import { CategoryIcon } from './CategoryIcon'
 import styles from './ExpenseRow.module.css'
 
@@ -13,7 +14,11 @@ export interface ExpenseRowProps {
 }
 
 export function ExpenseRow({ expense, showDate = true, onRemove }: ExpenseRowProps) {
-  const meta = [showDate && formatShortDay(expense.spentAt), expense.note]
+  const fixed = isFixed(expense)
+  const category = getCategory(expense.category).label
+  // A fixed payment reads as its name ("Alquiler"); a regular expense as its category
+  const title = fixed && expense.note ? expense.note : category
+  const meta = [showDate && formatShortDay(expense.spentAt), fixed ? category : expense.note]
     .filter(Boolean)
     .join(' · ')
 
@@ -21,7 +26,10 @@ export function ExpenseRow({ expense, showDate = true, onRemove }: ExpenseRowPro
     <li className={styles.row}>
       <CategoryIcon category={expense.category} />
       <div className={styles.info}>
-        <span className={styles.title}>{getCategory(expense.category).label}</span>
+        <span className={styles.titleLine}>
+          <span className={styles.title}>{title}</span>
+          {fixed && <span className={styles.badge}>Fijo</span>}
+        </span>
         {meta && <span className={styles.meta}>{meta}</span>}
       </div>
       {expense.pending === 1 && (

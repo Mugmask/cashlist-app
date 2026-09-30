@@ -12,7 +12,7 @@ export function ItemList({ items }: { items: readonly ShoppingItem[] }) {
   }
 
   async function handleRemove(id: string) {
-    await shoppingRepo.remove(id)
+    await shoppingRepo.removeFromList(id)
     runSync().catch(() => {})
   }
 
@@ -36,7 +36,7 @@ export function ItemList({ items }: { items: readonly ShoppingItem[] }) {
               {item.quantity > 1 && <span className={styles.quantity}>x{item.quantity}</span>}
             </button>
             <IconButton
-              label={`Quitar ${item.name}`}
+              label={`Quitar ${item.name} de la lista`}
               icon={<X />}
               onClick={() => handleRemove(item.id)}
             />

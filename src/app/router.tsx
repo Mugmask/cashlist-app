@@ -1,6 +1,7 @@
 import { createBrowserRouter, type RouteObject } from 'react-router'
 import { BudgetPage } from '@/features/budget'
 import { ExpensesPage } from '@/features/expenses'
+import { FixedPage } from '@/features/fixed'
 import { HomePage } from '@/features/home'
 import { ShoppingPage } from '@/features/shopping'
 import { Crash } from './errors/Crash'
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <HomePage /> },
           { path: 'expenses', element: <ExpensesPage /> },
+          { path: 'fixed', element: <FixedPage /> },
           { path: 'budget', element: <BudgetPage /> },
           { path: 'shopping', element: <ShoppingPage /> },
           ...devRoutes,

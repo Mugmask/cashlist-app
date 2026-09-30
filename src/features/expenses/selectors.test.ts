@@ -8,14 +8,29 @@ function expense(id: string, spentAt: Date, amount: number, category = 'other'):
 }
 
 describe('summarizeMonth', () => {
-  it('averages over the days elapsed, today included', () => {
+  it('splits fixed and variable, averaging only variable over the days elapsed', () => {
     const now = new Date(2026, 8, 10, 15)
-    const summary = summarizeMonth([expense('a', now, 700), expense('b', now, 300)], now)
-    expect(summary).toEqual({ total: 1000, dailyAverage: 100 })
+    const rent = {
+      ...expense('r', now, 5000, 'rent'),
+      fixedExpenseId: 'f1',
+      fixedPeriod: '2026-09',
+    }
+    const summary = summarizeMonth([expense('a', now, 700), expense('b', now, 300), rent], now)
+    expect(summary).toEqual({
+      total: 6000,
+      fixedTotal: 5000,
+      variableTotal: 1000,
+      dailyAverage: 100,
+    })
   })
 
   it('is zero with no expenses', () => {
-    expect(summarizeMonth([], new Date(2026, 8, 1))).toEqual({ total: 0, dailyAverage: 0 })
+    expect(summarizeMonth([], new Date(2026, 8, 1))).toEqual({
+      total: 0,
+      fixedTotal: 0,
+      variableTotal: 0,
+      dailyAverage: 0,
+    })
   })
 })
 

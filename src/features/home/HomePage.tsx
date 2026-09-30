@@ -6,9 +6,11 @@ import {
   CategoryIcon,
   ExpenseRow,
   getCategory,
+  isFixed,
   totalsByCategory,
   useMonthExpenses,
 } from '@/features/expenses'
+import { FixedHomeCard } from '@/features/fixed'
 import { ShoppingHomeCard } from '@/features/shopping'
 import { Amount, Card, EmptyState, ProgressBar, Stack } from '@/ui'
 import { formatMonthName } from '@/utils/dates'
@@ -22,7 +24,9 @@ export function HomePage() {
 
   if (!month) return null
 
-  const { expenses, total, dailyAverage } = month
+  const { expenses, total, fixedTotal, variableTotal, dailyAverage } = month
+  // Where the money goes, without fixed payments: rent would dwarf everything you can change
+  const variableByCategory = totalsByCategory(expenses.filter((e) => !isFixed(e)))
 
   return (
     <Stack gap={6}>
@@ -31,19 +35,27 @@ export function HomePage() {
         <Amount value={total} size="xl" />
         <dl className={styles.stats}>
           <div className={styles.stat}>
-            <dt>Promedio diario</dt>
+            <dt>Variables</dt>
+            <dd>
+              <Amount value={variableTotal} size="sm" />
+            </dd>
+          </div>
+          <div className={styles.stat}>
+            <dt>Fijos</dt>
+            <dd>
+              <Amount value={fixedTotal} size="sm" />
+            </dd>
+          </div>
+          <div className={styles.stat}>
+            <dt>Por día</dt>
             <dd>
               <Amount value={dailyAverage} size="sm" />
             </dd>
           </div>
-          <div className={styles.stat}>
-            <dt>Movimientos</dt>
-            <dd>{expenses.length}</dd>
-          </div>
         </dl>
       </Card>
 
-      <BudgetHomeCard />
+      <FixedHomeCard />
       <ShoppingHomeCard />
 
       {expenses.length === 0 ? (
@@ -54,14 +66,13 @@ export function HomePage() {
         />
       ) : (
         <>
-          <HomeSection title="En qué gastaste">
-            <Card>
-              <ul className={styles.categories}>
-                {totalsByCategory(expenses)
-                  .slice(0, TOP_CATEGORIES)
-                  .map((c) => {
+          {variableByCategory.length > 0 && (
+            <HomeSection title="En qué se va la plata">
+              <Card>
+                <ul className={styles.categories}>
+                  {variableByCategory.slice(0, TOP_CATEGORIES).map((c) => {
                     const { label } = getCategory(c.category)
-                    const share = c.total / total
+                    const share = c.total / variableTotal
                     return (
                       <li key={c.category} className={styles.category}>
                         <CategoryIcon category={c.category} />
@@ -72,9 +83,9 @@ export function HomePage() {
                           </div>
                           <div className={styles.categoryLine}>
                             <ProgressBar
-                              label={`${label}: ${Math.round(share * 100)}% del total`}
+                              label={`${label}: ${Math.round(share * 100)}% de lo variable`}
                               value={c.total}
-                              max={total}
+                              max={variableTotal}
                               tone="accent"
                               className={styles.share}
                             />
@@ -84,9 +95,11 @@ export function HomePage() {
                       </li>
                     )
                   })}
-              </ul>
-            </Card>
-          </HomeSection>
+                </ul>
+              </Card>
+              <p className={styles.footnote}>Sin contar los gastos fijos.</p>
+            </HomeSection>
+          )}
 
           <HomeSection
             title="Últimos movimientos"
@@ -107,6 +120,8 @@ export function HomePage() {
           </HomeSection>
         </>
       )}
+
+      <BudgetHomeCard />
     </Stack>
   )
 }

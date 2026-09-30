@@ -6,15 +6,23 @@ import { parseItemInput } from '../items'
 import { shoppingRepo } from '../shoppingRepo'
 import styles from './AddItemForm.module.css'
 
-export function AddItemForm() {
+const COPY = {
+  list: { label: 'Agregar a la lista', placeholder: 'Agregar… (ej: leche x2)' },
+  pantry: { label: 'Agregar a la despensa', placeholder: 'Algo que tenés en casa…' },
+}
+
+// 'list' puts the product on the shopping list; 'pantry' registers it as already at home
+export function AddItemForm({ target }: { target: 'list' | 'pantry' }) {
   const [text, setText] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const parsed = parseItemInput(text)
+  const copy = COPY[target]
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!parsed) return
-    await shoppingRepo.add(parsed)
+    if (target === 'list') await shoppingRepo.add(parsed)
+    else await shoppingRepo.addToPantry(parsed.name)
     setText('')
     inputRef.current?.focus() // keep typing the next one
     runSync().catch(() => {}) // on failure it stays pending and retries on its own
@@ -24,9 +32,9 @@ export function AddItemForm() {
     <form className={styles.form} onSubmit={handleSubmit}>
       <TextField
         ref={inputRef}
-        label="Agregar producto"
+        label={copy.label}
         hideLabel
-        placeholder="Agregar… (ej: leche x2)"
+        placeholder={copy.placeholder}
         value={text}
         onChange={(e) => setText(e.target.value)}
         enterKeyHint="done"
@@ -35,7 +43,7 @@ export function AddItemForm() {
       />
       <IconButton
         type="submit"
-        label="Agregar"
+        label={copy.label}
         icon={<Plus />}
         variant="accent"
         disabled={!parsed}

@@ -1,5 +1,41 @@
 import { describe, expect, it } from 'vitest'
-import { formatDayHeading, startOfMonth, toDayKey } from './dates'
+import {
+  daysInMonth,
+  formatDayHeading,
+  formatDaysAgo,
+  startOfMonth,
+  toDayKey,
+  toPeriod,
+} from './dates'
+
+describe('toPeriod / daysInMonth', () => {
+  it('uses the local calendar month', () => {
+    expect(toPeriod(new Date(2026, 0, 31, 23, 59))).toBe('2026-01')
+    expect(toPeriod(new Date(2026, 11, 1))).toBe('2026-12')
+  })
+
+  it('knows short months', () => {
+    expect(daysInMonth(new Date(2026, 1, 10))).toBe(28)
+    expect(daysInMonth(new Date(2028, 1, 10))).toBe(29)
+    expect(daysInMonth(new Date(2026, 8, 1))).toBe(30)
+  })
+})
+
+describe('formatDaysAgo', () => {
+  const now = new Date(2026, 8, 30, 9, 0)
+  const at = (month: number, day: number, hour = 22) =>
+    new Date(2026, month, day, hour).toISOString()
+
+  it.each([
+    [at(8, 30, 1), 'hoy'],
+    [at(8, 29), 'ayer'], // late yesterday is still "ayer", by calendar day
+    [at(8, 25), 'hace 5 días'],
+    [at(8, 9), 'hace 3 semanas'],
+    [at(6, 15), 'hace 2 meses'],
+  ])('%s → %s', (iso, expected) => {
+    expect(formatDaysAgo(iso, now)).toBe(expected)
+  })
+})
 
 describe('startOfMonth', () => {
   it('returns day 1 at 00:00 local time', () => {

@@ -11,6 +11,11 @@ export { EmptyState, type EmptyStateProps } from './EmptyState/EmptyState'
 export { IconButton, type IconButtonProps } from './IconButton/IconButton'
 export { PageHeader, type PageHeaderProps } from './PageHeader/PageHeader'
 export { ProgressBar, type ProgressBarProps } from './ProgressBar/ProgressBar'
+export {
+  SegmentedControl,
+  type Segment,
+  type SegmentedControlProps,
+} from './SegmentedControl/SegmentedControl'
 export { Sheet, type SheetProps } from './Sheet/Sheet'
 export { Spinner } from './Spinner/Spinner'
 export { Stack, type StackProps } from './Stack/Stack'

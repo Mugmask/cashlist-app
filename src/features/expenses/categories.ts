@@ -5,6 +5,7 @@ import {
   House,
   type LucideIcon,
   PartyPopper,
+  Repeat,
   ShoppingCart,
   Tag,
   Zap,
@@ -14,10 +15,11 @@ import {
 export const EXPENSE_CATEGORIES = [
   { id: 'groceries', label: 'Súper', icon: ShoppingCart },
   { id: 'delivery', label: 'Delivery', icon: Bike },
-  { id: 'rent', label: 'Alquiler', icon: House },
+  { id: 'rent', label: 'Vivienda', icon: House }, // rent, building fees
   { id: 'utilities', label: 'Servicios', icon: Zap },
   { id: 'transport', label: 'Transporte', icon: BusFront },
   { id: 'going_out', label: 'Salidas', icon: PartyPopper },
+  { id: 'subscriptions', label: 'Suscripciones', icon: Repeat },
   { id: 'health', label: 'Salud', icon: HeartPulse },
   { id: 'other', label: 'Otros', icon: Tag },
 ] as const satisfies readonly { id: string; label: string; icon: LucideIcon }[]

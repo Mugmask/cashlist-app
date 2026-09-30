@@ -1,4 +1,11 @@
-import { db, type Budget, type Expense, type ShoppingItem, type ShoppingItemStatus } from '@/lib/db'
+import {
+  db,
+  type Budget,
+  type Expense,
+  type FixedExpense,
+  type ShoppingItem,
+  type ShoppingItemStatus,
+} from '@/lib/db'
 import { toSyncTask, type SyncedTable } from './engine'
 
 interface ExpenseRow {
@@ -7,6 +14,8 @@ interface ExpenseRow {
   category: string
   spent_at: string
   note: string | null
+  fixed_expense_id: string | null
+  fixed_period: string | null
   updated_at: string
   deleted: boolean
   synced_at: string
@@ -15,13 +24,16 @@ interface ExpenseRow {
 export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
   name: 'expenses',
   local: db.expenses,
-  columns: 'id, amount, category, spent_at, note, updated_at, deleted, synced_at',
+  columns:
+    'id, amount, category, spent_at, note, fixed_expense_id, fixed_period, updated_at, deleted, synced_at',
   toRow: (e) => ({
     id: e.id,
     amount: e.amount,
     category: e.category,
     spent_at: e.spentAt,
     note: e.note ?? null,
+    fixed_expense_id: e.fixedExpenseId ?? null,
+    fixed_period: e.fixedPeriod ?? null,
     updated_at: e.updatedAt,
     deleted: e.deleted,
   }),
@@ -31,6 +43,8 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
     category: row.category,
     spentAt: row.spent_at,
     note: row.note ?? undefined,
+    fixedExpenseId: row.fixed_expense_id ?? undefined,
+    fixedPeriod: row.fixed_period ?? undefined,
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,
@@ -70,7 +84,8 @@ interface ShoppingItemRow {
   name: string
   quantity: number
   status: ShoppingItemStatus
-  bought_at: string | null
+  last_bought_at: string | null
+  times_bought: number
   updated_at: string
   deleted: boolean
   synced_at: string
@@ -79,13 +94,15 @@ interface ShoppingItemRow {
 export const shoppingItemsTable: SyncedTable<ShoppingItem, ShoppingItemRow> = {
   name: 'shopping_items',
   local: db.shoppingItems,
-  columns: 'id, name, quantity, status, bought_at, updated_at, deleted, synced_at',
+  columns:
+    'id, name, quantity, status, last_bought_at, times_bought, updated_at, deleted, synced_at',
   toRow: (i) => ({
     id: i.id,
     name: i.name,
     quantity: i.quantity,
     status: i.status,
-    bought_at: i.boughtAt ?? null,
+    last_bought_at: i.lastBoughtAt ?? null,
+    times_bought: i.timesBought,
     updated_at: i.updatedAt,
     deleted: i.deleted,
   }),
@@ -94,7 +111,44 @@ export const shoppingItemsTable: SyncedTable<ShoppingItem, ShoppingItemRow> = {
     name: row.name,
     quantity: row.quantity,
     status: row.status,
-    boughtAt: row.bought_at ?? undefined,
+    lastBoughtAt: row.last_bought_at ?? undefined,
+    timesBought: row.times_bought,
+    updatedAt: row.updated_at,
+    deleted: row.deleted,
+    pending: 0,
+  }),
+}
+
+interface FixedExpenseRow {
+  id: string
+  name: string
+  category: string
+  amount: number | string
+  due_day: number | null
+  updated_at: string
+  deleted: boolean
+  synced_at: string
+}
+
+export const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
+  name: 'fixed_expenses',
+  local: db.fixedExpenses,
+  columns: 'id, name, category, amount, due_day, updated_at, deleted, synced_at',
+  toRow: (f) => ({
+    id: f.id,
+    name: f.name,
+    category: f.category,
+    amount: f.amount,
+    due_day: f.dueDay ?? null,
+    updated_at: f.updatedAt,
+    deleted: f.deleted,
+  }),
+  fromRow: (row) => ({
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    amount: Number(row.amount),
+    dueDay: row.due_day ?? undefined,
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,
@@ -106,4 +160,5 @@ export const SYNCED_TABLES = [
   toSyncTask(expensesTable),
   toSyncTask(budgetsTable),
   toSyncTask(shoppingItemsTable),
+  toSyncTask(fixedExpensesTable),
 ]

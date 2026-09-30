@@ -10,6 +10,15 @@ export function startOfMonth(date = new Date()) {
   return new Date(date.getFullYear(), date.getMonth(), 1)
 }
 
+// Local calendar month as "2026-09"
+export function toPeriod(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+}
+
+export function daysInMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+}
+
 // Local calendar day as "2026-09-30", for grouping
 export function toDayKey(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -30,6 +39,20 @@ export function formatDayHeading(iso: string, now = new Date()) {
   if (key === toDayKey(yesterday)) return 'Ayer'
   const text = longDay.format(new Date(iso))
   return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+const DAY_MS = 86_400_000
+
+// "hoy", "ayer", "hace 5 días", "hace 3 semanas", "hace 2 meses" (by local calendar day)
+export function formatDaysAgo(iso: string, now = new Date()) {
+  const then = new Date(iso)
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const days = Math.round((startOfDay(now) - startOfDay(then)) / DAY_MS)
+  if (days <= 0) return 'hoy'
+  if (days === 1) return 'ayer'
+  if (days < 14) return `hace ${days} días`
+  if (days < 60) return `hace ${Math.floor(days / 7)} semanas`
+  return `hace ${Math.floor(days / 30)} meses`
 }
 
 // "septiembre"

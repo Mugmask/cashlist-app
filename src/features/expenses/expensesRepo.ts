@@ -1,11 +1,13 @@
 import { db, type Expense } from '@/lib/db'
 import { startOfMonth } from '@/utils/dates'
-import type { ExpenseCategoryId } from './categories'
 
 export interface NewExpense {
   amount: number
-  category: ExpenseCategoryId
+  category: string // an ExpenseCategoryId; unknown ids show as "Otros"
   note?: string
+  // Only for the payment of a fixed expense
+  fixedExpenseId?: string
+  fixedPeriod?: string
 }
 
 // This month's expenses. Meant to be called inside a live query (it reads the database),
@@ -14,9 +16,22 @@ export function getMonthExpenses(now: Date) {
   return expensesRepo.since(startOfMonth(now))
 }
 
-// For other features that record an expense (e.g. finishing a purchase)
+// Payments of fixed expenses for a month ("2026-09"), whenever they were paid
+export function getFixedPayments(period: string) {
+  return db.expenses
+    .where('fixedPeriod')
+    .equals(period)
+    .filter((e) => !e.deleted)
+    .toArray()
+}
+
+// For other features that record or undo an expense (a purchase, a fixed payment)
 export function addExpense(data: NewExpense) {
   return expensesRepo.add(data)
+}
+
+export function removeExpense(id: string) {
+  return expensesRepo.remove(id)
 }
 
 // Single entry point to local expenses: components never touch Dexie directly
