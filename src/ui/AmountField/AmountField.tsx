@@ -12,6 +12,7 @@ export interface AmountFieldProps extends Omit<
   // Formatted as typed ("12.500,5"); read it with parseAmount
   value: string
   onValueChange: (value: string) => void
+  symbol?: string // "$" (pesos) by default; "US$" for dollars
 }
 
 const PLACEHOLDER = '0'
@@ -24,6 +25,7 @@ export function AmountField({
   label,
   value,
   onValueChange,
+  symbol = '$',
   id,
   className,
   ...rest
@@ -35,14 +37,14 @@ export function AmountField({
   return (
     <div
       className={cx(styles.field, className)}
-      // Both "$" signs take about four characters of room
-      style={{ '--amount-chars': shown.length + 4 } as CSSProperties}
+      // Both symbols take room too: about two characters per "$" at the symbol's smaller size
+      style={{ '--amount-chars': shown.length + 2 * symbol.length + 2 } as CSSProperties}
     >
       <VisuallyHidden as="label" htmlFor={inputId}>
         {label}
       </VisuallyHidden>
       <span className={styles.currency} aria-hidden>
-        $
+        {symbol}
       </span>
       <span className={styles.sizer} data-value={shown}>
         <input
@@ -60,7 +62,7 @@ export function AmountField({
         />
       </span>
       <span className={cx(styles.currency, styles.balance)} aria-hidden>
-        $
+        {symbol}
       </span>
     </div>
   )

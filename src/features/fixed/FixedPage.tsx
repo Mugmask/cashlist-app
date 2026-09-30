@@ -6,13 +6,14 @@ import {
   Button,
   Card,
   EmptyState,
-  IconButton,
   PageHeader,
+  usePrimaryAction,
   ProgressBar,
   Sheet,
   Stack,
 } from '@/ui'
 import { formatMonthName } from '@/utils/dates'
+import { capitalize } from '@/utils/text'
 import { FixedExpenseForm } from './components/FixedExpenseForm'
 import { FixedList } from './components/FixedList'
 import { PayFixedForm } from './components/PayFixedForm'
@@ -31,6 +32,7 @@ const SHEET_TITLE = { create: 'Nuevo gasto fijo', edit: 'Editar gasto fijo', pay
 export function FixedPage() {
   const overview = useFixedOverview()
   const [sheet, setSheet] = useState<SheetState>(null)
+  usePrimaryAction('Agregar gasto fijo', () => setSheet({ kind: 'create' }))
 
   if (!overview) return null
 
@@ -41,26 +43,14 @@ export function FixedPage() {
 
   return (
     <Stack gap={6}>
-      <PageHeader
-        title="Gastos fijos"
-        subtitle={`Tu mes de ${monthName}`}
-        action={
-          !isEmpty && (
-            <IconButton
-              label="Agregar gasto fijo"
-              icon={<Plus />}
-              variant="accent"
-              onClick={() => setSheet({ kind: 'create' })}
-            />
-          )
-        }
-      />
+      {/* Adding a fixed expense is the bottom nav's + on this screen */}
+      <PageHeader title="Gastos fijos" subtitle={capitalize(monthName)} />
 
       {isEmpty ? (
         <EmptyState
           icon={<CalendarCheck />}
           title="Todavía no cargaste gastos fijos"
-          description="Alquiler, expensas, internet: lo que pagás todos los meses. Cargalos una vez y cada mes te mostramos cuáles faltan pagar."
+          description="Alquiler, expensas, internet: cargalos una vez y cada mes ves cuáles faltan pagar."
           action={
             <Button
               size="lg"

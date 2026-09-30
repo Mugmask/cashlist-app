@@ -1,0 +1,59 @@
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.summaryText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  overflow: hidden;
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.facts {
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+}
+
+.fact + .fact {
+  border-top: 1px solid var(--color-border);
+}
+
+.fact dt {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.fact dd {
+  margin: 0;
+  overflow-wrap: anywhere; /* long notes wrap instead of widening the sheet */
+}
+
+.pending {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-warning);
+}
+
+.pending svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}

@@ -1,7 +1,8 @@
 import { RotateCcw } from 'lucide-react'
 import { CategoryIcon } from '@/features/expenses'
 import { runSync } from '@/lib/sync'
-import { Amount, Button, cx, IconButton, useToast, VisuallyHidden } from '@/ui'
+import { Button, cx, IconButton, useToast, VisuallyHidden } from '@/ui'
+import { formatCurrencyShort } from '@/utils/currency'
 import { dueLabel } from '../dueLabel'
 import { fixedRepo } from '../fixedRepo'
 import type { FixedLine } from '../overview'
@@ -36,14 +37,14 @@ export function FixedList({ lines, onEdit, onPay }: FixedListProps) {
                   <VisuallyHidden>Editar </VisuallyHidden>
                   {line.fixed.name}
                 </span>
-                <span className={cx(styles.due, styles[due.tone])}>{due.text}</span>
+                <span className={styles.detail}>
+                  <span className={cx(styles.amount, isPaid && styles.muted)}>
+                    {formatCurrencyShort(line.shown.value, line.shown.currency)}
+                  </span>
+                  <span className={cx(styles.due, styles[due.tone])}>{due.text}</span>
+                </span>
               </span>
             </button>
-            <Amount
-              value={line.amount}
-              tone={isPaid ? 'muted' : 'default'}
-              compactFrom={10_000_000}
-            />
             {isPaid ? (
               <IconButton
                 label={`Deshacer pago de ${line.fixed.name}`}

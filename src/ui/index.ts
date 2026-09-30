@@ -10,6 +10,12 @@ export { cx } from './cx'
 export { EmptyState, type EmptyStateProps } from './EmptyState/EmptyState'
 export { IconButton, type IconButtonProps } from './IconButton/IconButton'
 export { PageHeader, type PageHeaderProps } from './PageHeader/PageHeader'
+export { PrimaryActionProvider } from './PrimaryAction/PrimaryAction'
+export {
+  type PrimaryAction,
+  useCurrentPrimaryAction,
+  usePrimaryAction,
+} from './PrimaryAction/usePrimaryAction'
 export { ProgressBar, type ProgressBarProps } from './ProgressBar/ProgressBar'
 export {
   SegmentedControl,

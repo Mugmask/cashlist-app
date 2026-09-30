@@ -1,11 +1,32 @@
-import { db, type Expense, type PaymentMethod } from '@/lib/db'
+import { db, type ExchangeRateKind, type Expense, type PaymentMethod } from '@/lib/db'
 import { startOfMonth } from '@/utils/dates'
+
+// What can be corrected on an existing expense. `note: undefined` clears it.
+export type ExpenseChanges = Partial<
+  Pick<
+    Expense,
+    | 'amount'
+    | 'category'
+    | 'note'
+    | 'paymentMethod'
+    | 'spentAt'
+    | 'currency'
+    | 'foreignAmount'
+    | 'exchangeRate'
+    | 'exchangeRateKind'
+  >
+>
 
 export interface NewExpense {
   amount: number
   category: string // an ExpenseCategoryId; unknown ids show as "Otros"
   note?: string
   paymentMethod?: PaymentMethod // cash when missing
+  // Only for an expense in dollars (then `amount` is the pesos it came to)
+  currency?: 'USD'
+  foreignAmount?: number
+  exchangeRate?: number
+  exchangeRateKind?: ExchangeRateKind
   // Only for the payment of a fixed expense
   fixedExpenseId?: string
   fixedPeriod?: string
@@ -55,6 +76,19 @@ export const expensesRepo = {
     }
     await db.expenses.add(expense)
     return id
+  },
+
+  async update(id: string, changes: ExpenseChanges, now = new Date()) {
+    await db.expenses.update(id, {
+      ...changes,
+      updatedAt: now.toISOString(),
+      pending: 1,
+    })
+  },
+
+  // One expense, deleted or not (undefined if it doesn't exist). For live queries.
+  get(id: string) {
+    return db.expenses.get(id)
   },
 
   async remove(id: string, now = new Date()) {

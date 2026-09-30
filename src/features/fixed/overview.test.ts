@@ -78,3 +78,45 @@ describe('buildFixedOverview', () => {
     expect(twice.paid[0].amount).toBe(16000)
   })
 })
+
+describe('buildFixedOverview in dollars', () => {
+  const today = new Date(2026, 8, 10, 12)
+  const spotify: FixedExpense = {
+    ...fixed('Spotify', 12, 20),
+    currency: 'USD',
+    paymentMethod: 'card',
+  }
+  const vpn: FixedExpense = { ...fixed('VPN', 5, 20), currency: 'USD' } // cash: blue
+  const paidInDollars: Expense = {
+    ...payment('Spotify', 24000, '2026-09-05T10:00:00.000Z'),
+    currency: 'USD',
+    foreignAmount: 12,
+    exchangeRate: 2000,
+    exchangeRateKind: 'tarjeta',
+  }
+
+  it('estimates pending dollars in pesos at the rate for how they are paid', () => {
+    const { pending, totals } = buildFixedOverview([spotify, vpn], [], today, {
+      tarjeta: 2000,
+      blue: 1500,
+    })
+    expect(pending.map((l) => [l.fixed.id, l.amount, l.shown])).toEqual([
+      ['Spotify', 24000, { value: 12, currency: 'USD' }],
+      ['VPN', 7500, { value: 5, currency: 'USD' }],
+    ])
+    expect(totals.expected).toBe(31500)
+  })
+
+  it('counts a dollar one as 0 pesos until a rate is known', () => {
+    expect(buildFixedOverview([vpn], [], today).totals.expected).toBe(0)
+  })
+
+  it('uses what was actually paid, and shows it in dollars', () => {
+    const { paid, totals } = buildFixedOverview([spotify], [paidInDollars], today, {
+      tarjeta: 9999,
+    })
+    expect(paid[0].amount).toBe(24000)
+    expect(paid[0].shown).toEqual({ value: 12, currency: 'USD' })
+    expect(totals).toEqual({ expected: 24000, paid: 24000, remaining: 0 })
+  })
+})

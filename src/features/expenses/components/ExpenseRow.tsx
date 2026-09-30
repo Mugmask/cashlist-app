@@ -1,6 +1,6 @@
-import { CloudOff, Trash2 } from 'lucide-react'
+import { CloudOff } from 'lucide-react'
 import type { Expense } from '@/lib/db'
-import { Amount, IconButton } from '@/ui'
+import { Amount, VisuallyHidden } from '@/ui'
 import { formatShortDay } from '@/utils/dates'
 import { getCategory } from '../categories'
 import { isFixed } from '../selectors'
@@ -10,36 +10,35 @@ import styles from './ExpenseRow.module.css'
 export interface ExpenseRowProps {
   expense: Expense
   showDate?: boolean
-  onRemove?: (id: string) => void
+  onOpen: (id: string) => void // shows its detail, where it can be edited or deleted
 }
 
-export function ExpenseRow({ expense, showDate = true, onRemove }: ExpenseRowProps) {
-  const fixed = isFixed(expense)
-  const category = getCategory(expense.category).label
+// Just what tells expenses apart at a glance; note, payment method and the rest are in the detail
+export function ExpenseRow({ expense, showDate = true, onOpen }: ExpenseRowProps) {
   // A fixed payment reads as its name ("Alquiler"); a regular expense as its category
-  const title = fixed && expense.note ? expense.note : category
-  const meta = [showDate && formatShortDay(expense.spentAt), fixed ? category : expense.note]
-    .filter(Boolean)
-    .join(' · ')
+  const title =
+    isFixed(expense) && expense.note ? expense.note : getCategory(expense.category).label
 
   return (
     <li className={styles.row}>
-      <CategoryIcon category={expense.category} />
-      <div className={styles.info}>
-        <span className={styles.titleLine}>
-          <span className={styles.title}>{title}</span>
-          {fixed && <span className={styles.badge}>Fijo</span>}
-          {expense.paymentMethod === 'card' && <span className={styles.badge}>Tarjeta</span>}
+      <button type="button" className={styles.body} onClick={() => onOpen(expense.id)}>
+        <CategoryIcon category={expense.category} />
+        <span className={styles.info}>
+          <span className={styles.title}>
+            <VisuallyHidden>Ver detalle de </VisuallyHidden>
+            {title}
+          </span>
+          {showDate && <span className={styles.meta}>{formatShortDay(expense.spentAt)}</span>}
         </span>
-        {meta && <span className={styles.meta}>{meta}</span>}
-      </div>
-      {expense.pending === 1 && (
-        <CloudOff className={styles.pending} role="img" aria-label="Sin sincronizar" />
-      )}
-      <Amount value={expense.amount} compactFrom={10_000_000} />
-      {onRemove && (
-        <IconButton label="Borrar gasto" icon={<Trash2 />} onClick={() => onRemove(expense.id)} />
-      )}
+        {expense.pending === 1 && (
+          <CloudOff className={styles.pending} role="img" aria-label="Sin sincronizar" />
+        )}
+        {expense.currency === 'USD' ? (
+          <Amount value={expense.foreignAmount!} currency="USD" />
+        ) : (
+          <Amount value={expense.amount} compactFrom={10_000_000} />
+        )}
+      </button>
     </li>
   )
 }

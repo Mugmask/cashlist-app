@@ -1,9 +1,10 @@
 import { ChevronRight, Plus, Sparkles } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { CardHomeCard } from '@/features/card'
 import {
   CategoryIcon,
+  ExpenseDetailSheet,
   ExpenseRow,
   getCategory,
   isFixed,
@@ -12,6 +13,7 @@ import {
   useMonthExpenses,
 } from '@/features/expenses'
 import { FixedHomeCard } from '@/features/fixed'
+import { useProfile } from '@/features/profile'
 import { ShoppingHomeCard } from '@/features/shopping'
 import { Amount, Button, Card, EmptyState, ProgressBar, Stack, VisuallyHidden } from '@/ui'
 import { formatMonthName } from '@/utils/dates'
@@ -23,6 +25,8 @@ const RECENT_COUNT = 5
 export function HomePage() {
   const month = useMonthExpenses()
   const addExpense = useAddExpense()
+  const income = useProfile()?.monthlyIncome
+  const [openId, setOpenId] = useState<string | null>(null)
 
   if (!month) return null
 
@@ -37,6 +41,7 @@ export function HomePage() {
       <Card as="section" variant="hero" padding="lg" aria-label="Resumen del mes">
         <span className={styles.heroLabel}>Gastaste en {formatMonthName()}</span>
         <Amount value={total} size="xl" />
+        {income !== undefined && <IncomeBar spent={total} income={income} />}
         <dl className={styles.stats}>
           <div className={styles.stat}>
             <dt>Variables</dt>
@@ -53,7 +58,7 @@ export function HomePage() {
           <div className={styles.stat}>
             <dt>Por día</dt>
             <dd>
-              <Amount value={dailyAverage} size="sm" compactFrom={1_000_000} />
+              <Amount value={Math.round(dailyAverage)} size="sm" compactFrom={1_000_000} />
             </dd>
           </div>
         </dl>
@@ -67,7 +72,7 @@ export function HomePage() {
         <EmptyState
           icon={<Sparkles />}
           title="Todavía no cargaste gastos este mes"
-          description="Cada gasto que cargues suma acá, así ves en qué se te va la plata."
+          description="Cargá tu primer gasto y mirá en qué se va la plata."
           action={
             <Button size="lg" icon={<Plus aria-hidden />} onClick={addExpense}>
               Cargar gasto
@@ -91,23 +96,18 @@ export function HomePage() {
                             <span className={styles.categoryLabel}>{label}</span>
                             <Amount value={c.total} size="sm" compactFrom={10_000_000} />
                           </div>
-                          <div className={styles.categoryLine}>
-                            <ProgressBar
-                              label={`${label}: ${Math.round(share * 100)}% de lo variable`}
-                              value={c.total}
-                              max={variableTotal}
-                              tone="accent"
-                              className={styles.share}
-                            />
-                            <span className={styles.percent}>{Math.round(share * 100)}%</span>
-                          </div>
+                          <ProgressBar
+                            label={`${label}: ${Math.round(share * 100)}% de lo variable`}
+                            value={c.total}
+                            max={variableTotal}
+                            tone="accent"
+                          />
                         </div>
                       </li>
                     )
                   })}
                 </ul>
               </Card>
-              <p className={styles.footnote}>Sin contar los gastos fijos.</p>
             </HomeSection>
           )}
 
@@ -123,10 +123,11 @@ export function HomePage() {
             <Card padding="none">
               <ul className={styles.list}>
                 {expenses.slice(0, RECENT_COUNT).map((e) => (
-                  <ExpenseRow key={e.id} expense={e} />
+                  <ExpenseRow key={e.id} expense={e} onOpen={setOpenId} />
                 ))}
               </ul>
             </Card>
+            <ExpenseDetailSheet expenseId={openId} onClose={() => setOpenId(null)} />
           </HomeSection>
         </>
       )}
@@ -151,5 +152,24 @@ function HomeSection({
       </header>
       {children}
     </section>
+  )
+}
+
+// How much of the month's income is spent, once the profile has it
+function IncomeBar({ spent, income }: { spent: number; income: number }) {
+  const left = income - spent
+  return (
+    <div className={styles.income}>
+      <ProgressBar label="Ingreso gastado" value={spent} max={income} tone="limit" />
+      <div className={styles.incomeLine}>
+        <span className={left < 0 ? styles.over : undefined}>
+          {left < 0 ? 'Te pasaste' : 'Te quedan'}{' '}
+          <Amount value={Math.abs(left)} size="sm" compactFrom={1_000_000} />
+        </span>
+        <span>
+          de <Amount value={income} size="sm" compactFrom={1_000_000} />
+        </span>
+      </div>
+    </div>
   )
 }

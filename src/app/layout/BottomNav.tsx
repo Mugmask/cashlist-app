@@ -9,7 +9,7 @@ import {
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { NavLink } from 'react-router'
 import { useAddExpense } from '@/features/expenses'
-import { cx } from '@/ui'
+import { cx, useCurrentPrimaryAction } from '@/ui'
 import styles from './BottomNav.module.css'
 import { BAR_SHAPE, notchedBarPath } from './notchedBar'
 
@@ -50,6 +50,8 @@ function useWidth() {
 // real width: it clips the glass and draws the hairline edge, so both always line up.
 export function BottomNav() {
   const addExpense = useAddExpense()
+  // The + does what the current screen needs (a fixed expense in Fijos...); by default, an expense
+  const action = useCurrentPrimaryAction() ?? { label: 'Cargar gasto', run: addExpense }
   const [dockRef, width] = useWidth()
   const path = width > 0 ? notchedBarPath({ ...BAR_SHAPE, width }) : null
 
@@ -81,8 +83,8 @@ export function BottomNav() {
             <button
               type="button"
               className={styles.fab}
-              aria-label="Cargar gasto"
-              onClick={addExpense}
+              aria-label={action.label}
+              onClick={action.run}
             >
               <Plus aria-hidden />
             </button>

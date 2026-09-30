@@ -1,12 +1,12 @@
-import { LogOut } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Outlet, ScrollRestoration, useSearchParams } from 'react-router'
 import { Login, useSession } from '@/features/auth'
 import { AddExpenseProvider } from '@/features/expenses'
+import { ProfileButton } from '@/features/profile'
 import { requestPersistentStorage } from '@/lib/db'
 import { supabase } from '@/lib/supabase'
 import { useAutoSync } from '@/lib/sync'
-import { Alert, IconButton, ToastProvider } from '@/ui'
+import { Alert, PrimaryActionProvider, ToastProvider } from '@/ui'
 import { UpdatePrompt } from '../UpdatePrompt'
 import { AuthShell } from './AuthShell'
 import { BottomNav } from './BottomNav'
@@ -38,7 +38,7 @@ export function RootLayout() {
       ) : session === undefined ? (
         <SplashScreen />
       ) : session ? (
-        <AppShell />
+        <AppShell email={session.user.email} />
       ) : (
         <AuthShell>
           <Login />
@@ -50,7 +50,7 @@ export function RootLayout() {
   )
 }
 
-function AppShell() {
+function AppShell({ email }: { email?: string }) {
   const syncError = useAutoSync()
   const mainRef = useRef<HTMLElement>(null)
   usePageTitle()
@@ -69,22 +69,20 @@ function AppShell() {
 
   return (
     <AddExpenseProvider initiallyOpen={openedFromShortcut}>
-      <div className={styles.shell}>
-        <header className={styles.header}>
-          <Brand />
-          <OfflineBadge />
-          <IconButton
-            label="Cerrar sesión"
-            icon={<LogOut />}
-            onClick={() => supabase!.auth.signOut()}
-          />
-        </header>
-        <main ref={mainRef} className={styles.main}>
-          {syncError && <Alert tone="danger">{syncError}</Alert>}
-          <Outlet />
-        </main>
-        <BottomNav />
-      </div>
+      <PrimaryActionProvider>
+        <div className={styles.shell}>
+          <header className={styles.header}>
+            <Brand />
+            <OfflineBadge />
+            <ProfileButton email={email} />
+          </header>
+          <main ref={mainRef} className={styles.main}>
+            {syncError && <Alert tone="danger">{syncError}</Alert>}
+            <Outlet />
+          </main>
+          <BottomNav />
+        </div>
+      </PrimaryActionProvider>
     </AddExpenseProvider>
   )
 }

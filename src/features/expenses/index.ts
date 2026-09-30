@@ -3,6 +3,9 @@ export { EXPENSE_CATEGORIES, getCategory, type ExpenseCategoryId } from './categ
 export { useAddExpense } from './addExpense'
 export { AddExpenseProvider } from './components/AddExpenseProvider'
 export { CategoryIcon } from './components/CategoryIcon'
+export { ConversionNote, ManualRateField } from './components/DollarConversion'
+export { CURRENCY_OPTIONS } from './currencies'
+export { ExpenseDetailSheet } from './components/ExpenseDetailSheet'
 export { ExpenseRow } from './components/ExpenseRow'
 export {
   addExpense,

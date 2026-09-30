@@ -3,10 +3,13 @@ import {
   daysInMonth,
   formatDayHeading,
   formatDaysAgo,
+  formatFullDateTime,
+  fromPeriod,
   shiftMonth,
   startOfMonth,
   toDayKey,
   toPeriod,
+  withDayKey,
 } from './dates'
 
 describe('shiftMonth', () => {
@@ -80,5 +83,30 @@ describe('formatDayHeading', () => {
     const heading = formatDayHeading(new Date(2026, 8, 28, 12).toISOString(), now)
     expect(heading).toMatch(/^L/) // lunes
     expect(heading).toContain('28')
+  })
+})
+
+describe('formatFullDateTime', () => {
+  it('reads as a full local date with the time', () => {
+    const text = formatFullDateTime(new Date(2026, 8, 28, 9, 5).toISOString())
+    expect(text).toMatch(/^Lunes/)
+    expect(text).toContain('28 de septiembre de 2026')
+    expect(text).toContain('09:05')
+    expect(formatFullDateTime(new Date(2026, 8, 28, 20, 31).toISOString())).toMatch(/20:31$/)
+  })
+})
+
+describe('withDayKey', () => {
+  it('moves to another local day keeping the time', () => {
+    const moved = new Date(withDayKey(new Date(2026, 8, 30, 21, 45).toISOString(), '2026-09-02'))
+    expect(toDayKey(moved)).toBe('2026-09-02')
+    expect([moved.getHours(), moved.getMinutes()]).toEqual([21, 45])
+  })
+})
+
+describe('fromPeriod', () => {
+  it('is the first local day of the month', () => {
+    expect(fromPeriod('2026-09')).toEqual(new Date(2026, 8, 1))
+    expect(toPeriod(fromPeriod('2026-12'))).toBe('2026-12')
   })
 })

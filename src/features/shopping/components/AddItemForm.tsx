@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { useRef, useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent, type RefObject } from 'react'
 import { runSync } from '@/lib/sync'
 import { IconButton, TextField } from '@/ui'
 import { parseItemInput } from '../items'
@@ -11,10 +11,18 @@ const COPY = {
   pantry: { label: 'Agregar a la despensa', placeholder: 'Algo que tenés en casa…' },
 }
 
-// 'list' puts the product on the shopping list; 'pantry' registers it as already at home
-export function AddItemForm({ target }: { target: 'list' | 'pantry' }) {
+// 'list' puts the product on the shopping list; 'pantry' registers it as already at home.
+// `inputRef` lets the page focus the field (the bottom nav's + on this screen).
+export function AddItemForm({
+  target,
+  inputRef: outerRef,
+}: {
+  target: 'list' | 'pantry'
+  inputRef?: RefObject<HTMLInputElement | null>
+}) {
   const [text, setText] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
+  const ownRef = useRef<HTMLInputElement>(null)
+  const inputRef = outerRef ?? ownRef
   const parsed = parseItemInput(text)
   const copy = COPY[target]
 

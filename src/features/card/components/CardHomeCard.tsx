@@ -19,7 +19,6 @@ export function CardHomeCard() {
 
   const thisMonth = formatMonthName(now)
   const lastMonth = formatMonthName(shiftMonth(now, -1))
-  const nextMonth = formatMonthName(shiftMonth(now, 1))
 
   async function handleMarkPaid(period: string) {
     await cardRepo.markPaid(period)
@@ -69,16 +68,9 @@ export function CardHomeCard() {
       )}
 
       <div className={styles.line}>
-        <span className={styles.label}>
-          Acumulado en {thisMonth}
-          <span className={styles.hint}>Lo pagás en {nextMonth}</span>
-        </span>
+        <span className={styles.label}>Acumulado en {thisMonth}</span>
         <Amount value={current.total} size="lg" />
       </div>
-
-      <p className={styles.note}>
-        Pagar el resumen no suma como gasto: cada compra ya se contó cuando la hiciste.
-      </p>
     </Card>
   )
 }

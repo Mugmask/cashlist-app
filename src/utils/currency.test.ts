@@ -10,6 +10,20 @@ import {
   splitCurrency,
 } from './currency'
 
+describe('dollars', () => {
+  it('format as US$ with the Argentine separators', () => {
+    expect(formatCurrency(1234.5, 'USD')).toMatch(/^US\$\s1\.234,50$/)
+    const { whole, fraction } = splitCurrency(50, 'USD')
+    expect(whole).toMatch(/^US\$\s50$/)
+    expect(fraction).toBe(',00')
+  })
+
+  it('short format drops only zero cents', () => {
+    expect(formatCurrencyShort(15, 'USD')).toMatch(/^US\$\s15$/)
+    expect(formatCurrencyShort(15.99, 'USD')).toMatch(/^US\$\s15,99$/)
+  })
+})
+
 describe('formatCurrencyShort', () => {
   it('drops the cents of whole amounts', () => {
     expect(formatCurrencyShort(30000)).toBe(formatCurrency(30000).replace(',00', ''))

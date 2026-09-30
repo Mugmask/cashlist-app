@@ -1,4 +1,14 @@
 const ars = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
+const usd = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' })
+
+// Pesos unless said otherwise; dollars show as "US$ 50"
+export type Currency = 'ARS' | 'USD'
+const formatters = { ARS: ars, USD: usd }
+const usdWhole = new Intl.NumberFormat('es-AR', {
+  style: 'currency',
+  currency: 'USD',
+  maximumFractionDigits: 0,
+})
 const arsWhole = new Intl.NumberFormat('es-AR', {
   style: 'currency',
   currency: 'ARS',
@@ -13,14 +23,17 @@ const MILLION = 1_000_000
 export const MAX_AMOUNT = 999_999_999_999.99
 const MAX_INTEGER_DIGITS = 12
 
-// "$ 12.500,00"
-export function formatCurrency(amount: number) {
-  return ars.format(amount)
+// "$ 12.500,00", "US$ 50,00"
+export function formatCurrency(amount: number, currency: Currency = 'ARS') {
+  return formatters[currency].format(amount)
 }
 
 // "$ 12.500" for whole amounts, "$ 12.500,50" otherwise: for secondary text, where ",00" is noise.
 // From a million on it abbreviates ("$ 38,9 M"), so inline text never blows up the layout.
-export function formatCurrencyShort(amount: number): string {
+export function formatCurrencyShort(amount: number, currency: Currency = 'ARS'): string {
+  // Dollar amounts here are never millions: only the cents go
+  if (currency === 'USD')
+    return Number.isInteger(amount) ? usdWhole.format(amount) : usd.format(amount)
   if (Math.abs(amount) >= MILLION) return formatCurrencyCompact(amount)
   return Number.isInteger(amount) ? arsWhole.format(amount) : ars.format(amount)
 }
@@ -35,8 +48,8 @@ export function formatCurrencyCompact(amount: number): string {
 }
 
 // "$ 12.500,00" → { whole: "$ 12.500", fraction: ",00" }, so the cents can be styled apart
-export function splitCurrency(amount: number) {
-  const parts = ars.formatToParts(amount)
+export function splitCurrency(amount: number, currency: Currency = 'ARS') {
+  const parts = formatters[currency].formatToParts(amount)
   const decimalIndex = parts.findIndex((p) => p.type === 'decimal')
   const cut = decimalIndex === -1 ? parts.length : decimalIndex
   const join = (list: Intl.NumberFormatPart[]) => list.map((p) => p.value).join('')

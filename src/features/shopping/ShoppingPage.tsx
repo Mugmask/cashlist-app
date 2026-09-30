@@ -1,7 +1,16 @@
 import { House, ShoppingBasket } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router'
-import { Button, Card, EmptyState, PageHeader, SegmentedControl, Sheet, Stack } from '@/ui'
+import {
+  Button,
+  Card,
+  EmptyState,
+  PageHeader,
+  SegmentedControl,
+  Sheet,
+  Stack,
+  usePrimaryAction,
+} from '@/ui'
 import { AddItemForm } from './components/AddItemForm'
 import { FinishPurchaseForm } from './components/FinishPurchaseForm'
 import { ItemList } from './components/ItemList'
@@ -18,6 +27,11 @@ export function ShoppingPage() {
   const tab: Tab = params.get('tab') === 'pantry' ? 'pantry' : 'list'
   const [isFinishing, setIsFinishing] = useState(false)
   const setTab = (next: Tab) => setParams(next === 'list' ? {} : { tab: next }, { replace: true })
+  // Adding here is typing into the tab's field, so the + just takes you there (keyboard up)
+  const addInputRef = useRef<HTMLInputElement>(null)
+  usePrimaryAction(tab === 'list' ? 'Agregar a la lista' : 'Agregar a la despensa', () =>
+    addInputRef.current?.focus(),
+  )
 
   if (!shopping) return null
 
@@ -40,7 +54,7 @@ export function ShoppingPage() {
 
       {tab === 'list' ? (
         <Stack gap={5} role="tabpanel" aria-label="Lista">
-          <AddItemForm target="list" />
+          <AddItemForm target="list" inputRef={addInputRef} />
 
           {listCount === 0 ? (
             pantry.length === 0 ? (
@@ -48,13 +62,13 @@ export function ShoppingPage() {
               <EmptyState
                 icon={<ShoppingBasket />}
                 title="Tu lista está vacía"
-                description="Escribí lo que necesitás en «Agregar a la lista». Cuando termines la compra, queda en «En casa» para volver a pedirlo cuando se acabe."
+                description="Escribí arriba lo que necesitás."
               />
             ) : (
               <EmptyState
                 icon={<ShoppingBasket />}
                 title="No te falta nada"
-                description="Cuando algo se termine, marcalo como «Se acabó» en «En casa» y vuelve a esta lista."
+                description="Si algo se acaba, marcalo en «En casa»."
                 action={
                   <Button variant="secondary" onClick={() => setTab('pantry')}>
                     Ir a En casa
@@ -91,13 +105,13 @@ export function ShoppingPage() {
         </Stack>
       ) : (
         <Stack gap={5} role="tabpanel" aria-label="En casa">
-          <AddItemForm target="pantry" />
+          <AddItemForm target="pantry" inputRef={addInputRef} />
 
           {pantry.length === 0 ? (
             <EmptyState
               icon={<House />}
               title="Todavía no hay nada en casa"
-              description="Lo que compres aparece acá cuando termines la compra. También podés agregar lo que ya tenés en «Agregar a la despensa»."
+              description="Lo que compres aparece acá."
             />
           ) : (
             <Card padding="none">

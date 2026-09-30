@@ -22,6 +22,27 @@ describe('expensesRepo', () => {
     })
   })
 
+  it('update applies the changes, bumps updatedAt and marks it pending', async () => {
+    const id = await expensesRepo.add(
+      { amount: 800, category: 'delivery', note: 'Pizza' },
+      new Date('2026-09-15T12:00:00Z'),
+    )
+    await db.expenses.update(id, { pending: 0 })
+
+    const later = new Date('2026-09-16T08:00:00Z')
+    await expensesRepo.update(id, { amount: 950, category: 'going_out', note: undefined }, later)
+
+    const stored = await db.expenses.get(id)
+    expect(stored).toMatchObject({
+      amount: 950,
+      category: 'going_out',
+      spentAt: '2026-09-15T12:00:00.000Z',
+      updatedAt: later.toISOString(),
+      pending: 1,
+    })
+    expect(stored?.note).toBeUndefined()
+  })
+
   it('remove soft-deletes, bumps updatedAt and marks it pending', async () => {
     const id = await expensesRepo.add(
       { amount: 800, category: 'delivery' },

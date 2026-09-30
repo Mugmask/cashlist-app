@@ -88,4 +88,34 @@ describe('fixedRepo', () => {
 
     expect((await db.expenses.get(expenseId))?.paymentMethod).toBe('card')
   })
+
+  it('a dollar fixed expense is paid in dollars, converted at the given rate', async () => {
+    const id = await fixedRepo.create({
+      name: 'Spotify',
+      category: 'subscriptions',
+      amount: 12,
+      paymentMethod: 'card',
+      currency: 'USD',
+    })
+    const rate = { kind: 'tarjeta' as const, rate: 2002 }
+    const expenseId = await fixedRepo.pay((await db.fixedExpenses.get(id))!, 13, '2026-09', rate)
+
+    expect(await db.expenses.get(expenseId)).toMatchObject({
+      amount: 26026,
+      currency: 'USD',
+      foreignAmount: 13,
+      exchangeRate: 2002,
+      exchangeRateKind: 'tarjeta',
+    })
+    // the new dollar amount is the one suggested from now on
+    expect((await db.fixedExpenses.get(id))?.amount).toBe(13)
+  })
+
+  it('update back to pesos clears the currency', async () => {
+    const input = { name: 'VPN', category: 'other', amount: 5, paymentMethod: 'cash' as const }
+    const id = await fixedRepo.create({ ...input, currency: 'USD' })
+    await fixedRepo.update(id, { ...input, amount: 7000 })
+
+    expect((await db.fixedExpenses.get(id))?.currency).toBeUndefined()
+  })
 })

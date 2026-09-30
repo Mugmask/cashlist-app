@@ -13,6 +13,9 @@ export interface Syncable {
 // is paid in one statement the next month. Missing means cash (rows from before cards existed).
 export type PaymentMethod = 'cash' | 'card'
 
+// Which dollar a rate is (dolarapi.com's names): card purchases go at "tarjeta", cash at "blue"
+export type ExchangeRateKind = 'tarjeta' | 'blue' | 'oficial'
+
 export interface Expense extends Syncable {
   amount: number
   category: string
@@ -22,6 +25,18 @@ export interface Expense extends Syncable {
   fixedExpenseId?: string
   fixedPeriod?: string // "2026-09": the month it pays, which may differ from spentAt's month
   paymentMethod?: PaymentMethod
+  // Set only for an expense in dollars. `amount` is still in pesos (foreignAmount × rate),
+  // so every total keeps adding pesos; lists show the dollars.
+  currency?: 'USD' // missing means pesos
+  foreignAmount?: number // what was charged, in dollars
+  exchangeRate?: number // pesos per dollar when it was loaded
+  exchangeRateKind?: ExchangeRateKind
+}
+
+// The user's profile, a single row ('me'). Monthly income is in pesos.
+export interface Profile extends Syncable {
+  name?: string
+  monthlyIncome?: number
 }
 
 // Something charged every month (rent, internet...). Its amount is the one suggested next
@@ -32,6 +47,9 @@ export interface FixedExpense extends Syncable {
   amount: number
   dueDay?: number // 1-31, day of the month it's due
   paymentMethod?: PaymentMethod // how its payments are made
+  // Charged in dollars (Netflix, Spotify...): then `amount` is in dollars, and each payment
+  // is a dollar expense converted at that day's rate
+  currency?: 'USD' // missing means pesos
 }
 
 // A card statement marked as paid. The id is the month of the purchases ("2026-09").
@@ -62,6 +80,7 @@ export const db = new Dexie('cashlist') as Dexie & {
   shoppingItems: EntityTable<ShoppingItem, 'id'>
   fixedExpenses: EntityTable<FixedExpense, 'id'>
   cardStatements: EntityTable<CardStatement, 'id'>
+  profile: EntityTable<Profile, 'id'>
   syncState: EntityTable<SyncState, 'key'>
 }
 
@@ -205,6 +224,11 @@ db.version(8).stores({
 // v9: credit card statements (payment methods need no migration: missing means cash)
 db.version(9).stores({
   cardStatements: 'id, pending',
+})
+
+// v10: the profile (dollar expenses need no migration: missing currency means pesos)
+db.version(10).stores({
+  profile: 'id, pending',
 })
 
 // Asks the browser not to evict IndexedDB when storage runs low

@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react'
-import { EXPENSE_CATEGORIES, PAYMENT_METHOD_OPTIONS } from '@/features/expenses'
+import { CURRENCY_OPTIONS, EXPENSE_CATEGORIES, PAYMENT_METHOD_OPTIONS } from '@/features/expenses'
 import type { FixedExpense } from '@/lib/db'
+import { convertAmount } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { AmountField, Button, ChipGroup, Stack, TextField, useToast } from '@/ui'
-import { amountToInput, parseAmount } from '@/utils/currency'
+import { amountToInput, parseAmount, type Currency } from '@/utils/currency'
 import { fixedRepo } from '../fixedRepo'
 
 const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map(({ id, label, icon: Icon }) => ({
@@ -31,6 +32,18 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
   const [category, setCategory] = useState(fixed?.category ?? 'rent')
   const [dueDay, setDueDay] = useState(fixed?.dueDay ? String(fixed.dueDay) : '')
   const [paymentMethod, setPaymentMethod] = useState(fixed?.paymentMethod ?? 'cash')
+  const [currency, setCurrency] = useState<Currency>(fixed?.currency ?? 'ARS')
+
+  // Editing, switching currency converts the amount already there (at today's rate)
+  async function changeCurrency(next: Currency) {
+    setCurrency(next)
+    const typed = amount
+    const value = parseAmount(typed)
+    if (!fixed || value === null) return
+    const converted = await convertAmount(value, next, paymentMethod)
+    // Unless it was retyped meanwhile
+    if (converted) setAmount((current) => (current === typed ? amountToInput(converted) : current))
+  }
 
   const parsedAmount = parseAmount(amount)
   const parsedDueDay = parseDueDay(dueDay)
@@ -45,6 +58,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
       amount: parsedAmount!,
       dueDay: parsedDueDay ?? undefined,
       paymentMethod,
+      currency: currency === 'USD' ? ('USD' as const) : undefined,
     }
     if (fixed) await fixedRepo.update(fixed.id, input)
     else await fixedRepo.create(input)
@@ -72,7 +86,19 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
           autoFocus={!fixed}
           required
         />
-        <AmountField label="Monto mensual" value={amount} onValueChange={setAmount} required />
+        <AmountField
+          label={currency === 'USD' ? 'Monto mensual en dólares' : 'Monto mensual'}
+          symbol={currency === 'USD' ? 'US$' : '$'}
+          value={amount}
+          onValueChange={setAmount}
+          required
+        />
+        <ChipGroup
+          label="Moneda"
+          options={CURRENCY_OPTIONS}
+          value={currency}
+          onChange={changeCurrency}
+        />
         <ChipGroup
           label="Categoría"
           showLabel

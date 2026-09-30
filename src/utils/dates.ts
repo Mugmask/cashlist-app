@@ -1,3 +1,5 @@
+import { capitalize } from './text'
+
 const shortDay = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' })
 const longDay = new Intl.DateTimeFormat('es-AR', {
   weekday: 'long',
@@ -5,6 +7,17 @@ const longDay = new Intl.DateTimeFormat('es-AR', {
   month: 'short',
 })
 const monthName = new Intl.DateTimeFormat('es-AR', { month: 'long' })
+const fullDay = new Intl.DateTimeFormat('es-AR', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+})
+const time = new Intl.DateTimeFormat('es-AR', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
 
 export function startOfMonth(date = new Date()) {
   return new Date(date.getFullYear(), date.getMonth(), 1)
@@ -42,8 +55,27 @@ export function formatDayHeading(iso: string, now = new Date()) {
   if (key === toDayKey(now)) return 'Hoy'
   const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
   if (key === toDayKey(yesterday)) return 'Ayer'
-  const text = longDay.format(new Date(iso))
-  return text.charAt(0).toUpperCase() + text.slice(1)
+  return capitalize(longDay.format(new Date(iso)))
+}
+
+// "Lunes, 28 de septiembre de 2026, 12:30"
+export function formatFullDateTime(iso: string) {
+  const date = new Date(iso)
+  return `${capitalize(fullDay.format(date))}, ${time.format(date)}`
+}
+
+// The same moment moved to another local calendar day ("2026-09-28"), keeping the time
+export function withDayKey(iso: string, dayKey: string) {
+  const date = new Date(iso)
+  const [year, month, day] = dayKey.split('-').map(Number)
+  date.setFullYear(year, month - 1, day)
+  return date.toISOString()
+}
+
+// "2026-09" → the first day of that month
+export function fromPeriod(period: string) {
+  const [year, month] = period.split('-').map(Number)
+  return new Date(year, month - 1, 1)
 }
 
 const DAY_MS = 86_400_000

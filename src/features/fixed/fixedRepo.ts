@@ -1,12 +1,15 @@
 import { addExpense, removeExpense } from '@/features/expenses'
 import { db, type FixedExpense, type PaymentMethod } from '@/lib/db'
+import { toPesos } from '@/lib/exchangeRates'
+import type { ConversionRate } from '@/lib/useDollarRate'
 
 export interface FixedExpenseInput {
   name: string
   category: string
-  amount: number
+  amount: number // in dollars when currency is USD
   dueDay?: number
   paymentMethod: PaymentMethod
+  currency?: 'USD'
 }
 
 // Single entry point to local fixed expenses: components never touch Dexie directly
@@ -25,13 +28,14 @@ export const fixedRepo = {
 
   async update(id: string, input: FixedExpenseInput, now = new Date()) {
     // A full put, not update(): Dexie's update() skips undefined fields, and a missing
-    // dueDay has to clear the stored one
+    // dueDay or currency has to clear the stored one
     const existing = await db.fixedExpenses.get(id)
     if (!existing) return
     await db.fixedExpenses.put({
       ...existing,
       ...input,
       dueDay: input.dueDay,
+      currency: input.currency,
       updatedAt: now.toISOString(),
       pending: 1,
     })
@@ -46,10 +50,27 @@ export const fixedRepo = {
   },
 
   // Records this month's payment as an expense. A different amount (prices went up) becomes
-  // the one suggested from now on.
-  async pay(fixed: FixedExpense, amount: number, period: string, now = new Date()) {
+  // the one suggested from now on. A dollar one is paid in dollars, converted at `rate`.
+  async pay(
+    fixed: FixedExpense,
+    amount: number,
+    period: string,
+    rate?: ConversionRate,
+    now = new Date(),
+  ) {
+    if (fixed.currency === 'USD' && !rate) throw new Error('A dollar payment needs a rate')
+    const money =
+      fixed.currency === 'USD' && rate
+        ? {
+            amount: toPesos(amount, rate.rate),
+            currency: 'USD' as const,
+            foreignAmount: amount,
+            exchangeRate: rate.rate,
+            exchangeRateKind: rate.kind,
+          }
+        : { amount }
     const expenseId = await addExpense({
-      amount,
+      ...money,
       category: fixed.category,
       note: fixed.name,
       fixedExpenseId: fixed.id,
