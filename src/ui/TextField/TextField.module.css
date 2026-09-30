@@ -10,6 +10,38 @@
   color: var(--color-text-muted);
 }
 
+.control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  position: absolute;
+  left: var(--space-4);
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* The icon lights up while the field has focus */
+.control:focus-within .icon {
+  color: var(--color-accent);
+}
+
+.trailing {
+  position: absolute;
+  right: var(--space-1);
+  display: flex;
+}
+
 .input {
   width: 100%;
   min-height: 48px;
@@ -22,6 +54,14 @@
   transition: border-color var(--duration-fast) var(--ease-out);
 }
 
+.withIcon {
+  padding-left: calc(var(--space-4) + 18px + var(--space-3));
+}
+
+.withTrailing {
+  padding-right: calc(44px + var(--space-2));
+}
+
 .input::placeholder {
   color: var(--color-text-subtle);
 }
@@ -29,6 +69,19 @@
 .input:focus {
   outline: none;
   border-color: var(--color-accent);
+}
+
+/*
+ * Browser autofill paints its own light background, which looks broken on a dark theme.
+ * An inset shadow is the only way to cover it; the long transition keeps it from flashing.
+ */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text);
+  caret-color: var(--color-text);
+  box-shadow: 0 0 0 100px var(--color-surface-raised) inset;
+  transition: background-color 600000s 0s;
 }
 
 .invalid {

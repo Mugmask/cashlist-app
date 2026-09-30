@@ -1,5 +1,5 @@
 import { LogOut } from 'lucide-react'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Outlet, ScrollRestoration, useSearchParams } from 'react-router'
 import { Login, useSession } from '@/features/auth'
 import { AddExpenseProvider } from '@/features/expenses'
@@ -8,12 +8,13 @@ import { supabase } from '@/lib/supabase'
 import { useAutoSync } from '@/lib/sync'
 import { Alert, IconButton, ToastProvider } from '@/ui'
 import { UpdatePrompt } from '../UpdatePrompt'
+import { AuthShell } from './AuthShell'
 import { BottomNav } from './BottomNav'
 import { Brand } from './Brand'
 import { OfflineBadge } from './OfflineBadge'
 import styles from './RootLayout.module.css'
 import { SplashScreen } from './SplashScreen'
-import { setDocumentTitle, useFocusHeadingOnNavigate, usePageTitle } from './usePageNavigation'
+import { useFocusHeadingOnNavigate, usePageTitle } from './usePageNavigation'
 
 // Home screen shortcut (manifest) that opens the app straight into adding an expense
 const ADD_EXPENSE_ACTION = 'add-expense'
@@ -85,20 +86,5 @@ function AppShell() {
         <BottomNav />
       </div>
     </AddExpenseProvider>
-  )
-}
-
-function AuthShell({ children }: { children: ReactNode }) {
-  useEffect(() => {
-    setDocumentTitle('Entrar')
-  }, [])
-
-  return (
-    <div className={styles.shell}>
-      <header className={styles.header}>
-        <Brand />
-      </header>
-      <main className={styles.main}>{children}</main>
-    </div>
   )
 }

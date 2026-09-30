@@ -1,0 +1,79 @@
+.screen {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: max(var(--space-7), env(safe-area-inset-top)) var(--gutter)
+    max(var(--space-7), env(safe-area-inset-bottom));
+  background: var(--gradient-auth);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+  width: 100%;
+  max-width: 400px;
+  animation: rise var(--duration-slow) var(--ease-out) both;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  margin-bottom: var(--space-2);
+  border-radius: 24px;
+  box-shadow:
+    0 0 0 1px var(--color-border-strong),
+    0 12px 40px rgb(44 255 143 / 0.18);
+}
+
+.wordmark {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+.tagline {
+  max-width: 28ch;
+  margin: 0;
+  text-wrap: balance;
+  color: var(--color-text-muted);
+}
+
+.footer {
+  margin: 0;
+  text-wrap: balance;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* inline with the text, so it stays next to the first word however the line wraps */
+.footer svg {
+  width: 16px;
+  height: 16px;
+  margin-right: var(--space-1);
+  color: var(--color-accent);
+  vertical-align: -3px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}

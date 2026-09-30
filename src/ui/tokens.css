@@ -13,6 +13,10 @@
   --color-border-strong: rgb(255 255 255 / 0.16);
   --color-overlay: rgb(0 0 0 / 0.6);
   --color-surface-glass: rgb(20 21 25 / 0.78); /* needs backdrop-filter behind it */
+  /* Sign-in screen: a soft glow rising from the top */
+  --gradient-auth:
+    radial-gradient(70% 45% at 50% 0%, rgb(44 255 143 / 0.2), transparent 70%),
+    radial-gradient(50% 35% at 85% 100%, rgb(44 255 143 / 0.07), transparent 70%), var(--color-bg);
   --gradient-hero:
     radial-gradient(120% 90% at 100% 0%, rgb(44 255 143 / 0.22), transparent 55%),
     var(--color-surface);

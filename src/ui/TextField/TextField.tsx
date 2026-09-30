@@ -1,4 +1,4 @@
-import { useId, type ComponentPropsWithRef } from 'react'
+import { useId, type ComponentPropsWithRef, type ReactNode } from 'react'
 import { cx } from '../cx'
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden'
 import styles from './TextField.module.css'
@@ -9,6 +9,10 @@ export interface TextFieldProps extends ComponentPropsWithRef<'input'> {
   hideLabel?: boolean
   hint?: string
   error?: string | null
+  // Decorative icon inside the field, on the left
+  icon?: ReactNode
+  // Interactive element inside the field, on the right (e.g. show/hide password)
+  trailing?: ReactNode
 }
 
 export function TextField({
@@ -16,6 +20,8 @@ export function TextField({
   hideLabel = false,
   hint,
   error,
+  icon,
+  trailing,
   id,
   className,
   ...rest
@@ -35,13 +41,26 @@ export function TextField({
           {label}
         </label>
       )}
-      <input
-        id={inputId}
-        className={cx(styles.input, error && styles.invalid)}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error || hint ? hintId : undefined}
-        {...rest}
-      />
+      <div className={styles.control}>
+        {icon && (
+          <span className={styles.icon} aria-hidden>
+            {icon}
+          </span>
+        )}
+        <input
+          id={inputId}
+          className={cx(
+            styles.input,
+            icon != null && styles.withIcon,
+            trailing != null && styles.withTrailing,
+            error && styles.invalid,
+          )}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error || hint ? hintId : undefined}
+          {...rest}
+        />
+        {trailing && <span className={styles.trailing}>{trailing}</span>}
+      </div>
       {(error || hint) && (
         <p id={hintId} className={cx(styles.hint, error && styles.error)}>
           {error ?? hint}

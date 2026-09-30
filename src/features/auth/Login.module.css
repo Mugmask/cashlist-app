@@ -1,3 +1,10 @@
+.card {
+  /* glass, so the background glow shows through */
+  background: var(--color-surface-glass);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
 .title {
   font-size: var(--text-xl);
 }
@@ -5,4 +12,9 @@
 .subtitle {
   margin: var(--space-1) 0 0;
   color: var(--color-text-muted);
+}
+
+.arrow {
+  width: 20px;
+  height: 20px;
 }
