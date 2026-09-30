@@ -1,0 +1,8 @@
+.title {
+  font-size: var(--text-xl);
+}
+
+.subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+}

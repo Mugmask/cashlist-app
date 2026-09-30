@@ -1,0 +1,94 @@
+/*
+ * Design tokens. Components only use these variables, never raw values,
+ * so re-theming the app means editing this file.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --color-bg: #0a0b0d;
+  --color-surface: #141519;
+  --color-surface-raised: #1d1f25;
+  --color-border: rgb(255 255 255 / 0.08);
+  --color-border-strong: rgb(255 255 255 / 0.16);
+  --color-overlay: rgb(0 0 0 / 0.6);
+  --color-surface-glass: rgb(20 21 25 / 0.78); /* needs backdrop-filter behind it */
+  --gradient-hero:
+    radial-gradient(120% 90% at 100% 0%, rgb(44 255 143 / 0.22), transparent 55%),
+    var(--color-surface);
+
+  /* Text */
+  --color-text: #f4f5f7;
+  --color-text-muted: #8f94a0;
+  --color-text-subtle: #5f646e; /* decorative only: below AA contrast for body text */
+
+  /* Accent: the only saturated color in the UI */
+  --color-accent: #2cff8f;
+  --color-accent-hover: #6affb0;
+  --color-accent-soft: rgb(44 255 143 / 0.12);
+  --color-on-accent: #04140b;
+
+  /* Status */
+  --color-danger: #ff6464;
+  --color-danger-soft: rgb(255 100 100 / 0.12);
+  --color-warning: #ffc94d;
+  --color-warning-soft: rgb(255 201 77 / 0.12);
+
+  /* Typography */
+  --font-display: 'Sora Variable', system-ui, sans-serif;
+  --font-body: 'Inter Variable', system-ui, sans-serif;
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
+  --text-3xl: 3.25rem;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --tracking-tight: -0.02em;
+
+  /* Spacing (4px scale) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+
+  /* Shape */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  /* Elevation */
+  --shadow-raised: 0 8px 32px rgb(0 0 0 / 0.45);
+  --glow-accent: 0 0 24px rgb(44 255 143 / 0.35);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --tap-scale: 0.97;
+
+  /* Layout */
+  --content-max-width: 480px;
+  --gutter: var(--space-4);
+  --bottom-nav-height: 68px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --tap-scale: 1;
+  }
+}

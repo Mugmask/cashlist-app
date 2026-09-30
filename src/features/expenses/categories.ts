@@ -1,20 +1,36 @@
-// Stored as the id; the label is only UI copy
+import {
+  Bike,
+  BusFront,
+  HeartPulse,
+  House,
+  type LucideIcon,
+  PartyPopper,
+  ShoppingCart,
+  Tag,
+  Zap,
+} from 'lucide-react'
+
+// Stored as the id; label and icon are UI only
 export const EXPENSE_CATEGORIES = [
-  { id: 'groceries', label: 'Súper' },
-  { id: 'delivery', label: 'Delivery' },
-  { id: 'rent', label: 'Alquiler' },
-  { id: 'utilities', label: 'Servicios' },
-  { id: 'transport', label: 'Transporte' },
-  { id: 'going_out', label: 'Salidas' },
-  { id: 'health', label: 'Salud' },
-  { id: 'other', label: 'Otros' },
-] as const
+  { id: 'groceries', label: 'Súper', icon: ShoppingCart },
+  { id: 'delivery', label: 'Delivery', icon: Bike },
+  { id: 'rent', label: 'Alquiler', icon: House },
+  { id: 'utilities', label: 'Servicios', icon: Zap },
+  { id: 'transport', label: 'Transporte', icon: BusFront },
+  { id: 'going_out', label: 'Salidas', icon: PartyPopper },
+  { id: 'health', label: 'Salud', icon: HeartPulse },
+  { id: 'other', label: 'Otros', icon: Tag },
+] as const satisfies readonly { id: string; label: string; icon: LucideIcon }[]
 
 export type ExpenseCategoryId = (typeof EXPENSE_CATEGORIES)[number]['id']
 
-const labels = new Map<string, string>(EXPENSE_CATEGORIES.map((c) => [c.id, c.label]))
+const byId = new Map<string, (typeof EXPENSE_CATEGORIES)[number]>(
+  EXPENSE_CATEGORIES.map((c) => [c.id, c]),
+)
 
-// Falls back to the raw id for categories this version doesn't know yet
-export function getCategoryLabel(id: string) {
-  return labels.get(id) ?? id
+const OTHER = byId.get('other')!
+
+// Falls back to "Otros" for categories this version doesn't know yet
+export function getCategory(id: string) {
+  return byId.get(id) ?? OTHER
 }

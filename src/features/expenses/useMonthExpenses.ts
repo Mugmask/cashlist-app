@@ -1,11 +1,14 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { startOfMonth } from '@/utils/dates'
 import { expensesRepo } from './expensesRepo'
+import { summarizeMonth } from './selectors'
 
-// expenses is undefined while loading; re-renders whenever the local database changes
+// undefined while loading. "Now" is read inside the query, not during render, and the query
+// re-runs whenever the local database changes.
 export function useMonthExpenses() {
-  const from = startOfMonth()
-  const expenses = useLiveQuery(() => expensesRepo.since(from), [from.getTime()])
-  const total = expenses?.reduce((sum, e) => sum + e.amount, 0) ?? 0
-  return { expenses, total }
+  return useLiveQuery(async () => {
+    const now = new Date()
+    const expenses = await expensesRepo.since(startOfMonth(now))
+    return { expenses, ...summarizeMonth(expenses, now) }
+  })
 }

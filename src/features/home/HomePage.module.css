@@ -1,0 +1,120 @@
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-hero);
+}
+
+.heroLabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.stats {
+  display: flex;
+  gap: var(--space-7);
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.stat dt {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.stat dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 32px;
+  margin-bottom: var(--space-3);
+  padding: 0 var(--space-1);
+}
+
+.sectionTitle {
+  font-size: var(--text-md);
+}
+
+.seeAll {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.seeAll svg {
+  width: 16px;
+  height: 16px;
+}
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.category {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.categoryBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.categoryLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.categoryLabel {
+  font-weight: var(--weight-medium);
+}
+
+.share {
+  flex: 1;
+}
+
+.percent {
+  min-width: 4ch;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

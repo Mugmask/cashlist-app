@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getErrorMessage } from '@/utils/errors'
 import { runSync } from './sync'
 
 const INTERVAL_MS = 60_000
@@ -14,7 +15,7 @@ export function useAutoSync() {
       if (document.visibilityState !== 'visible') return
       runSync()
         .then(() => setError(null))
-        .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
+        .catch((e: unknown) => setError(getErrorMessage(e)))
     }
 
     run()

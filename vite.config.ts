@@ -18,13 +18,15 @@ export default defineConfig({
         short_name: 'Cashlist',
         description: 'Gastos, presupuesto y lista de compras',
         lang: 'es-AR',
-        theme_color: '#0f766e',
-        background_color: '#ffffff',
+        theme_color: '#0a0b0d',
+        background_color: '#0a0b0d',
         display: 'standalone',
         start_url: '/',
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,woff2}'],
+        // Font subsets Spanish never needs; the browser only fetches them via unicode-range if used
+        globIgnores: ['**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2'],
       },
     }),
   ],

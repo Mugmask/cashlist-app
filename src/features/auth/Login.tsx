@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { supabase } from '@/lib/supabase'
+import { Alert, Button, Card, Stack, TextField } from '@/ui'
+import styles from './Login.module.css'
 
 export function Login() {
   const [email, setEmail] = useState('')
@@ -17,26 +19,33 @@ export function Login() {
   }
 
   return (
-    <form className="card stack" onSubmit={handleSubmit}>
-      <h2>Entrar</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        autoComplete="username"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Contraseña"
-        autoComplete="current-password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      {error && <p className="error">{error}</p>}
-      <button disabled={loading}>{loading ? 'Entrando…' : 'Entrar'}</button>
-    </form>
+    <Card as="form" padding="lg" onSubmit={handleSubmit}>
+      <Stack gap={4}>
+        <div>
+          <h2 className={styles.title}>Hola de nuevo</h2>
+          <p className={styles.subtitle}>Entrá para ver tus gastos.</p>
+        </div>
+        <TextField
+          label="Email"
+          type="email"
+          autoComplete="username"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <TextField
+          label="Contraseña"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        {error && <Alert tone="danger">{error}</Alert>}
+        <Button type="submit" size="lg" fullWidth loading={loading}>
+          Entrar
+        </Button>
+      </Stack>
+    </Card>
   )
 }

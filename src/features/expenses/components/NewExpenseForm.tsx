@@ -1,13 +1,25 @@
 import { useState, type FormEvent } from 'react'
 import { runSync } from '@/lib/sync'
+import { AmountField, Button, ChipGroup, Stack, TextField } from '@/ui'
 import { parseAmount } from '@/utils/currency'
 import { EXPENSE_CATEGORIES, type ExpenseCategoryId } from '../categories'
 import { expensesRepo } from '../expensesRepo'
 
-export function NewExpenseForm() {
+const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map(({ id, label, icon: Icon }) => ({
+  value: id,
+  label,
+  icon: <Icon aria-hidden />,
+}))
+
+export interface NewExpenseFormProps {
+  onSaved?: () => void
+}
+
+export function NewExpenseForm({ onSaved }: NewExpenseFormProps) {
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState<ExpenseCategoryId>(EXPENSE_CATEGORIES[0].id)
   const [note, setNote] = useState('')
+  const isValid = parseAmount(amount) !== null
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -17,35 +29,36 @@ export function NewExpenseForm() {
     setAmount('')
     setNote('')
     runSync().catch(() => {}) // on failure it stays pending and retries on its own
+    onSaved?.()
   }
 
   return (
-    <form className="card stack" onSubmit={handleSubmit}>
-      <input
-        className="amount-input"
-        inputMode="decimal"
-        placeholder="$ 0"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        aria-label="Monto"
-        required
-      />
-      <div className="chips" role="radiogroup" aria-label="Categoría">
-        {EXPENSE_CATEGORIES.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            role="radio"
-            aria-checked={category === c.id}
-            className={category === c.id ? 'chip active' : 'chip'}
-            onClick={() => setCategory(c.id)}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
-      <input placeholder="Nota (opcional)" value={note} onChange={(e) => setNote(e.target.value)} />
-      <button>Guardar</button>
+    <form onSubmit={handleSubmit}>
+      <Stack gap={4}>
+        <AmountField
+          label="Monto"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          autoFocus
+          required
+        />
+        <ChipGroup
+          label="Categoría"
+          options={CATEGORY_OPTIONS}
+          value={category}
+          onChange={setCategory}
+        />
+        <TextField
+          label="Nota"
+          hideLabel
+          placeholder="Nota (opcional)"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+        <Button type="submit" size="lg" fullWidth disabled={!isValid}>
+          Guardar gasto
+        </Button>
+      </Stack>
     </form>
   )
 }

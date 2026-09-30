@@ -1,4 +1,6 @@
 import { useRegisterSW } from 'virtual:pwa-register/react'
+import { Button } from '@/ui'
+import styles from './UpdatePrompt.module.css'
 
 export function UpdatePrompt() {
   const {
@@ -9,12 +11,12 @@ export function UpdatePrompt() {
   if (!needRefresh) return null
 
   return (
-    <div className="update-prompt" role="status">
-      <span>Hay una versión nueva.</span>
-      <button onClick={() => updateServiceWorker(true)}>Actualizar</button>
-      <button className="secondary" onClick={() => setNeedRefresh(false)}>
+    <div className={styles.toast} role="status">
+      <span className={styles.text}>Hay una versión nueva.</span>
+      <Button variant="ghost" onClick={() => setNeedRefresh(false)}>
         Después
-      </button>
+      </Button>
+      <Button onClick={() => updateServiceWorker(true)}>Actualizar</Button>
     </div>
   )
 }

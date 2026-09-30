@@ -1,0 +1,26 @@
+.track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+}
+
+.fill {
+  height: 100%;
+  border-radius: inherit;
+  transform-origin: left;
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.accent {
+  background: var(--color-accent);
+  box-shadow: var(--glow-accent);
+}
+
+.warning {
+  background: var(--color-warning);
+}
+
+.danger {
+  background: var(--color-danger);
+}

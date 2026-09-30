@@ -1,53 +1,36 @@
+import type { Expense } from '@/lib/db'
 import { runSync } from '@/lib/sync'
-import { formatCurrency } from '@/utils/currency'
-import { formatShortDay } from '@/utils/dates'
-import { getCategoryLabel } from '../categories'
+import { Amount, Card } from '@/ui'
+import { formatDayHeading } from '@/utils/dates'
 import { expensesRepo } from '../expensesRepo'
-import { useMonthExpenses } from '../useMonthExpenses'
+import { groupByDay } from '../selectors'
+import styles from './ExpenseList.module.css'
+import { ExpenseRow } from './ExpenseRow'
 
-export function ExpenseList() {
-  const { expenses, total } = useMonthExpenses()
-
-  if (!expenses) return null
-
+// Expenses grouped by day, with a subtotal per day
+export function ExpenseList({ expenses }: { expenses: readonly Expense[] }) {
   async function handleRemove(id: string) {
     await expensesRepo.remove(id)
     runSync().catch(() => {})
   }
 
   return (
-    <section className="card">
-      <div className="total">
-        <span>Este mes</span>
-        <strong>{formatCurrency(total)}</strong>
-      </div>
-      {expenses.length === 0 ? (
-        <p className="muted">Todavía no cargaste gastos este mes.</p>
-      ) : (
-        <ul className="list">
-          {expenses.map((e) => (
-            <li key={e.id}>
-              <div>
-                <strong>{getCategoryLabel(e.category)}</strong>
-                <span className="muted">
-                  {' · '}
-                  {formatShortDay(e.spentAt)}
-                  {e.note && ` · ${e.note}`}
-                  {e.pending === 1 && ' · sin sincronizar'}
-                </span>
-              </div>
-              <span className="list-amount">{formatCurrency(e.amount)}</span>
-              <button
-                className="secondary"
-                onClick={() => handleRemove(e.id)}
-                aria-label="Borrar gasto"
-              >
-                ✕
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+    <div className={styles.days}>
+      {groupByDay(expenses).map((day) => (
+        <section key={day.key} aria-label={formatDayHeading(day.date)}>
+          <header className={styles.dayHeader}>
+            <h2 className={styles.dayTitle}>{formatDayHeading(day.date)}</h2>
+            <Amount value={day.total} size="sm" tone="muted" />
+          </header>
+          <Card padding="none">
+            <ul className={styles.list}>
+              {day.expenses.map((e) => (
+                <ExpenseRow key={e.id} expense={e} showDate={false} onRemove={handleRemove} />
+              ))}
+            </ul>
+          </Card>
+        </section>
+      ))}
+    </div>
   )
 }

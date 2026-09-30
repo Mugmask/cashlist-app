@@ -1,0 +1,21 @@
+.shell {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  /* leaves room so the last item never hides behind the floating bottom nav */
+  padding: max(var(--gutter), env(safe-area-inset-top)) var(--gutter)
+    calc(var(--bottom-nav-height) + var(--space-8) + env(safe-area-inset-bottom));
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  margin-bottom: var(--space-4);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}

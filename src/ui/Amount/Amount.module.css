@@ -1,0 +1,46 @@
+.amount {
+  font-family: var(--font-display);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fraction {
+  font-size: 0.6em;
+  opacity: 0.6;
+}
+
+.sm {
+  font-size: var(--text-sm);
+}
+
+.md {
+  font-size: var(--text-md);
+}
+
+.lg {
+  font-size: var(--text-xl);
+}
+
+.xl {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  line-height: 1.1;
+}
+
+.default {
+  color: var(--color-text);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+.danger {
+  color: var(--color-danger);
+}

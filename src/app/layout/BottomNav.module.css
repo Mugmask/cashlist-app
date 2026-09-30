@@ -1,0 +1,97 @@
+.nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  padding: 0 var(--space-3) max(var(--space-3), env(safe-area-inset-bottom));
+  pointer-events: none; /* only the bar itself takes taps, not the gutters around it */
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  max-width: var(--content-max-width);
+  height: var(--bottom-nav-height);
+  margin: 0 auto;
+  padding: 0 var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-glass);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: var(--shadow-raised);
+  list-style: none;
+  pointer-events: auto;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-2) 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.item svg {
+  width: 22px;
+  height: 22px;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.item:hover {
+  color: var(--color-text);
+}
+
+.active,
+.active:hover {
+  color: var(--color-accent);
+}
+
+.active svg {
+  transform: translateY(-1px);
+}
+
+.fabSlot {
+  display: flex;
+  justify-content: center;
+}
+
+.fab {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin-top: -30px; /* sticks out above the bar */
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  box-shadow:
+    0 0 0 6px var(--color-bg),
+    var(--glow-accent);
+  cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.fab:hover {
+  background: var(--color-accent-hover);
+}
+
+.fab:active {
+  transform: scale(0.92);
+}
+
+.fab svg {
+  width: 28px;
+  height: 28px;
+  stroke-width: 2.5;
+}
