@@ -77,3 +77,109 @@ button.secondary {
 .update-prompt span {
   flex: 1;
 }
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+h2 {
+  margin: 0;
+}
+
+input {
+  font: inherit;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+input.monto {
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+button:disabled {
+  opacity: 0.6;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.chip.activo {
+  background: var(--accent);
+  color: #fff;
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.total strong {
+  font-size: 1.5rem;
+}
+
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lista li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid rgb(128 128 128 / 0.2);
+}
+
+.lista li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.lista-monto {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.error {
+  color: #dc2626;
+  margin: 0;
+}
