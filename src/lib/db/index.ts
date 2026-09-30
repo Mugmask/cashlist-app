@@ -28,12 +28,6 @@ export interface FixedExpense extends Syncable {
   dueDay?: number // 1-31, day of the month it's due
 }
 
-// Monthly limit for one expense category. The id is the category id, so there's at most
-// one budget per category and two devices setting the same one converge.
-export interface Budget extends Syncable {
-  amount: number
-}
-
 export type ShoppingItemStatus = 'in_stock' | 'to_buy' | 'in_cart'
 
 // A product in the pantry. One row per product, cycling in_stock → to_buy → in_cart → in_stock:
@@ -53,7 +47,6 @@ interface SyncState {
 
 export const db = new Dexie('cashlist') as Dexie & {
   expenses: EntityTable<Expense, 'id'>
-  budgets: EntityTable<Budget, 'id'>
   shoppingItems: EntityTable<ShoppingItem, 'id'>
   fixedExpenses: EntityTable<FixedExpense, 'id'>
   syncState: EntityTable<SyncState, 'key'>
@@ -189,6 +182,12 @@ db.version(7)
     )
     await tx.table('syncState').delete('shopping_items-cursor')
   })
+
+// v8: budgets were removed from the app. The local copy goes; the Supabase table and its
+// rows are kept, in case the feature comes back.
+db.version(8).stores({
+  budgets: null,
+})
 
 // Asks the browser not to evict IndexedDB when storage runs low
 export async function requestPersistentStorage() {

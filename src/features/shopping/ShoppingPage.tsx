@@ -17,6 +17,7 @@ export function ShoppingPage() {
   const [params, setParams] = useSearchParams()
   const tab: Tab = params.get('tab') === 'pantry' ? 'pantry' : 'list'
   const [isFinishing, setIsFinishing] = useState(false)
+  const setTab = (next: Tab) => setParams(next === 'list' ? {} : { tab: next }, { replace: true })
 
   if (!shopping) return null
 
@@ -30,7 +31,7 @@ export function ShoppingPage() {
       <SegmentedControl
         label="Vista de compras"
         value={tab}
-        onChange={(next) => setParams(next === 'list' ? {} : { tab: next }, { replace: true })}
+        onChange={setTab}
         segments={[
           { value: 'list', label: 'Lista', count: listCount },
           { value: 'pantry', label: 'En casa', count: pantry.length },
@@ -42,11 +43,25 @@ export function ShoppingPage() {
           <AddItemForm target="list" />
 
           {listCount === 0 ? (
-            <EmptyState
-              icon={<ShoppingBasket />}
-              title="No te falta nada"
-              description="Cuando algo se termine, marcalo en «En casa» y aparece acá."
-            />
+            pantry.length === 0 ? (
+              // A brand-new user: explain how the list and the pantry work together
+              <EmptyState
+                icon={<ShoppingBasket />}
+                title="Tu lista está vacía"
+                description="Escribí lo que necesitás en «Agregar a la lista». Cuando termines la compra, queda en «En casa» para volver a pedirlo cuando se acabe."
+              />
+            ) : (
+              <EmptyState
+                icon={<ShoppingBasket />}
+                title="No te falta nada"
+                description="Cuando algo se termine, marcalo como «Se acabó» en «En casa» y vuelve a esta lista."
+                action={
+                  <Button variant="secondary" onClick={() => setTab('pantry')}>
+                    Ir a En casa
+                  </Button>
+                }
+              />
+            )
           ) : (
             <>
               {toBuy.length > 0 && (
@@ -81,8 +96,8 @@ export function ShoppingPage() {
           {pantry.length === 0 ? (
             <EmptyState
               icon={<House />}
-              title="Tu despensa está vacía"
-              description="Lo que compres queda acá. Cuando se te acabe algo, tocá «Se acabó» y vuelve a la lista."
+              title="Todavía no hay nada en casa"
+              description="Lo que compres aparece acá cuando termines la compra. También podés agregar lo que ya tenés en «Agregar a la despensa»."
             />
           ) : (
             <Card padding="none">

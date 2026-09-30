@@ -16,7 +16,7 @@ export function EmptyState({ icon, title, description, action, className }: Empt
       <span className={styles.icon} aria-hidden>
         {icon}
       </span>
-      <p className={styles.title}>{title}</p>
+      <h2 className={styles.title}>{title}</h2>
       {description && <p className={styles.description}>{description}</p>}
       {action}
     </div>

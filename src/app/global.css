@@ -52,6 +52,11 @@ select {
   outline-offset: 2px;
 }
 
+/* Headings get focus programmatically after navigating (tabindex=-1): announce, don't ring */
+[tabindex='-1']:focus {
+  outline: none;
+}
+
 /* Lock page scroll while a modal (e.g. the bottom sheet) is open */
 html:has(dialog[open]) {
   overflow: hidden;

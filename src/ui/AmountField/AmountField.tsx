@@ -16,27 +16,27 @@ export interface AmountFieldProps extends Omit<
 
 const PLACEHOLDER = '0'
 
-// Big, centered amount input: the hero of any "add money" form. It groups thousands while
-// typing, is as wide as its text so "$" and the digits stay centered together, and shrinks
-// the font as the number grows so it never overflows.
+// Big amount input, the hero of any "add money" form. It groups thousands while typing and
+// shrinks the font as the number grows so it never overflows. The digits stay exactly
+// centered: the input is sized by an invisible copy of its own text (not estimated), and an
+// invisible "$" on the right balances the visible one on the left.
 export function AmountField({
   label,
   value,
   onValueChange,
   id,
   className,
-  style,
   ...rest
 }: AmountFieldProps) {
   const generatedId = useId()
   const inputId = id ?? generatedId
-  const chars = Math.max(value.length, PLACEHOLDER.length)
+  const shown = value || PLACEHOLDER
 
   return (
     <div
       className={cx(styles.field, className)}
-      // "$ " takes about two characters more
-      style={{ '--amount-chars': chars + 2 } as CSSProperties}
+      // Both "$" signs take about four characters of room
+      style={{ '--amount-chars': shown.length + 4 } as CSSProperties}
     >
       <VisuallyHidden as="label" htmlFor={inputId}>
         {label}
@@ -44,18 +44,24 @@ export function AmountField({
       <span className={styles.currency} aria-hidden>
         $
       </span>
-      <input
-        id={inputId}
-        type="text"
-        inputMode="decimal"
-        autoComplete="off"
-        placeholder={PLACEHOLDER}
-        className={styles.input}
-        value={value}
-        onChange={(e) => onValueChange(formatAmountInput(e.target.value))}
-        style={{ width: `${chars + 0.5}ch`, ...style }}
-        {...rest}
-      />
+      <span className={styles.sizer} data-value={shown}>
+        <input
+          id={inputId}
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          // An <input> is ~20 characters wide by default, which would override the sizer's width
+          size={1}
+          placeholder={PLACEHOLDER}
+          className={styles.input}
+          value={value}
+          onChange={(e) => onValueChange(formatAmountInput(e.target.value))}
+          {...rest}
+        />
+      </span>
+      <span className={cx(styles.currency, styles.balance)} aria-hidden>
+        $
+      </span>
     </div>
   )
 }

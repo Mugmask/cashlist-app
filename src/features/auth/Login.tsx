@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { supabase } from '@/lib/supabase'
+import { loginErrorMessage } from '@/utils/errors'
 import { Alert, Button, Card, Stack, TextField } from '@/ui'
 import styles from './Login.module.css'
 
@@ -13,16 +14,22 @@ export function Login() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const { error } = await supabase!.auth.signInWithPassword({ email, password })
-    if (error) setError(error.message)
-    setLoading(false)
+    try {
+      const { error } = await supabase!.auth.signInWithPassword({ email, password })
+      if (error) throw error
+    } catch (err) {
+      console.error('Login failed', err) // the raw error, for debugging
+      setError(loginErrorMessage(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <Card as="form" padding="lg" onSubmit={handleSubmit}>
       <Stack gap={4}>
         <div>
-          <h2 className={styles.title}>Hola de nuevo</h2>
+          <h1 className={styles.title}>Hola de nuevo</h1>
           <p className={styles.subtitle}>Entrá para ver tus gastos.</p>
         </div>
         <TextField

@@ -1,6 +1,5 @@
 import {
   db,
-  type Budget,
   type Expense,
   type FixedExpense,
   type ShoppingItem,
@@ -45,34 +44,6 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
     note: row.note ?? undefined,
     fixedExpenseId: row.fixed_expense_id ?? undefined,
     fixedPeriod: row.fixed_period ?? undefined,
-    updatedAt: row.updated_at,
-    deleted: row.deleted,
-    pending: 0,
-  }),
-}
-
-interface BudgetRow {
-  id: string
-  amount: number | string
-  updated_at: string
-  deleted: boolean
-  synced_at: string
-}
-
-export const budgetsTable: SyncedTable<Budget, BudgetRow> = {
-  name: 'budgets',
-  local: db.budgets,
-  columns: 'id, amount, updated_at, deleted, synced_at',
-  onConflict: 'user_id,id', // composite primary key; user_id comes from auth.uid()
-  toRow: (b) => ({
-    id: b.id,
-    amount: b.amount,
-    updated_at: b.updatedAt,
-    deleted: b.deleted,
-  }),
-  fromRow: (row) => ({
-    id: row.id,
-    amount: Number(row.amount),
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,
@@ -158,7 +129,6 @@ export const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
 // Every synced table; each one syncs independently of the others
 export const SYNCED_TABLES = [
   toSyncTask(expensesTable),
-  toSyncTask(budgetsTable),
   toSyncTask(shoppingItemsTable),
   toSyncTask(fixedExpensesTable),
 ]

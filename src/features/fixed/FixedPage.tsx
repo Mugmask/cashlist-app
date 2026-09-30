@@ -59,8 +59,8 @@ export function FixedPage() {
       {isEmpty ? (
         <EmptyState
           icon={<CalendarCheck />}
-          title="Cargá tus gastos fijos"
-          description="Alquiler, expensas, internet: lo que pagás todos los meses. Cada mes te aparecen para marcarlos como pagados."
+          title="Todavía no cargaste gastos fijos"
+          description="Alquiler, expensas, internet: lo que pagás todos los meses. Cargalos una vez y cada mes te mostramos cuáles faltan pagar."
           action={
             <Button
               size="lg"

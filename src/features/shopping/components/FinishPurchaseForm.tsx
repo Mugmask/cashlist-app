@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { addExpense } from '@/features/expenses'
 import { runSync } from '@/lib/sync'
-import { AmountField, Button, Stack } from '@/ui'
+import { AmountField, Button, Stack, useToast } from '@/ui'
 import { parseAmount } from '@/utils/currency'
 import { shoppingRepo } from '../shoppingRepo'
 import styles from './FinishPurchaseForm.module.css'
@@ -14,6 +14,7 @@ export interface FinishPurchaseFormProps {
 // Closes the purchase: moves the cart to history and, optionally, records what it cost
 export function FinishPurchaseForm({ itemCount, onDone }: FinishPurchaseFormProps) {
   const [amount, setAmount] = useState('')
+  const toast = useToast()
   const [saving, setSaving] = useState(false) // guards against a double tap recording twice
   const isValid = parseAmount(amount) !== null
   const products = itemCount === 1 ? '1 producto' : `${itemCount} productos`
@@ -26,6 +27,7 @@ export function FinishPurchaseForm({ itemCount, onDone }: FinishPurchaseFormProp
       await addExpense({ amount: value, category: 'groceries', note: `Compra de ${products}` })
     }
     await shoppingRepo.finishPurchase()
+    toast(withExpense ? 'Compra terminada y gasto cargado' : 'Compra terminada')
     runSync().catch(() => {}) // on failure it stays pending and retries on its own
     onDone()
   }

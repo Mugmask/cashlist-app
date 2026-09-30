@@ -5,7 +5,7 @@ export interface ProgressBarProps {
   label: string
   value: number
   max: number
-  // 'limit': amber near the max and red past it (budgets). 'accent': always accent (shares).
+  // 'limit': amber near the max and red past it (caps). 'accent': always accent (shares).
   tone?: 'limit' | 'accent'
   className?: string
 }
@@ -24,6 +24,8 @@ export function ProgressBar({ label, value, max, tone = 'limit', className }: Pr
       aria-valuemin={0}
       aria-valuemax={max}
       aria-valuenow={Math.min(value, max)}
+      // Raw numbers ("98950 of 167750") mean nothing read aloud; the percentage does
+      aria-valuetext={`${Math.round(ratio * 100)}%`}
       className={cx(styles.track, className)}
     >
       <div

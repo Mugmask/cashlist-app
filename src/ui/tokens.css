@@ -20,7 +20,7 @@
   /* Text */
   --color-text: #f4f5f7;
   --color-text-muted: #8f94a0;
-  --color-text-subtle: #5f646e; /* decorative only: below AA contrast for body text */
+  --color-text-subtle: #868b96; /* placeholders: 4.8:1 on raised surfaces, just above AA */
 
   /* Accent: the only saturated color in the UI */
   --color-accent: #2cff8f;
@@ -37,8 +37,9 @@
   /* Typography */
   --font-display: 'Sora Variable', system-ui, sans-serif;
   --font-body: 'Inter Variable', system-ui, sans-serif;
-  --text-2xs: 0.6875rem;
-  --text-xs: 0.75rem;
+  /* Smallest sizes: 12px for tiny labels (nav, badges), 13px for secondary text */
+  --text-2xs: 0.75rem;
+  --text-xs: 0.8125rem;
   --text-sm: 0.875rem;
   --text-md: 1rem;
   --text-lg: 1.25rem;

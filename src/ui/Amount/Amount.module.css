@@ -6,9 +6,14 @@
   white-space: nowrap;
 }
 
+/* Cents: smaller and in the secondary color, never below the smallest readable size.
+   A color (not opacity) keeps them at AA contrast on every tone. */
 .fraction {
-  font-size: 0.6em;
-  opacity: 0.6;
+  font-size: max(0.6em, var(--text-2xs));
+}
+
+.default .fraction {
+  color: var(--color-text-muted);
 }
 
 .sm {

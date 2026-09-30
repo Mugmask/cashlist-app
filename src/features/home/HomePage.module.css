@@ -7,7 +7,8 @@
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* three per row normally; with large text they flow onto more rows instead of overflowing */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.25rem), 1fr));
   gap: var(--space-3);
   margin: var(--space-4) 0 0;
   padding-top: var(--space-4);
@@ -34,6 +35,8 @@
 
 .sectionHeader {
   display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-3);
   align-items: center;
   justify-content: space-between;
   min-height: 32px;
@@ -85,6 +88,7 @@
 
 .categoryLine {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);

@@ -1,18 +1,18 @@
-import { ChevronRight, Sparkles } from 'lucide-react'
+import { ChevronRight, Plus, Sparkles } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
-import { BudgetHomeCard } from '@/features/budget'
 import {
   CategoryIcon,
   ExpenseRow,
   getCategory,
   isFixed,
   totalsByCategory,
+  useAddExpense,
   useMonthExpenses,
 } from '@/features/expenses'
 import { FixedHomeCard } from '@/features/fixed'
 import { ShoppingHomeCard } from '@/features/shopping'
-import { Amount, Card, EmptyState, ProgressBar, Stack } from '@/ui'
+import { Amount, Button, Card, EmptyState, ProgressBar, Stack, VisuallyHidden } from '@/ui'
 import { formatMonthName } from '@/utils/dates'
 import styles from './HomePage.module.css'
 
@@ -21,6 +21,7 @@ const RECENT_COUNT = 5
 
 export function HomePage() {
   const month = useMonthExpenses()
+  const addExpense = useAddExpense()
 
   if (!month) return null
 
@@ -30,6 +31,8 @@ export function HomePage() {
 
   return (
     <Stack gap={6}>
+      {/* The hero reads as the screen's title visually; this names it for screen readers */}
+      <VisuallyHidden as="h1">Inicio</VisuallyHidden>
       <Card as="section" variant="hero" padding="lg" aria-label="Resumen del mes">
         <span className={styles.heroLabel}>Gastaste en {formatMonthName()}</span>
         <Amount value={total} size="xl" />
@@ -61,8 +64,13 @@ export function HomePage() {
       {expenses.length === 0 ? (
         <EmptyState
           icon={<Sparkles />}
-          title="Arrancá el mes"
-          description="Tocá el + de abajo para cargar tu primer gasto."
+          title="Todavía no cargaste gastos este mes"
+          description="Cada gasto que cargues suma acá, así ves en qué se te va la plata."
+          action={
+            <Button size="lg" icon={<Plus aria-hidden />} onClick={addExpense}>
+              Cargar gasto
+            </Button>
+          }
         />
       ) : (
         <>
@@ -102,7 +110,7 @@ export function HomePage() {
           )}
 
           <HomeSection
-            title="Últimos movimientos"
+            title="Últimos gastos"
             action={
               <Link to="/expenses" className={styles.seeAll}>
                 Ver todos
@@ -120,8 +128,6 @@ export function HomePage() {
           </HomeSection>
         </>
       )}
-
-      <BudgetHomeCard />
     </Stack>
   )
 }

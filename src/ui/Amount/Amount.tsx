@@ -13,7 +13,7 @@ export interface AmountProps {
   className?: string
 }
 
-const FRACTION_SCALE = 0.6 // must match .fraction font-size
+const FRACTION_SCALE = 0.6 // must match .fraction font-size (the 0.6em part)
 
 // Money display: "$ 12.500" prominent, ",00" smaller. The lg/xl sizes shrink to fit their
 // container (see Amount.module.css), so long amounts never overflow.

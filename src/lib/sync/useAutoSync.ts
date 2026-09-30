@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { getErrorMessage } from '@/utils/errors'
+import { syncErrorMessage } from '@/utils/errors'
 import { runSync } from './sync'
 import { SYNCED_TABLES } from './tables'
 
@@ -16,7 +16,10 @@ export function useAutoSync() {
       if (document.visibilityState !== 'visible') return
       runSync()
         .then(() => setError(null))
-        .catch((e: unknown) => setError(getErrorMessage(e)))
+        .catch((e: unknown) => {
+          console.error('Sync failed', e) // the raw error, for debugging
+          setError(syncErrorMessage(e))
+        })
     }
 
     run()

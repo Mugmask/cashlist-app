@@ -1,7 +1,7 @@
 import { RotateCcw } from 'lucide-react'
 import { CategoryIcon } from '@/features/expenses'
 import { runSync } from '@/lib/sync'
-import { Amount, Button, cx, IconButton } from '@/ui'
+import { Amount, Button, cx, IconButton, useToast, VisuallyHidden } from '@/ui'
 import { dueLabel } from '../dueLabel'
 import { fixedRepo } from '../fixedRepo'
 import type { FixedLine } from '../overview'
@@ -14,8 +14,11 @@ export interface FixedListProps {
 }
 
 export function FixedList({ lines, onEdit, onPay }: FixedListProps) {
-  async function handleUndo(expenseId: string) {
-    await fixedRepo.undoPayment(expenseId)
+  const toast = useToast()
+
+  async function handleUndo(line: FixedLine) {
+    await fixedRepo.undoPayment(line.payment!.id)
+    toast(`Pago de ${line.fixed.name} deshecho`)
     runSync().catch(() => {})
   }
 
@@ -26,15 +29,13 @@ export function FixedList({ lines, onEdit, onPay }: FixedListProps) {
         const isPaid = line.status === 'paid'
         return (
           <li key={line.fixed.id} className={styles.row}>
-            <button
-              type="button"
-              className={styles.body}
-              onClick={() => onEdit(line)}
-              aria-label={`Editar ${line.fixed.name}`}
-            >
+            <button type="button" className={styles.body} onClick={() => onEdit(line)}>
               <CategoryIcon category={line.fixed.category} />
               <span className={styles.info}>
-                <span className={styles.name}>{line.fixed.name}</span>
+                <span className={styles.name}>
+                  <VisuallyHidden>Editar </VisuallyHidden>
+                  {line.fixed.name}
+                </span>
                 <span className={cx(styles.due, styles[due.tone])}>{due.text}</span>
               </span>
             </button>
@@ -47,10 +48,14 @@ export function FixedList({ lines, onEdit, onPay }: FixedListProps) {
               <IconButton
                 label={`Deshacer pago de ${line.fixed.name}`}
                 icon={<RotateCcw />}
-                onClick={() => handleUndo(line.payment!.id)}
+                onClick={() => handleUndo(line)}
               />
             ) : (
-              <Button variant="secondary" onClick={() => onPay(line)}>
+              <Button
+                variant="secondary"
+                onClick={() => onPay(line)}
+                aria-label={`Pagar ${line.fixed.name}`}
+              >
                 Pagar
               </Button>
             )}

@@ -3,7 +3,7 @@ import type { EntityTable, Table } from 'dexie'
 import { db, type Syncable } from '@/lib/db'
 
 // How one local Dexie table maps to one Supabase table. The engine below knows nothing
-// about expenses or budgets: adding a synced table means adding one of these.
+// about expenses or shopping: adding a synced table means adding one of these.
 export interface SyncedTable<Local extends Syncable, Row extends { synced_at: string }> {
   name: string // Supabase table; also names the pull cursor
   local: EntityTable<Local, 'id'>

@@ -1,6 +1,6 @@
 import type { Expense } from '@/lib/db'
 import { runSync } from '@/lib/sync'
-import { Amount, Card } from '@/ui'
+import { Amount, Card, useToast } from '@/ui'
 import { formatDayHeading } from '@/utils/dates'
 import { expensesRepo } from '../expensesRepo'
 import { groupByDay } from '../selectors'
@@ -9,8 +9,11 @@ import { ExpenseRow } from './ExpenseRow'
 
 // Expenses grouped by day, with a subtotal per day
 export function ExpenseList({ expenses }: { expenses: readonly Expense[] }) {
+  const toast = useToast()
+
   async function handleRemove(id: string) {
     await expensesRepo.remove(id)
+    toast('Gasto borrado')
     runSync().catch(() => {})
   }
 

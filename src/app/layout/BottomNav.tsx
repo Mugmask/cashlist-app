@@ -6,9 +6,12 @@ import {
   ReceiptText,
   ShoppingBasket,
 } from 'lucide-react'
+import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { NavLink } from 'react-router'
+import { useAddExpense } from '@/features/expenses'
 import { cx } from '@/ui'
 import styles from './BottomNav.module.css'
+import { BAR_SHAPE, notchedBarPath } from './notchedBar'
 
 interface NavItem {
   to: string
@@ -18,7 +21,7 @@ interface NavItem {
 
 const LEFT_ITEMS: NavItem[] = [
   { to: '/', label: 'Inicio', icon: House },
-  { to: '/expenses', label: 'Movimientos', icon: ReceiptText },
+  { to: '/expenses', label: 'Gastos', icon: ReceiptText },
 ]
 
 const RIGHT_ITEMS: NavItem[] = [
@@ -26,18 +29,67 @@ const RIGHT_ITEMS: NavItem[] = [
   { to: '/shopping', label: 'Compras', icon: ShoppingBasket },
 ]
 
-export function BottomNav({ onAdd }: { onAdd: () => void }) {
+// The bar's current width, measured before paint and kept up to date (rotation, resizing)
+function useWidth() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    setWidth(el.getBoundingClientRect().width)
+    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return [ref, width] as const
+}
+
+// Frosted glass bar with the + button sunk into a notch. The notch is a path computed for the
+// real width: it clips the glass and draws the hairline edge, so both always line up.
+export function BottomNav() {
+  const addExpense = useAddExpense()
+  const [dockRef, width] = useWidth()
+  const path = width > 0 ? notchedBarPath({ ...BAR_SHAPE, width }) : null
+
   return (
     <nav className={styles.nav} aria-label="Principal">
-      <ul className={styles.bar}>
-        {LEFT_ITEMS.map(renderItem)}
-        <li className={styles.fabSlot}>
-          <button type="button" className={styles.fab} aria-label="Cargar gasto" onClick={onAdd}>
-            <Plus aria-hidden />
-          </button>
-        </li>
-        {RIGHT_ITEMS.map(renderItem)}
-      </ul>
+      <div
+        ref={dockRef}
+        className={styles.dock}
+        style={{ '--notch-center-y': `${BAR_SHAPE.notchCenterY}px` } as CSSProperties}
+      >
+        {path && (
+          <>
+            <div className={styles.glass} style={{ clipPath: `path('${path}')` }} aria-hidden />
+            <svg
+              className={styles.edge}
+              width={width}
+              height={BAR_SHAPE.height}
+              viewBox={`0 0 ${width} ${BAR_SHAPE.height}`}
+              aria-hidden
+            >
+              <path d={path} />
+            </svg>
+          </>
+        )}
+        <ul className={styles.bar}>
+          {LEFT_ITEMS.map(renderItem)}
+          {/* Keeps its column in the grid; the button itself sits centered in the notch */}
+          <li>
+            <button
+              type="button"
+              className={styles.fab}
+              aria-label="Cargar gasto"
+              onClick={addExpense}
+            >
+              <Plus aria-hidden />
+            </button>
+          </li>
+          {RIGHT_ITEMS.map(renderItem)}
+        </ul>
+      </div>
     </nav>
   )
 }

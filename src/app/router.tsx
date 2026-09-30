@@ -1,5 +1,4 @@
 import { createBrowserRouter, type RouteObject } from 'react-router'
-import { BudgetPage } from '@/features/budget'
 import { ExpensesPage } from '@/features/expenses'
 import { FixedPage } from '@/features/fixed'
 import { HomePage } from '@/features/home'
@@ -14,6 +13,13 @@ const devRoutes: RouteObject[] = import.meta.env.DEV
   ? [{ path: '__crash', element: <Crash /> }]
   : []
 
+// Each route names itself for the browser tab and screen readers (see usePageTitle)
+export interface RouteHandle {
+  title: string
+}
+
+const titled = (title: string): RouteHandle => ({ title })
+
 // Created once, outside React, as React Router's data mode requires
 export const router = createBrowserRouter([
   {
@@ -25,13 +31,12 @@ export const router = createBrowserRouter([
         // A page failed: show the error inside the shell, bottom nav still works
         errorElement: <RouteError />,
         children: [
-          { index: true, element: <HomePage /> },
-          { path: 'expenses', element: <ExpensesPage /> },
-          { path: 'fixed', element: <FixedPage /> },
-          { path: 'budget', element: <BudgetPage /> },
-          { path: 'shopping', element: <ShoppingPage /> },
+          { index: true, element: <HomePage />, handle: titled('Inicio') },
+          { path: 'expenses', element: <ExpensesPage />, handle: titled('Gastos') },
+          { path: 'fixed', element: <FixedPage />, handle: titled('Gastos fijos') },
+          { path: 'shopping', element: <ShoppingPage />, handle: titled('Compras') },
           ...devRoutes,
-          { path: '*', element: <NotFoundPage /> },
+          { path: '*', element: <NotFoundPage />, handle: titled('Página no encontrada') },
         ],
       },
     ],

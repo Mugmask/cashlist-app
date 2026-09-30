@@ -14,19 +14,50 @@
   color: var(--color-text-muted);
 }
 
-.input {
+/* Same size as the visible "$", on the other side, so the digits sit exactly in the middle */
+.balance {
+  visibility: hidden;
+}
+
+/*
+ * The input and an invisible copy of its text share one grid cell: the copy gives the cell
+ * its real width, and the input fills it. Both use the same font, so they always match.
+ */
+.sizer {
+  display: inline-grid;
   min-width: 0;
   max-width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-text);
   font-family: var(--font-display);
   /* shrinks with the number of characters, like Amount xl */
   font-size: min(var(--text-3xl), 100cqi / (var(--amount-chars) * 0.64));
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-tight);
   font-variant-numeric: tabular-nums;
+}
+
+.sizer::after,
+.input {
+  grid-area: 1 / 1;
+  font: inherit;
+  letter-spacing: inherit;
+  font-variant-numeric: inherit;
+}
+
+.sizer::after {
+  /* a trailing thin space leaves just enough room for the caret */
+  content: attr(data-value) '\2009';
+  visibility: hidden;
+  white-space: pre;
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  text-align: center;
   caret-color: var(--color-accent);
 }
 

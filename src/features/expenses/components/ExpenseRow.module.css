@@ -1,5 +1,6 @@
 .row {
   display: flex;
+  flex-wrap: wrap; /* only kicks in with very large text */
   align-items: center;
   gap: var(--space-3);
   min-height: 64px;
@@ -16,7 +17,7 @@
 
 .info {
   display: flex;
-  flex: 1;
+  flex: 1 1 8rem;
   flex-direction: column;
   min-width: 0;
 }

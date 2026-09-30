@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { runSync } from '@/lib/sync'
-import { AmountField, Button, Stack } from '@/ui'
+import { AmountField, Button, Stack, useToast } from '@/ui'
 import { amountToInput, parseAmount } from '@/utils/currency'
 import { fixedRepo } from '../fixedRepo'
 import type { FixedLine } from '../overview'
@@ -16,6 +16,7 @@ export interface PayFixedFormProps {
 export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormProps) {
   const { fixed } = line
   const [amount, setAmount] = useState(amountToInput(fixed.amount))
+  const toast = useToast()
   const [saving, setSaving] = useState(false) // guards against a double tap paying twice
   const parsed = parseAmount(amount)
   const changed = parsed !== null && parsed !== fixed.amount
@@ -25,6 +26,7 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
     if (parsed === null || saving) return
     setSaving(true)
     await fixedRepo.pay(fixed, parsed, period)
+    toast(`Pago de ${fixed.name} registrado`)
     runSync().catch(() => {}) // on failure it stays pending and retries on its own
     onDone()
   }
