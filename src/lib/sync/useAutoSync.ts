@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getErrorMessage } from '@/utils/errors'
 import { runSync } from './sync'
+import { SYNCED_TABLES } from './tables'
 
 const INTERVAL_MS = 60_000
 
@@ -24,10 +25,11 @@ export function useAutoSync() {
     document.addEventListener('visibilitychange', run)
 
     // The notification only triggers a sync: data always comes down through the same path
-    const channel = supabase
-      ?.channel('expenses-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, run)
-      .subscribe()
+    const channel = supabase?.channel('synced-tables-changes')
+    for (const { name } of SYNCED_TABLES) {
+      channel?.on('postgres_changes', { event: '*', schema: 'public', table: name }, run)
+    }
+    channel?.subscribe()
 
     return () => {
       clearInterval(interval)

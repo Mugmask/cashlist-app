@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { formatCurrency, parseAmount, splitCurrency } from './currency'
+import { formatCurrency, formatCurrencyShort, parseAmount, splitCurrency } from './currency'
+
+describe('formatCurrencyShort', () => {
+  it('drops the cents of whole amounts', () => {
+    expect(formatCurrencyShort(30000)).toBe(formatCurrency(30000).replace(',00', ''))
+    expect(formatCurrencyShort(30000)).not.toContain(',')
+  })
+
+  it('keeps real cents', () => {
+    expect(formatCurrencyShort(1500.5)).toBe(formatCurrency(1500.5))
+  })
+})
 
 describe('splitCurrency', () => {
   it.each([12500, 1500.5, 0, 999999.99])('%d splits into whole + fraction that rejoin', (n) => {

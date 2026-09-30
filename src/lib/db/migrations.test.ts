@@ -8,7 +8,7 @@ afterEach(async () => {
 })
 
 describe('db migrations', () => {
-  it('v2 → v4 moves Spanish-schema rows to expenses without losing data', async () => {
+  it('v2 → latest moves Spanish-schema rows to expenses without losing data', async () => {
     db.close()
     await Dexie.delete('cashlist')
 
@@ -53,8 +53,8 @@ describe('db migrations', () => {
 
     await db.open()
 
-    expect(db.verno).toBe(4)
-    expect(db.tables.map((t) => t.name).sort()).toEqual(['expenses', 'syncState'])
+    expect(db.verno).toBe(5)
+    expect(db.tables.map((t) => t.name).sort()).toEqual(['budgets', 'expenses', 'syncState'])
     expect(await db.expenses.orderBy('id').toArray()).toEqual([
       {
         id: 'a',

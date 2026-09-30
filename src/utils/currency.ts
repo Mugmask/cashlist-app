@@ -1,8 +1,18 @@
 const ars = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
+const arsWhole = new Intl.NumberFormat('es-AR', {
+  style: 'currency',
+  currency: 'ARS',
+  maximumFractionDigits: 0,
+})
 
 // "$ 12.500,00"
 export function formatCurrency(amount: number) {
   return ars.format(amount)
+}
+
+// "$ 12.500" for whole amounts, "$ 12.500,50" otherwise: for secondary text, where ",00" is noise
+export function formatCurrencyShort(amount: number) {
+  return Number.isInteger(amount) ? arsWhole.format(amount) : ars.format(amount)
 }
 
 // "$ 12.500,00" → { whole: "$ 12.500", fraction: ",00" }, so the cents can be styled apart

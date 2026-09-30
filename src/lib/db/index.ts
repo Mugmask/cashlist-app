@@ -2,7 +2,7 @@ import Dexie, { type EntityTable } from 'dexie'
 
 // Fields every record synced with Supabase needs
 export interface Syncable {
-  id: string // crypto.randomUUID(), generated on the client
+  id: string // generated on the client (a UUID, or a natural key like a category id)
   updatedAt: string // ISO, decides which version wins a conflict (last write wins)
   deleted: boolean // soft delete, so deletions sync too
   pending: 0 | 1 // 1 = local change not uploaded yet (a number because IndexedDB can't index booleans)
@@ -15,6 +15,12 @@ export interface Expense extends Syncable {
   note?: string
 }
 
+// Monthly limit for one expense category. The id is the category id, so there's at most
+// one budget per category and two devices setting the same one converge.
+export interface Budget extends Syncable {
+  amount: number
+}
+
 interface SyncState {
   key: string
   value: string
@@ -22,6 +28,7 @@ interface SyncState {
 
 export const db = new Dexie('cashlist') as Dexie & {
   expenses: EntityTable<Expense, 'id'>
+  budgets: EntityTable<Budget, 'id'>
   syncState: EntityTable<SyncState, 'key'>
 }
 
@@ -82,6 +89,10 @@ db.version(3)
 db.version(4).stores({
   gastos: null,
   meta: null,
+})
+
+db.version(5).stores({
+  budgets: 'id, pending',
 })
 
 // Asks the browser not to evict IndexedDB when storage runs low

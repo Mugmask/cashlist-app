@@ -1,6 +1,7 @@
 import { ChevronRight, Sparkles } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { BudgetHomeCard } from '@/features/budget'
 import {
   CategoryIcon,
   ExpenseRow,
@@ -24,7 +25,7 @@ export function HomePage() {
 
   return (
     <Stack gap={6}>
-      <section className={styles.hero} aria-label="Resumen del mes">
+      <Card as="section" variant="hero" padding="lg" aria-label="Resumen del mes">
         <span className={styles.heroLabel}>Gastaste en {formatMonthName()}</span>
         <Amount value={total} size="xl" />
         <dl className={styles.stats}>
@@ -39,7 +40,9 @@ export function HomePage() {
             <dd>{expenses.length}</dd>
           </div>
         </dl>
-      </section>
+      </Card>
+
+      <BudgetHomeCard />
 
       {expenses.length === 0 ? (
         <EmptyState

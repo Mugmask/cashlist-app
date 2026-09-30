@@ -4,6 +4,10 @@
   border-radius: var(--radius-lg);
 }
 
+.hero {
+  background: var(--gradient-hero);
+}
+
 .padding-none {
   padding: 0;
 }

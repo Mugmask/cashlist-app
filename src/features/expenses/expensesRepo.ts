@@ -1,10 +1,17 @@
 import { db, type Expense } from '@/lib/db'
+import { startOfMonth } from '@/utils/dates'
 import type { ExpenseCategoryId } from './categories'
 
 export interface NewExpense {
   amount: number
   category: ExpenseCategoryId
   note?: string
+}
+
+// This month's expenses. Meant to be called inside a live query (it reads the database),
+// so other features can combine it with their own data in a single query.
+export function getMonthExpenses(now: Date) {
+  return expensesRepo.since(startOfMonth(now))
 }
 
 // Single entry point to local expenses: components never touch Dexie directly
