@@ -1,0 +1,40 @@
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { runSync } from './sync'
+
+const INTERVAL_MS = 60_000
+
+// Syncs on mount, when another device changes something (Realtime), when the connection
+// comes back, when the app becomes visible, and every minute as a fallback
+export function useAutoSync() {
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const run = () => {
+      if (document.visibilityState !== 'visible') return
+      runSync()
+        .then(() => setError(null))
+        .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
+    }
+
+    run()
+    const interval = setInterval(run, INTERVAL_MS)
+    window.addEventListener('online', run)
+    document.addEventListener('visibilitychange', run)
+
+    // The notification only triggers a sync: data always comes down through the same path
+    const channel = supabase
+      ?.channel('expenses-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, run)
+      .subscribe()
+
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('online', run)
+      document.removeEventListener('visibilitychange', run)
+      if (channel) supabase?.removeChannel(channel)
+    }
+  }, [])
+
+  return error
+}

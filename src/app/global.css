@@ -116,7 +116,7 @@ input:focus {
   border-color: var(--accent);
 }
 
-input.monto {
+input.amount-input {
   font-size: 2rem;
   font-weight: 600;
   text-align: center;
@@ -139,7 +139,7 @@ button:disabled {
   color: var(--text);
 }
 
-.chip.activo {
+.chip.active {
   background: var(--accent);
   color: #fff;
 }
@@ -155,13 +155,13 @@ button:disabled {
   font-size: 1.5rem;
 }
 
-.lista {
+.list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.lista li {
+.list li {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -169,12 +169,12 @@ button:disabled {
   border-top: 1px solid rgb(128 128 128 / 0.2);
 }
 
-.lista li > div {
+.list li > div {
   flex: 1;
   min-width: 0;
 }
 
-.lista-monto {
+.list-amount {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

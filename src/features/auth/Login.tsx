@@ -1,23 +1,23 @@
 import { useState, type FormEvent } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 export function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [cargando, setCargando] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  async function entrar(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    setCargando(true)
+    setLoading(true)
     setError(null)
     const { error } = await supabase!.auth.signInWithPassword({ email, password })
     if (error) setError(error.message)
-    setCargando(false)
+    setLoading(false)
   }
 
   return (
-    <form className="card stack" onSubmit={entrar}>
+    <form className="card stack" onSubmit={handleSubmit}>
       <h2>Entrar</h2>
       <input
         type="email"
@@ -36,7 +36,7 @@ export function Login() {
         required
       />
       {error && <p className="error">{error}</p>}
-      <button disabled={cargando}>{cargando ? 'Entrando…' : 'Entrar'}</button>
+      <button disabled={loading}>{loading ? 'Entrando…' : 'Entrar'}</button>
     </form>
   )
 }
