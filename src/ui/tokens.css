@@ -13,6 +13,9 @@
   --color-border-strong: rgb(255 255 255 / 0.16);
   --color-overlay: rgb(0 0 0 / 0.6);
   --color-surface-glass: rgb(20 21 25 / 0.78); /* needs backdrop-filter behind it */
+  /* The bottom bar's: more opaque and a step lighter than the cards it floats over, and a
+     neutral gray: the cards' cool tint, lighter, read as light blue on the black */
+  --color-nav-glass: rgb(28 28 30 / 0.9);
   /* Sign-in screen: a soft glow rising from the top */
   --gradient-auth:
     radial-gradient(70% 45% at 50% 0%, rgb(44 255 143 / 0.2), transparent 70%),

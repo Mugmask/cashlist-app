@@ -8,6 +8,16 @@
   pointer-events: none; /* only the bar itself takes taps, not the gutters around it */
 }
 
+/* Content scrolling under the bar fades into the page background, so the bar never sits on
+   a card of its own color with nothing between them */
+.nav::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--space-8) * -1) 0 0;
+  background: linear-gradient(to bottom, transparent, var(--color-bg) 70%);
+  pointer-events: none;
+}
+
 /* Bar + button. Its width drives the notch path (see notchedBar.ts). */
 .dock {
   position: relative;
@@ -15,13 +25,15 @@
   height: var(--bottom-nav-height);
   margin: 0 auto;
   pointer-events: auto;
+  /* A shadow that follows the notched shape (box-shadow would be clipped off with it) */
+  filter: drop-shadow(0 6px 20px rgb(0 0 0 / 0.55));
 }
 
 /* Frosted glass, clipped to the notched shape (clip-path set inline from the path) */
 .glass {
   position: absolute;
   inset: 0;
-  background: var(--color-surface-glass);
+  background: var(--color-nav-glass);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   backdrop-filter: blur(16px) saturate(140%);
 }
