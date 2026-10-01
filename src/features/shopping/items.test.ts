@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ShoppingItem, ShoppingItemStatus } from '@/lib/db'
-import { parseItemInput, splitShopping } from './items'
+import { describePurchase, parseItemInput, splitShopping } from './items'
 
 describe('parseItemInput', () => {
   it.each([
@@ -42,13 +42,16 @@ function item(
 }
 
 describe('splitShopping', () => {
-  const { toBuy, inCart, pantry } = splitShopping([
+  const { toBuy, inCart, known, frequent } = splitShopping([
     item('yerba', 'to_buy'),
     item('Azúcar', 'to_buy'),
     item('Huevos', 'in_cart', { updatedAt: '2026-09-01T00:00:00.000Z' }),
     item('Pan', 'in_cart', { updatedAt: '2026-09-02T00:00:00.000Z' }),
-    item('Leche', 'in_stock'),
-    item('Borrado', 'in_stock', { deleted: true }),
+    item('Leche', 'in_stock', { timesBought: 5, lastBoughtAt: '2026-09-10T00:00:00.000Z' }),
+    item('Café', 'in_stock', { timesBought: 2, lastBoughtAt: '2026-09-20T00:00:00.000Z' }),
+    item('Arroz', 'in_stock', { timesBought: 2, lastBoughtAt: '2026-09-25T00:00:00.000Z' }),
+    item('Detergente', 'in_stock'), // known, never bought
+    item('Borrado', 'in_stock', { deleted: true, timesBought: 9 }),
   ])
 
   it('sorts to-buy alphabetically and the cart by most recently checked', () => {
@@ -56,7 +59,23 @@ describe('splitShopping', () => {
     expect(inCart.map((i) => i.name)).toEqual(['Pan', 'Huevos'])
   })
 
-  it('the pantry has every product, alphabetically, without deleted ones', () => {
-    expect(pantry.map((i) => i.name)).toEqual(['Azúcar', 'Huevos', 'Leche', 'Pan', 'yerba'])
+  it('the frequent ones are the most bought, then the most recent; never-bought ones aren’t', () => {
+    expect(frequent.map((i) => i.name)).toEqual(['Leche', 'Arroz', 'Café'])
+  })
+
+  it('known has every product off the list, alphabetically, without deleted ones', () => {
+    expect(known.map((i) => i.name)).toEqual(['Arroz', 'Café', 'Detergente', 'Leche'])
+  })
+})
+
+describe('describePurchase', () => {
+  it('lists the products alphabetically with their quantities', () => {
+    expect(
+      describePurchase([
+        item('Yerba', 'in_cart'),
+        item('Leche', 'in_cart', { quantity: 2 }),
+        item('Pan', 'in_cart'),
+      ]),
+    ).toBe('Leche x2, Pan, Yerba')
   })
 })

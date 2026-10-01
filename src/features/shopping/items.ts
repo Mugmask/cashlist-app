@@ -33,14 +33,36 @@ export function parseItemInput(text: string): ParsedItem | null {
 const collator = new Intl.Collator('es', { sensitivity: 'base' })
 const byName = (a: ShoppingItem, b: ShoppingItem) => collator.compare(a.name, b.name)
 
-// The list (to buy alphabetically, cart most recent first) and the whole pantry alphabetically
+const FREQUENT_COUNT = 8
+
+// The list (to buy alphabetically, cart most recently checked first) and the products off the
+// list: `known` alphabetically, and the `frequent` ones (bought before, most bought first)
+// that the screen offers to add back with one tap
 export function splitShopping(items: readonly ShoppingItem[]) {
   const active = items.filter((i) => !i.deleted)
+  const known = active.filter((i) => i.status === 'in_stock').sort(byName)
   return {
     toBuy: active.filter((i) => i.status === 'to_buy').sort(byName),
     inCart: active
       .filter((i) => i.status === 'in_cart')
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
-    pantry: [...active].sort(byName),
+    known,
+    frequent: known
+      .filter((i) => i.timesBought > 0)
+      .sort(
+        (a, b) =>
+          b.timesBought - a.timesBought ||
+          (b.lastBoughtAt ?? '').localeCompare(a.lastBoughtAt ?? '') ||
+          byName(a, b),
+      )
+      .slice(0, FREQUENT_COUNT),
   }
+}
+
+// What a purchase had, for its expense's note: "Leche x2, Pan, Yerba"
+export function describePurchase(items: readonly ShoppingItem[]) {
+  return [...items]
+    .sort(byName)
+    .map((i) => (i.quantity > 1 ? `${i.name} x${i.quantity}` : i.name))
+    .join(', ')
 }

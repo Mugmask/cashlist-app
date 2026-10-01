@@ -32,22 +32,25 @@ const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map(({ id, label, icon: Icon }) => (
 export interface ExpenseFormProps {
   // Editing this expense; without it, a new one
   expense?: Expense
+  // A new one already filled in: a finished purchase is Súper, with its products as the note
+  defaults?: { category?: ExpenseCategoryId; name?: string; note?: string }
+  submitLabel?: string
   onSaved?: () => void
 }
 
 // New expense, or corrections to one already loaded (then the day can change too).
 // In dollars, it's converted to pesos with today's rate for how it was paid.
-export function ExpenseForm({ expense, onSaved }: ExpenseFormProps) {
+export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: ExpenseFormProps) {
   const wasDollars = expense?.currency === 'USD'
   const [currency, setCurrency] = useState<Currency>(wasDollars ? 'USD' : 'ARS')
   const [amount, setAmount] = useState(
     expense ? amountToInput(wasDollars ? expense.foreignAmount! : expense.amount) : '',
   )
   const [category, setCategory] = useState<ExpenseCategoryId>(
-    expense ? getCategory(expense.category).id : EXPENSE_CATEGORIES[0].id,
+    expense ? getCategory(expense.category).id : (defaults?.category ?? EXPENSE_CATEGORIES[0].id),
   )
-  const [name, setName] = useState(expense?.name ?? '')
-  const [note, setNote] = useState(expense?.note ?? '')
+  const [name, setName] = useState(expense?.name ?? defaults?.name ?? '')
+  const [note, setNote] = useState(expense?.note ?? defaults?.note ?? '')
   const [paymentMethod, setPaymentMethod] = useState(
     expense ? (expense.paymentMethod ?? 'cash') : readLastPaymentMethod,
   )
@@ -215,7 +218,7 @@ export function ExpenseForm({ expense, onSaved }: ExpenseFormProps) {
           onChange={(e) => setNote(e.target.value)}
         />
         <Button type="submit" size="lg" fullWidth disabled={!isValid}>
-          {expense ? 'Guardar cambios' : 'Guardar gasto'}
+          {submitLabel ?? (expense ? 'Guardar cambios' : 'Guardar gasto')}
         </Button>
       </Stack>
     </form>

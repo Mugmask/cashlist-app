@@ -6,6 +6,7 @@ export { CategoryIcon } from './components/CategoryIcon'
 export { ConversionNote, ManualRateField } from './components/DollarConversion'
 export { CURRENCY_OPTIONS } from './currencies'
 export { ExpenseDetailSheet } from './components/ExpenseDetailSheet'
+export { ExpenseForm } from './components/ExpenseForm'
 export { ExpenseRow } from './components/ExpenseRow'
 export {
   addExpense,

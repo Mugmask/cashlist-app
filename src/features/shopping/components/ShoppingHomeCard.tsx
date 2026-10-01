@@ -6,15 +6,16 @@ import styles from './ShoppingHomeCard.module.css'
 
 const PREVIEW_COUNT = 3
 
-// Pending shopping at a glance on the home screen; hidden when there's nothing to buy
+// The shopping list at a glance on the home screen; hidden when there's nothing on it
 export function ShoppingHomeCard() {
   const list = useShoppingList()
 
-  if (!list || list.toBuy.length === 0) return null
+  if (!list || list.toBuy.length + list.inCart.length === 0) return null
 
-  const { toBuy } = list
-  const preview = toBuy.slice(0, PREVIEW_COUNT).map((i) => i.name)
-  const rest = toBuy.length - preview.length
+  // What's on the list, the missing ones first (the cart may be half full)
+  const onList = [...list.toBuy, ...list.inCart]
+  const preview = onList.slice(0, PREVIEW_COUNT).map((i) => i.name)
+  const rest = onList.length - preview.length
 
   return (
     <Link to="/shopping" className={styles.link}>
@@ -24,9 +25,9 @@ export function ShoppingHomeCard() {
         </span>
         <div className={styles.text}>
           <strong>
-            {toBuy.length === 1
+            {onList.length === 1
               ? '1 producto para comprar'
-              : `${toBuy.length} productos para comprar`}
+              : `${onList.length} productos para comprar`}
           </strong>
           <span className={styles.preview}>
             {preview.join(', ')}

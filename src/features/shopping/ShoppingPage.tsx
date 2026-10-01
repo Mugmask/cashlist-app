@@ -1,148 +1,103 @@
-import { House, ShoppingBasket } from 'lucide-react'
-import { useRef, useState, type ReactNode } from 'react'
-import { useSearchParams } from 'react-router'
-import {
-  Button,
-  Card,
-  EmptyState,
-  PageHeader,
-  SegmentedControl,
-  Sheet,
-  Stack,
-  usePrimaryAction,
-} from '@/ui'
+import { Plus, ShoppingBasket } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { runSync } from '@/lib/sync'
+import { Button, Card, EmptyState, PageHeader, Sheet, Stack, usePrimaryAction } from '@/ui'
 import { AddItemForm } from './components/AddItemForm'
 import { FinishPurchaseForm } from './components/FinishPurchaseForm'
 import { ItemList } from './components/ItemList'
-import { PantryList } from './components/PantryList'
+import { KnownProductsSheet } from './components/KnownProductsSheet'
 import styles from './ShoppingPage.module.css'
+import { shoppingRepo } from './shoppingRepo'
 import { useShoppingList } from './useShoppingList'
 
-type Tab = 'list' | 'pantry'
-
+// One list: type what's missing or tap a frequent one; in the store, tick what goes in the
+// cart; at the checkout, finish the purchase and record what it cost.
 export function ShoppingPage() {
   const shopping = useShoppingList()
-  // The tab lives in the URL so back and reload keep it
-  const [params, setParams] = useSearchParams()
-  const tab: Tab = params.get('tab') === 'pantry' ? 'pantry' : 'list'
   const [isFinishing, setIsFinishing] = useState(false)
-  const setTab = (next: Tab) => setParams(next === 'list' ? {} : { tab: next }, { replace: true })
-  // Adding here is typing into the tab's field, so the + just takes you there (keyboard up)
+  const [isBrowsing, setIsBrowsing] = useState(false)
+  // Adding here is typing into the field, so the + just takes you there (keyboard up)
   const addInputRef = useRef<HTMLInputElement>(null)
-  usePrimaryAction(tab === 'list' ? 'Agregar a la lista' : 'Agregar a la despensa', () =>
-    addInputRef.current?.focus(),
-  )
+  usePrimaryAction('Agregar a la lista', () => addInputRef.current?.focus())
 
   if (!shopping) return null
 
-  const { toBuy, inCart, pantry } = shopping
+  const { toBuy, inCart, frequent, known } = shopping
   const listCount = toBuy.length + inCart.length
+
+  async function addFrequent(id: string) {
+    await shoppingRepo.addAgain(id)
+    runSync().catch(() => {})
+  }
 
   return (
     <Stack gap={5}>
       <PageHeader title="Compras" />
 
-      <SegmentedControl
-        label="Vista de compras"
-        value={tab}
-        onChange={setTab}
-        segments={[
-          { value: 'list', label: 'Lista', count: listCount },
-          { value: 'pantry', label: 'En casa', count: pantry.length },
-        ]}
-      />
+      <AddItemForm inputRef={addInputRef} />
 
-      {tab === 'list' ? (
-        <Stack gap={5} role="tabpanel" aria-label="Lista">
-          <AddItemForm target="list" inputRef={addInputRef} />
+      {known.length > 0 && (
+        <section aria-label="Frecuentes" className={styles.frequent}>
+          <h2 className={styles.label}>Frecuentes</h2>
+          <ul className={styles.chips}>
+            {frequent.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className={styles.chip}
+                  onClick={() => addFrequent(item.id)}
+                  aria-label={`Agregar ${item.name} a la lista`}
+                >
+                  <Plus aria-hidden />
+                  {item.name}
+                </button>
+              </li>
+            ))}
+            <li>
+              <button type="button" className={styles.chip} onClick={() => setIsBrowsing(true)}>
+                Todos…
+              </button>
+            </li>
+          </ul>
+        </section>
+      )}
 
-          {listCount === 0 ? (
-            pantry.length === 0 ? (
-              // A brand-new user: explain how the list and the pantry work together
-              <EmptyState
-                icon={<ShoppingBasket />}
-                title="Tu lista está vacía"
-                description="Escribí arriba lo que necesitás."
-              />
-            ) : (
-              <EmptyState
-                icon={<ShoppingBasket />}
-                title="No te falta nada"
-                description="Si algo se acaba, marcalo en «En casa»."
-                action={
-                  <Button variant="secondary" onClick={() => setTab('pantry')}>
-                    Ir a En casa
-                  </Button>
-                }
-              />
-            )
-          ) : (
-            <>
-              {toBuy.length > 0 && (
-                <Section title="Para comprar" count={toBuy.length}>
-                  <Card padding="none">
-                    <ItemList items={toBuy} />
-                  </Card>
-                </Section>
-              )}
-              {inCart.length > 0 && (
-                <Section title="En el carrito" count={inCart.length}>
-                  <Card padding="none">
-                    <ItemList items={inCart} />
-                  </Card>
-                  <Button
-                    size="lg"
-                    fullWidth
-                    className={styles.finish}
-                    onClick={() => setIsFinishing(true)}
-                  >
-                    Terminar compra
-                  </Button>
-                </Section>
-              )}
-            </>
-          )}
-        </Stack>
+      {listCount === 0 ? (
+        <EmptyState
+          icon={<ShoppingBasket />}
+          title="No te falta nada"
+          description={
+            known.length > 0
+              ? 'Escribí arriba lo que necesitás o tocá un frecuente.'
+              : 'Escribí arriba lo que necesitás.'
+          }
+        />
       ) : (
-        <Stack gap={5} role="tabpanel" aria-label="En casa">
-          <AddItemForm target="pantry" inputRef={addInputRef} />
-
-          {pantry.length === 0 ? (
-            <EmptyState
-              icon={<House />}
-              title="Todavía no hay nada en casa"
-              description="Lo que compres aparece acá."
-            />
-          ) : (
-            <Card padding="none">
-              <PantryList items={pantry} />
-            </Card>
+        <section aria-label="Para comprar">
+          <h2 className={styles.sectionTitle}>
+            Para comprar <span className={styles.count}>{listCount}</span>
+          </h2>
+          <Card padding="none">
+            {/* What's missing first; what's already in the cart below, ticked */}
+            <ItemList items={[...toBuy, ...inCart]} />
+          </Card>
+          {inCart.length > 0 && (
+            <Button
+              size="lg"
+              fullWidth
+              className={styles.finish}
+              onClick={() => setIsFinishing(true)}
+            >
+              Terminar compra
+            </Button>
           )}
-        </Stack>
+        </section>
       )}
 
       <Sheet open={isFinishing} onClose={() => setIsFinishing(false)} title="Terminar compra">
-        <FinishPurchaseForm itemCount={inCart.length} onDone={() => setIsFinishing(false)} />
+        <FinishPurchaseForm items={inCart} onDone={() => setIsFinishing(false)} />
       </Sheet>
+      <KnownProductsSheet open={isBrowsing} onClose={() => setIsBrowsing(false)} items={known} />
     </Stack>
-  )
-}
-
-function Section({
-  title,
-  count,
-  children,
-}: {
-  title: string
-  count: number
-  children: ReactNode
-}) {
-  return (
-    <section aria-label={title}>
-      <h2 className={styles.sectionTitle}>
-        {title} <span className={styles.count}>{count}</span>
-      </h2>
-      {children}
-    </section>
   )
 }

@@ -28,38 +28,43 @@ function newItem(name: string, status: ShoppingItem['status'], quantity: number,
   return db.shoppingItems.add(item).then(() => item.id)
 }
 
-// Single entry point to the pantry/list. A product has one row that cycles
-// in_stock → to_buy → in_cart → in_stock; components never touch Dexie directly.
+// What adding did, so the screen can say it: a new product, one known that's back on the
+// list, or more of one already on it
+export interface AddResult {
+  id: string
+  outcome: 'new' | 'back' | 'more'
+  name: string
+  quantity: number // on the list now
+}
+
+// Single entry point to the shopping products. A product has one row that cycles
+// off the list (in_stock) → to_buy → in_cart → off the list; components never touch Dexie.
 export const shoppingRepo = {
-  // Puts a product on the list: new, back from the pantry, or bumping the quantity
-  add({ name, quantity }: ParsedItem, now = new Date()) {
+  // Puts a product on the list: new, a known one back, or bumping the quantity
+  add({ name, quantity }: ParsedItem, now = new Date()): Promise<AddResult> {
     return db.transaction('rw', db.shoppingItems, async () => {
       const existing = await findByName(name)
-      if (!existing) return newItem(name, 'to_buy', quantity, now)
-
+      if (!existing) {
+        return { id: await newItem(name, 'to_buy', quantity, now), outcome: 'new', name, quantity }
+      }
       const onList = existing.status !== 'in_stock'
+      const total = onList ? Math.min(existing.quantity + quantity, MAX_QUANTITY) : quantity
       await write(
         existing.id,
-        {
-          status: onList ? existing.status : 'to_buy',
-          quantity: onList ? Math.min(existing.quantity + quantity, MAX_QUANTITY) : quantity,
-        },
+        { status: onList ? existing.status : 'to_buy', quantity: total },
         now,
       )
-      return existing.id
+      return {
+        id: existing.id,
+        outcome: onList ? 'more' : 'back',
+        name: existing.name,
+        quantity: total,
+      }
     })
   },
 
-  // Registers a product you have at home, without putting it on the list
-  addToPantry(name: string, now = new Date()) {
-    return db.transaction('rw', db.shoppingItems, async () => {
-      const existing = await findByName(name)
-      return existing ? existing.id : newItem(name, 'in_stock', 1, now)
-    })
-  },
-
-  // "Se acabó": the product goes back on the list
-  async runOut(id: string, now = new Date()) {
+  // A known product (a frequent one) back on the list, one unit
+  async addAgain(id: string, now = new Date()) {
     const item = await db.shoppingItems.get(id)
     if (item?.status !== 'in_stock') return
     await write(id, { status: 'to_buy', quantity: 1 }, now)
@@ -72,7 +77,7 @@ export const shoppingRepo = {
     await write(id, { status: item.status === 'to_buy' ? 'in_cart' : 'to_buy' }, now)
   },
 
-  // Off the list: a product bought before goes back to the pantry, a new one is deleted
+  // Off the list: a product bought before stays known (a frequent one), a new one is deleted
   async removeFromList(id: string, now = new Date()) {
     const item = await db.shoppingItems.get(id)
     if (!item) return
@@ -83,12 +88,13 @@ export const shoppingRepo = {
     )
   },
 
-  // "Ya no lo compro": the product disappears from the pantry
-  async removeProduct(id: string, now = new Date()) {
+  // "Ya no lo compro": the product is forgotten, so it stops showing among the frequent ones
+  async forget(id: string, now = new Date()) {
     await write(id, { deleted: true }, now)
   },
 
-  // Everything in the cart goes home; returns how many products were bought
+  // Everything in the cart is bought: off the list, counted for the frequent ones. Returns
+  // how many products it was.
   finishPurchase(now = new Date()) {
     const iso = now.toISOString()
     return db.shoppingItems
