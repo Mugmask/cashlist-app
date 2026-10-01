@@ -10,10 +10,12 @@ import { useAutoSync } from '@/lib/sync'
 import { Alert, PrimaryActionProvider, ToastProvider } from '@/ui'
 import { UpdatePrompt } from '../UpdatePrompt'
 import { AuthShell } from './AuthShell'
+import { BackLink } from './BackLink'
 import { BottomNav } from './BottomNav'
 import { OfflineBadge } from './OfflineBadge'
 import styles from './RootLayout.module.css'
 import { SplashScreen } from './SplashScreen'
+import { useBackTarget } from './useBackTarget'
 import { useFocusHeadingOnNavigate, usePageTitle } from './usePageNavigation'
 
 // Screens that show one month, and so the month switcher in the header
@@ -58,6 +60,7 @@ function AppShell({ email }: { email?: string }) {
   const mainRef = useRef<HTMLElement>(null)
   usePageTitle()
   useFocusHeadingOnNavigate(mainRef)
+  const back = useBackTarget()
   const { pathname } = useLocation()
   const [params, setParams] = useSearchParams()
   // Read once on mount: the effect below then drops the param
@@ -86,6 +89,8 @@ function AppShell({ email }: { email?: string }) {
             </header>
             <main ref={mainRef} className={styles.main}>
               {syncError && <Alert tone="danger">{syncError}</Alert>}
+              {/* Every screen but Inicio can go back to the one it was opened from */}
+              {back && <BackLink target={back} />}
               <Outlet />
             </main>
             <BottomNav />
