@@ -105,6 +105,7 @@ function ProfileForm({
 // Signing out clears this device's data. If some change couldn't be uploaded, it warns
 // first and only a second tap signs out anyway.
 function SignOutButton() {
+  const toast = useToast()
   const [unsynced, setUnsynced] = useState(0)
   const [busy, setBusy] = useState(false)
 
@@ -116,7 +117,9 @@ function SignOutButton() {
       setBusy(false)
       return
     }
-    await signOut()
+    if (await signOut()) return
+    setBusy(false)
+    toast('No se pudo cerrar sesión: probá con conexión')
   }
 
   return (

@@ -81,4 +81,19 @@ describe('carryOver', () => {
     const list = [rent(0.1, '2026-08-01T12:00'), expense(0.2, '2026-09-01T12:00')]
     expect(carryOver(list, 0, '2026-10')?.amount).toBe(-0.3)
   })
+
+  // September's rent paid early, on August 31st: it counts in August, where it was paid, as
+  // every screen shows it. It must be subtracted in some month, never left out.
+  it('subtracts a fixed payment made before the month it pays', () => {
+    const early = expense(600, '2026-08-31T12:00', {
+      fixedExpenseId: 'rent',
+      category: 'rent',
+      fixedPeriod: '2026-09',
+    })
+    expect(carryOver([early], 1000, '2026-10')).toEqual({
+      amount: 1000 - 600 + 1000,
+      from: '2026-08',
+      to: '2026-09',
+    })
+  })
 })

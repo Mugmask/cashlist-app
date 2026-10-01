@@ -27,12 +27,13 @@ export function isFixed(expense: Expense) {
 
 // The first month kept whole in the app ("2026-09"): the first with a fixed expense paid.
 // Earlier months only hold card purchases loaded for their installments. Undefined without
-// any fixed payment. By the month a payment pays: September's rent paid on August 31st
-// doesn't make August a month kept whole.
+// any fixed payment. By the day it was paid, like every screen and the carry-over count it:
+// going by the month it pays instead left September's rent paid on August 31st out of
+// every month the carry-over adds up.
 export function firstTrackedPeriod(expenses: readonly Expense[]): string | undefined {
   return expenses
     .filter(isFixed)
-    .map((e) => e.fixedPeriod ?? toPeriod(new Date(e.spentAt)))
+    .map((e) => toPeriod(new Date(e.spentAt)))
     .reduce<string | undefined>(
       (first, p) => (first === undefined || p < first ? p : first),
       undefined,

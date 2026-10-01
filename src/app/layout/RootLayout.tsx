@@ -45,7 +45,7 @@ export function RootLayout() {
       ) : session === undefined ? (
         <SplashScreen />
       ) : session ? (
-        <AppShell email={session.user.email} />
+        <AppShell userId={session.user.id} email={session.user.email} />
       ) : (
         <AuthShell>
           <Login />
@@ -57,13 +57,13 @@ export function RootLayout() {
   )
 }
 
-function AppShell({ email }: { email?: string }) {
+function AppShell({ userId, email }: { userId: string; email?: string }) {
   const syncError = useAutoSync()
   // The screens look categories up by id: the user's ones must be read before they show
   const categories = useCategories()
   // Signed in on a device without the data yet: a skeleton until the first sync brings it,
   // so screens don't fill in table by table
-  const synced = useFirstSync()
+  const synced = useFirstSync(userId)
   const mainRef = useRef<HTMLElement>(null)
   usePageTitle()
   useFocusHeadingOnNavigate(mainRef)

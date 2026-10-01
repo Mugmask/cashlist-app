@@ -1,5 +1,6 @@
 import { RefreshCw } from 'lucide-react'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { reloadApp } from '@/lib/appReload'
 import { runSync } from '@/lib/sync'
 import { cx } from '@/ui'
 import styles from './PullToRefresh.module.css'
@@ -7,6 +8,7 @@ import styles from './PullToRefresh.module.css'
 const THRESHOLD = 70 // how far to pull (after the resistance) for a release to reload
 const MAX_PULL = 110
 const RESISTANCE = 0.5 // the indicator moves half what the finger does
+const MAX_SYNC_WAIT_MS = 8000 // a network that hangs without failing doesn't keep it spinning
 
 // Installed, the app has no reload button nor the browser's pull-to-refresh
 function isInstalled() {
@@ -16,8 +18,8 @@ function isInstalled() {
   )
 }
 
-// Pull down from the top of a screen and let go to reload the app, like a browser tab.
-// It syncs first, so nothing pending is lost. Only in the installed app, never with a sheet
+// Pull down from the top of a screen and let go to reload the app, like a browser tab, into
+// a new version if there is one. It syncs first, so nothing pending is lost. Only in the installed app, never with a sheet
 // open, and not while scrolling sideways (the rows of chips).
 export function PullToRefresh() {
   const [pull, setPull] = useState(0)
@@ -58,8 +60,11 @@ export function PullToRefresh() {
       start = null
       busy.current = true
       setRefreshing(true)
-      await runSync().catch(() => {})
-      window.location.reload()
+      await Promise.race([
+        runSync().catch(() => {}),
+        new Promise((resolve) => setTimeout(resolve, MAX_SYNC_WAIT_MS)),
+      ])
+      await reloadApp() // into the new version, if there's one
     }
 
     window.addEventListener('touchstart', onStart, { passive: true })

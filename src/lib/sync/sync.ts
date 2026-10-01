@@ -4,29 +4,31 @@ import { SYNCED_TABLES } from './tables'
 
 let inFlight: Promise<void> | null = null
 
-// Whether a sync has finished in this session, well or not (offline, an error): screens wait
-// for the first one after signing in, but never forever
-let finishedOnce = false
+// The user a sync last finished for in this session, well or not (offline, an error):
+// screens wait for the first one after signing in, but never forever. Per user, so someone
+// signing in after a session that ended by itself (no sign-out) waits for their own.
+let finishedFor: string | null = null
+let syncingFor: string | null = null
 const finishListeners = new Set<() => void>()
 
-export function hasFinishedOnce() {
-  return finishedOnce
+export function finishedForUser() {
+  return finishedFor
 }
 
-export function onFinishedOnce(listener: () => void) {
+export function onFinished(listener: () => void) {
   finishListeners.add(listener)
   return () => finishListeners.delete(listener)
 }
 
-function markFinished(value: boolean) {
-  if (finishedOnce === value) return
-  finishedOnce = value
+function markFinished(userId: string | null) {
+  if (finishedFor === userId) return
+  finishedFor = userId
   for (const listener of finishListeners) listener()
 }
 
 // Signing out: the next sign-in waits for its own first sync again
 export function resetFirstSync() {
-  markFinished(false)
+  markFinished(null)
 }
 
 let rerunRequested = false
@@ -40,7 +42,7 @@ export function runSync(): Promise<void> {
   }
   inFlight = syncAll().finally(() => {
     inFlight = null
-    markFinished(true)
+    if (syncingFor) markFinished(syncingFor)
     if (rerunRequested) {
       rerunRequested = false
       runSync().catch(() => {}) // errors surface on the next regular sync
@@ -50,10 +52,13 @@ export function runSync(): Promise<void> {
 }
 
 async function syncAll() {
-  if (!supabase || !navigator.onLine) return
+  if (!supabase) return
   const { data } = await supabase.auth.getSession()
   if (!data.session) return
+  syncingFor = data.session.user.id
+  // Before anything else, offline too: another user's data on this device goes right away
   await claimLocalData(data.session.user.id)
+  if (!navigator.onLine) return
 
   // A failing table doesn't stop the others; the first error is reported after all ran
   const errors: unknown[] = []

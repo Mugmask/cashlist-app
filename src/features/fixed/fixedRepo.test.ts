@@ -67,6 +67,19 @@ describe('fixedRepo', () => {
     expect((await db.fixedExpenses.get(id))?.amount).toBe(345000)
   })
 
+  it('paying an old month at its old price keeps the amount of the latest month paid', async () => {
+    const id = await fixedRepo.create({
+      name: 'Alquiler',
+      category: 'rent',
+      amount: 600000,
+      paymentMethod: 'cash',
+    })
+    await fixedRepo.pay((await db.fixedExpenses.get(id))!, 700000, '2026-10') // it went up
+    await fixedRepo.pay((await db.fixedExpenses.get(id))!, 600000, '2026-08') // catching up
+
+    expect((await db.fixedExpenses.get(id))?.amount).toBe(700000)
+  })
+
   it('undoPayment removes the payment, so the month shows it as unpaid again', async () => {
     const id = await fixedRepo.create({
       name: 'Luz',

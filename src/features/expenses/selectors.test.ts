@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Expense } from '@/lib/db'
-import { firstTrackedPeriod, groupByDay, summarizeMonth, totalsByCategory } from './selectors'
+import { groupByDay, summarizeMonth, totalsByCategory } from './selectors'
 
 function expense(id: string, spentAt: Date, amount: number, category = 'other'): Expense {
   const iso = spentAt.toISOString()
@@ -64,17 +64,5 @@ describe('totalsByCategory', () => {
       { category: 'rent', total: 300, count: 1 },
       { category: 'groceries', total: 150, count: 2 },
     ])
-  })
-})
-
-describe('firstTrackedPeriod', () => {
-  it('goes by the month a fixed payment pays, not the day it was paid', () => {
-    // September's rent, paid early on August 31st
-    const rent = {
-      ...expense('rent', new Date(2026, 7, 31, 12), 300_000),
-      fixedExpenseId: 'f',
-      fixedPeriod: '2026-09',
-    }
-    expect(firstTrackedPeriod([rent, expense('tv', new Date(2026, 6, 10), 90_000)])).toBe('2026-09')
   })
 })

@@ -1,4 +1,4 @@
-import { addExpense, removeExpense } from '@/features/expenses'
+import { addExpense, getPaymentsOf, removeExpense } from '@/features/expenses'
 import { db, type FixedExpense, type PaymentMethod } from '@/lib/db'
 import { toPesos } from '@/lib/exchangeRates'
 import type { ConversionRate } from '@/lib/useDollarRate'
@@ -78,7 +78,10 @@ export const fixedRepo = {
       paymentMethod: fixed.paymentMethod ?? 'cash',
       spentAt: paidAt,
     })
-    if (amount !== fixed.amount) {
+    // The amount suggested next time follows the latest month paid: catching up on an old
+    // month at its old price doesn't take back a raise already paid since
+    const latest = (await getPaymentsOf(fixed.id))[0]?.fixedPeriod
+    if (amount !== fixed.amount && (!latest || period >= latest)) {
       await db.fixedExpenses.update(fixed.id, {
         amount,
         updatedAt: now.toISOString(),

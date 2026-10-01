@@ -323,7 +323,7 @@ for (const table of db.tables) {
 
 // The local database holds one user's data at a time. The owner is kept next to the sync
 // cursors, so clearing everything also forgets who it belonged to.
-const OWNER_KEY = 'owner'
+export const OWNER_KEY = 'owner'
 
 export async function clearLocalData() {
   await db.transaction('rw', db.tables, () => Promise.all(db.tables.map((t) => t.clear())))
