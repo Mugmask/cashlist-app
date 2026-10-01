@@ -7,6 +7,7 @@ const longDay = new Intl.DateTimeFormat('es-AR', {
   month: 'short',
 })
 const monthName = new Intl.DateTimeFormat('es-AR', { month: 'long' })
+const shortMonthName = new Intl.DateTimeFormat('es-AR', { month: 'short' })
 const fullDay = new Intl.DateTimeFormat('es-AR', {
   weekday: 'long',
   day: 'numeric',
@@ -104,4 +105,10 @@ export function formatDaysAgo(iso: string, now = new Date()) {
 // "septiembre"
 export function formatMonthName(date = new Date()) {
   return monthName.format(date)
+}
+
+// "Sept", "Ene 2027": the year only when it isn't `thisYear`'s
+export function formatShortMonth(date: Date, thisYear: number) {
+  const name = capitalize(shortMonthName.format(date).replace('.', ''))
+  return date.getFullYear() === thisYear ? name : `${name} ${date.getFullYear()}`
 }

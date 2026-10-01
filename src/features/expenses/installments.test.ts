@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Expense } from '@/lib/db'
-import { chargedAfter, chargeOn, splitInstallments } from './installments'
+import { chargedAfter, chargeOn, forMonth, splitInstallments } from './installments'
 
 function purchase(amount: number, spentAt: Date, installments?: number): Expense {
   const iso = spentAt.toISOString()
@@ -46,7 +46,27 @@ describe('chargedAfter', () => {
   it('is what the installments after a statement add up to', () => {
     const tv = purchase(300000, new Date(2026, 7, 20), 6)
     expect(chargedAfter(tv, '2026-09')).toBe(200000) // 2 of 6 charged by September
-    expect(chargedAfter(tv, '2026-07')).toBe(300000)
+    expect(chargedAfter(tv, '2026-07')).toBe(0) // not bought yet
     expect(chargedAfter(tv, '2027-01')).toBe(0)
+  })
+})
+
+describe('forMonth', () => {
+  const tv = purchase(300000, new Date(2026, 7, 20), 6) // August, 6 × 50.000
+
+  it('gives each month its installment, saying which one', () => {
+    expect(forMonth(tv, '2026-08')).toMatchObject({
+      amount: 50000,
+      installment: { number: 1, count: 6, total: 300000 },
+    })
+    expect(forMonth(tv, '2027-01')?.installment?.number).toBe(6)
+    expect(forMonth(tv, '2026-07')).toBeNull()
+    expect(forMonth(tv, '2027-02')).toBeNull()
+  })
+
+  it('leaves a single payment whole, only in its own month', () => {
+    const lunch = purchase(12000, new Date(2026, 8, 3))
+    expect(forMonth(lunch, '2026-09')).toBe(lunch)
+    expect(forMonth(lunch, '2026-10')).toBeNull()
   })
 })

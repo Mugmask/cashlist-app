@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '@/lib/db'
-import { expensesRepo } from './expensesRepo'
+import { expensesRepo, getMonthExpenses } from './expensesRepo'
 
 beforeEach(async () => {
   await db.expenses.clear()
@@ -83,5 +83,21 @@ describe('expensesRepo', () => {
 
     expect(ids).toEqual([second, first])
     expect(ids).not.toContain(august)
+  })
+
+  it("getMonthExpenses counts each installment in its month, and earlier purchases' too", async () => {
+    await expensesRepo.add(
+      { amount: 300000, category: 'other', paymentMethod: 'card', installments: 3 },
+      new Date(2026, 6, 18, 12), // July
+    )
+    await expensesRepo.add({ amount: 9000, category: 'groceries' }, new Date(2026, 8, 3, 12))
+    await expensesRepo.add({ amount: 5000, category: 'groceries' }, new Date(2026, 7, 3, 12))
+
+    const september = await getMonthExpenses(new Date(2026, 8, 1))
+    expect(september.map((e) => [e.amount, e.installment?.number])).toEqual([
+      [9000, undefined],
+      [100000, 3], // the July purchase's 3rd installment
+    ])
+    expect(await getMonthExpenses(new Date(2026, 9, 1))).toEqual([]) // all paid by October
   })
 })

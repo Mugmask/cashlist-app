@@ -1,5 +1,6 @@
 import { CalendarCheck, ChevronRight, CircleCheck } from 'lucide-react'
 import { Link } from 'react-router'
+import { useMonth } from '@/features/month'
 import { Amount, Card } from '@/ui'
 import { useFixedOverview } from '../useFixedOverview'
 import styles from './FixedHomeCard.module.css'
@@ -8,7 +9,8 @@ const PREVIEW_COUNT = 3
 
 // This month's fixed expenses at a glance: what's left to pay and the most urgent one
 export function FixedHomeCard() {
-  const overview = useFixedOverview()
+  const { month } = useMonth()
+  const overview = useFixedOverview(month)
 
   if (!overview) return null
 

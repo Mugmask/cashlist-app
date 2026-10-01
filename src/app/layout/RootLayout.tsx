@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Outlet, ScrollRestoration, useSearchParams } from 'react-router'
+import { Outlet, ScrollRestoration, useLocation, useSearchParams } from 'react-router'
 import { Login, useSession } from '@/features/auth'
 import { AddExpenseProvider } from '@/features/expenses'
+import { MonthProvider, MonthSwitcher } from '@/features/month'
 import { ProfileButton } from '@/features/profile'
 import { requestPersistentStorage } from '@/lib/db'
 import { supabase } from '@/lib/supabase'
@@ -10,11 +11,13 @@ import { Alert, PrimaryActionProvider, ToastProvider } from '@/ui'
 import { UpdatePrompt } from '../UpdatePrompt'
 import { AuthShell } from './AuthShell'
 import { BottomNav } from './BottomNav'
-import { Brand } from './Brand'
 import { OfflineBadge } from './OfflineBadge'
 import styles from './RootLayout.module.css'
 import { SplashScreen } from './SplashScreen'
 import { useFocusHeadingOnNavigate, usePageTitle } from './usePageNavigation'
+
+// Screens that show one month, and so the month switcher in the header
+const MONTHLY_SCREENS = new Set(['/', '/expenses', '/fixed'])
 
 // Home screen shortcut (manifest) that opens the app straight into adding an expense
 const ADD_EXPENSE_ACTION = 'add-expense'
@@ -55,6 +58,7 @@ function AppShell({ email }: { email?: string }) {
   const mainRef = useRef<HTMLElement>(null)
   usePageTitle()
   useFocusHeadingOnNavigate(mainRef)
+  const { pathname } = useLocation()
   const [params, setParams] = useSearchParams()
   // Read once on mount: the effect below then drops the param
   const [openedFromShortcut] = useState(() => params.get('action') === ADD_EXPENSE_ACTION)
@@ -70,18 +74,23 @@ function AppShell({ email }: { email?: string }) {
   return (
     <AddExpenseProvider initiallyOpen={openedFromShortcut}>
       <PrimaryActionProvider>
-        <div className={styles.shell}>
-          <header className={styles.header}>
-            <Brand />
-            <OfflineBadge />
-            <ProfileButton email={email} />
-          </header>
-          <main ref={mainRef} className={styles.main}>
-            {syncError && <Alert tone="danger">{syncError}</Alert>}
-            <Outlet />
-          </main>
-          <BottomNav />
-        </div>
+        <MonthProvider>
+          <div className={styles.shell}>
+            <header className={styles.header}>
+              <OfflineBadge />
+              {/* The month, centered on the screen; the shopping list isn't about a month */}
+              {MONTHLY_SCREENS.has(pathname) ? <MonthSwitcher /> : <span />}
+              <div className={styles.headerEnd}>
+                <ProfileButton email={email} />
+              </div>
+            </header>
+            <main ref={mainRef} className={styles.main}>
+              {syncError && <Alert tone="danger">{syncError}</Alert>}
+              <Outlet />
+            </main>
+            <BottomNav />
+          </div>
+        </MonthProvider>
       </PrimaryActionProvider>
     </AddExpenseProvider>
   )

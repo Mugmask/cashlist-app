@@ -10,6 +10,7 @@ export { ExpenseRow } from './components/ExpenseRow'
 export {
   addExpense,
   getExpensesSince,
+  getPaymentsOf,
   getFixedPayments,
   getMonthExpenses,
   removeExpense,
@@ -22,6 +23,7 @@ export {
   INSTALLMENT_OPTIONS,
   installmentsOf,
   MAX_INSTALLMENTS,
+  type MonthExpense,
   splitInstallments,
 } from './installments'
 export { PAYMENT_METHOD_OPTIONS } from './paymentMethods'

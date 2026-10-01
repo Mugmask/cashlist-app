@@ -6,6 +6,7 @@ import { runSync } from '@/lib/sync'
 import { AmountField, Button, ChipGroup, Stack, TextField, useToast } from '@/ui'
 import { amountToInput, parseAmount, type Currency } from '@/utils/currency'
 import { fixedRepo } from '../fixedRepo'
+import { FixedHistory } from './FixedHistory'
 
 const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map(({ id, label, icon: Icon }) => ({
   value: id as string,
@@ -103,6 +104,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
           value={paymentMethod}
           onChange={setPaymentMethod}
         />
+        {fixed && <FixedHistory fixedExpenseId={fixed.id} />}
         <Button type="submit" size="lg" fullWidth disabled={!isValid}>
           {fixed ? 'Guardar cambios' : 'Agregar gasto fijo'}
         </Button>

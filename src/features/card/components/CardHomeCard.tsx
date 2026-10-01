@@ -1,4 +1,5 @@
 import { CircleCheck, CreditCard } from 'lucide-react'
+import { useMonth } from '@/features/month'
 import { runSync } from '@/lib/sync'
 import { Amount, Button, Card, useToast } from '@/ui'
 import { formatMonthName, shiftMonth } from '@/utils/dates'
@@ -9,16 +10,17 @@ import styles from './CardHomeCard.module.css'
 // What's accumulating on the credit card this month, and last month's statement to pay.
 // Hidden for anyone who doesn't use a card.
 export function CardHomeCard() {
-  const summary = useCardSummary()
+  const { month } = useMonth()
+  const summary = useCardSummary(month)
   const toast = useToast()
 
   if (!summary) return null
 
-  const { now, current, previous, upcoming } = summary
+  const { current, previous, upcoming } = summary
   if (current.total === 0 && !previous && upcoming === 0) return null
 
-  const thisMonth = formatMonthName(now)
-  const lastMonth = formatMonthName(shiftMonth(now, -1))
+  const thisMonth = formatMonthName(month)
+  const lastMonth = formatMonthName(shiftMonth(month, -1))
 
   async function handleMarkPaid(period: string) {
     await cardRepo.markPaid(period)

@@ -18,6 +18,26 @@ export function splitInstallments(total: number, count: number): number[] {
   return [...Array.from({ length: count - 1 }, () => each), last]
 }
 
+// An expense as one month sees it. A purchase in installments counts one installment a month,
+// from the month it was bought: `amount` is that month's installment, and `installment` says
+// which one it is. Anything else is the expense as is, in its own month.
+export type MonthExpense = Expense & {
+  installment?: { number: number; count: number; total: number }
+}
+
+// This expense's part of `period` ("2026-09"), or null when nothing of it falls there
+export function forMonth(expense: Expense, period: string): MonthExpense | null {
+  const index = monthsBetween(toPeriod(new Date(expense.spentAt)), period)
+  const count = installmentsOf(expense)
+  if (index < 0 || index >= count) return null
+  if (count === 1) return expense
+  return {
+    ...expense,
+    amount: splitInstallments(expense.amount, count)[index],
+    installment: { number: index + 1, count, total: expense.amount },
+  }
+}
+
 // What a card statement charges for this expense. A statement is named after the month whose
 // purchases it closes ("2026-09", paid in October): it charges the 1st installment of that
 // month's purchases, the 2nd of the month before's, and so on.
@@ -27,9 +47,11 @@ export function chargeOn(expense: Expense, statementPeriod: string) {
   return index >= 0 && index < parts.length ? parts[index] : 0
 }
 
-// What's still to be charged after the statement of `period`: the installments left
+// What's still to be charged after the statement of `period`: the installments left of what
+// was bought by then (later purchases don't count yet)
 export function chargedAfter(expense: Expense, period: string) {
   const index = monthsBetween(toPeriod(new Date(expense.spentAt)), period)
+  if (index < 0) return 0
   const parts = splitInstallments(expense.amount, installmentsOf(expense))
-  return parts.slice(Math.max(index + 1, 0)).reduce((sum, p) => sum + p, 0)
+  return parts.slice(index + 1).reduce((sum, p) => sum + p, 0)
 }

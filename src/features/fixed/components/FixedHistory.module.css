@@ -1,0 +1,28 @@
+/* One line under the form fields: the last change of price */
+.change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.latest {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+.percent {
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.up {
+  color: var(--color-warning);
+}
+
+.down {
+  color: var(--color-accent);
+}

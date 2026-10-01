@@ -15,7 +15,12 @@ describe('summarizeMonth', () => {
       fixedExpenseId: 'f1',
       fixedPeriod: '2026-09',
     }
-    const summary = summarizeMonth([expense('a', now, 700), expense('b', now, 300), rent], now)
+    const september = new Date(2026, 8, 1)
+    const summary = summarizeMonth(
+      [expense('a', now, 700), expense('b', now, 300), rent],
+      september,
+      now,
+    )
     expect(summary).toEqual({
       total: 6000,
       fixedTotal: 5000,
@@ -25,12 +30,24 @@ describe('summarizeMonth', () => {
   })
 
   it('is zero with no expenses', () => {
-    expect(summarizeMonth([], new Date(2026, 8, 1))).toEqual({
+    expect(summarizeMonth([], new Date(2026, 8, 1), new Date(2026, 8, 1))).toEqual({
       total: 0,
       fixedTotal: 0,
       variableTotal: 0,
       dailyAverage: 0,
     })
+  })
+})
+
+describe('summarizeMonth of a past month', () => {
+  it('averages over all its days', () => {
+    const august = new Date(2026, 7, 1)
+    const summary = summarizeMonth(
+      [expense('a', new Date(2026, 7, 5), 3100)],
+      august,
+      new Date(2026, 8, 10),
+    )
+    expect(summary.dailyAverage).toBe(100) // 3100 / 31
   })
 })
 

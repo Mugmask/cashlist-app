@@ -1,0 +1,28 @@
+.switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fixed width: the arrows stay put whether it says "Mayo" or "Septiembre" */
+.label {
+  width: 7.5rem;
+  white-space: nowrap;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+  text-align: center;
+}
+
+/* Another month: the name is the way back, in the accent color */
+button.label {
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+.switcher button:disabled {
+  visibility: hidden; /* keeps its room, so the name stays centered */
+}

@@ -1,23 +1,32 @@
 import { CloudOff } from 'lucide-react'
-import type { Expense } from '@/lib/db'
 import { Amount, VisuallyHidden } from '@/ui'
 import { formatShortDay } from '@/utils/dates'
 import { getCategory } from '../categories'
+import type { MonthExpense } from '../installments'
 import { isFixed } from '../selectors'
 import { CategoryIcon } from './CategoryIcon'
 import styles from './ExpenseRow.module.css'
 
 export interface ExpenseRowProps {
-  expense: Expense
+  expense: MonthExpense // a purchase in installments shows the month's installment
   showDate?: boolean
   onOpen: (id: string) => void // shows its detail, where it can be edited or deleted
 }
 
 // Just what tells expenses apart at a glance; note, payment method and the rest are in the detail
 export function ExpenseRow({ expense, showDate = true, onOpen }: ExpenseRowProps) {
-  // A fixed payment reads as its name ("Alquiler"); a regular expense as its category
-  const title =
-    isFixed(expense) && expense.note ? expense.note : getCategory(expense.category).label
+  // A fixed payment or a purchase in installments reads as its name ("Alquiler", "Amurrio SA"),
+  // so its months tell apart; a regular expense as its category
+  const named = isFixed(expense) || expense.installment !== undefined
+  const title = named && expense.note ? expense.note : getCategory(expense.category).label
+
+  const { installment } = expense
+  const meta = [
+    showDate && formatShortDay(expense.spentAt),
+    installment && `Cuota ${installment.number}/${installment.count}`,
+  ]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
     <li className={styles.row}>
@@ -28,12 +37,13 @@ export function ExpenseRow({ expense, showDate = true, onOpen }: ExpenseRowProps
             <VisuallyHidden>Ver detalle de </VisuallyHidden>
             {title}
           </span>
-          {showDate && <span className={styles.meta}>{formatShortDay(expense.spentAt)}</span>}
+          {meta && <span className={styles.meta}>{meta}</span>}
         </span>
         {expense.pending === 1 && (
           <CloudOff className={styles.pending} role="img" aria-label="Sin sincronizar" />
         )}
-        {expense.currency === 'USD' ? (
+        {/* Dollars as dollars; an installment is always its pesos */}
+        {expense.currency === 'USD' && !installment ? (
           <Amount value={expense.foreignAmount!} currency="USD" />
         ) : (
           <Amount value={expense.amount} compactFrom={10_000_000} />

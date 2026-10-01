@@ -15,18 +15,18 @@ function subscribe(onChange: () => void) {
 const isOnline = () => navigator.onLine
 
 // Everything keeps working offline; this only says why changes aren't reaching other devices.
-// A status region, so screen readers hear it when the connection drops.
+// A small icon on the header's left (its middle is the month); the full sentence is for screen
+// readers, in a status region so they hear it when the connection drops.
 export function OfflineBadge() {
   const online = useSyncExternalStore(subscribe, isOnline)
 
   return (
     <div role="status" className={styles.slot}>
       {!online && (
-        <span className={styles.badge}>
+        <span className={styles.badge} title="Sin conexión">
           <CloudOff aria-hidden />
-          Sin conexión
           <VisuallyHidden>
-            . Lo que cargues se guarda en este dispositivo y se sube cuando vuelva.
+            Sin conexión. Lo que cargues se guarda en este dispositivo y se sube cuando vuelva.
           </VisuallyHidden>
         </span>
       )}

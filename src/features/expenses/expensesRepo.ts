@@ -1,5 +1,6 @@
 import { db, type ExchangeRateKind, type Expense, type PaymentMethod } from '@/lib/db'
-import { startOfMonth } from '@/utils/dates'
+import { shiftMonth, toPeriod } from '@/utils/dates'
+import { forMonth, MAX_INSTALLMENTS, type MonthExpense } from './installments'
 
 // What can be corrected on an existing expense. `note: undefined` clears it.
 export type ExpenseChanges = Partial<
@@ -34,15 +35,31 @@ export interface NewExpense {
   fixedPeriod?: string
 }
 
-// This month's expenses. Meant to be called inside a live query (it reads the database),
-// so other features can combine it with their own data in a single query.
-export function getMonthExpenses(now: Date) {
-  return expensesRepo.since(startOfMonth(now))
+// A month's expenses, newest first: the ones made in it, plus the installments of earlier
+// purchases that fall on it (see forMonth: an installment counts in its own month). Meant to be
+// called inside a live query (it reads the database), so other features can combine it with
+// their own data in a single query.
+export async function getMonthExpenses(month: Date): Promise<MonthExpense[]> {
+  const period = toPeriod(month)
+  // Far enough back for the longest installment plan to still reach this month
+  const candidates = await expensesRepo.between(
+    shiftMonth(month, 1 - MAX_INSTALLMENTS),
+    shiftMonth(month, 1),
+  )
+  return candidates.flatMap((e) => forMonth(e, period) ?? [])
 }
 
 // Non-deleted expenses since a date, newest first. For live queries in other features.
 export function getExpensesSince(date: Date) {
   return expensesRepo.since(date)
+}
+
+// Every payment of one fixed expense, the latest month first
+export async function getPaymentsOf(fixedExpenseId: string) {
+  const payments = await db.expenses
+    .filter((e) => e.fixedExpenseId === fixedExpenseId && !e.deleted)
+    .toArray()
+  return payments.sort((a, b) => (b.fixedPeriod ?? '').localeCompare(a.fixedPeriod ?? ''))
 }
 
 // Payments of fixed expenses for a month ("2026-09"), whenever they were paid
@@ -99,6 +116,16 @@ export const expensesRepo = {
       updatedAt: now.toISOString(),
       pending: 1,
     })
+  },
+
+  // Non-deleted expenses from `start` up to (not including) `end`, newest first
+  between(start: Date, end: Date) {
+    return db.expenses
+      .where('spentAt')
+      .between(start.toISOString(), end.toISOString(), true, false)
+      .reverse()
+      .filter((e) => !e.deleted)
+      .toArray()
   },
 
   // Non-deleted expenses since a date, newest first

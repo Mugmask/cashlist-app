@@ -1,5 +1,6 @@
 import { CalendarCheck, Plus } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
+import { useMonth } from '@/features/month'
 import type { FixedExpense } from '@/lib/db'
 import {
   Amount,
@@ -13,7 +14,6 @@ import {
   Stack,
 } from '@/ui'
 import { formatMonthName } from '@/utils/dates'
-import { capitalize } from '@/utils/text'
 import { FixedExpenseForm } from './components/FixedExpenseForm'
 import { FixedList } from './components/FixedList'
 import { PayFixedForm } from './components/PayFixedForm'
@@ -30,21 +30,22 @@ type SheetState =
 const SHEET_TITLE = { create: 'Nuevo gasto fijo', edit: 'Editar gasto fijo', pay: 'Registrar pago' }
 
 export function FixedPage() {
-  const overview = useFixedOverview()
+  const { month } = useMonth()
+  const overview = useFixedOverview(month)
   const [sheet, setSheet] = useState<SheetState>(null)
   usePrimaryAction('Agregar gasto fijo', () => setSheet({ kind: 'create' }))
 
   if (!overview) return null
 
-  const { pending, paid, totals, period, today } = overview
-  const monthName = formatMonthName(today)
+  const { pending, paid, totals, period } = overview
+  const monthName = formatMonthName(month)
   const isEmpty = pending.length === 0 && paid.length === 0
   const close = () => setSheet(null)
 
   return (
     <Stack gap={6}>
       {/* Adding a fixed expense is the bottom nav's + on this screen */}
-      <PageHeader title="Gastos fijos" subtitle={capitalize(monthName)} />
+      <PageHeader title="Gastos fijos" />
 
       {isEmpty ? (
         <EmptyState

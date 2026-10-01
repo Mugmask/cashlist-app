@@ -12,36 +12,50 @@ import {
   useAddExpense,
   useMonthExpenses,
 } from '@/features/expenses'
-import { FixedHomeCard } from '@/features/fixed'
+import { FixedHomeCard, useFixedOverview } from '@/features/fixed'
+import { useMonth } from '@/features/month'
 import { useProfile } from '@/features/profile'
 import { ShoppingHomeCard } from '@/features/shopping'
-import { Amount, Button, Card, EmptyState, ProgressBar, Stack, VisuallyHidden } from '@/ui'
-import { formatMonthName } from '@/utils/dates'
+import { Amount, Button, Card, cx, EmptyState, PageHeader, ProgressBar, Stack } from '@/ui'
+import { formatMonthName, shiftMonth } from '@/utils/dates'
+import { changeByCategory } from './comparison'
 import styles from './HomePage.module.css'
 
 const TOP_CATEGORIES = 4
 const RECENT_COUNT = 5
 
 export function HomePage() {
-  const month = useMonthExpenses()
+  const { month: selected, isCurrent } = useMonth()
+  const month = useMonthExpenses(selected)
+  const previous = useMonthExpenses(shiftMonth(selected, -1))
+  const fixed = useFixedOverview(selected)
   const addExpense = useAddExpense()
-  const income = useProfile()?.monthlyIncome
+  const profile = useProfile()
+  const income = profile?.monthlyIncome
+  // "Hola, Francisco": the first name only, and just "Hola" until the profile has one
+  const firstName = profile?.name?.trim().split(/\s+/)[0]
   const [openId, setOpenId] = useState<string | null>(null)
+  const [now] = useState(() => new Date()) // read once: only the day of the month matters here
 
   if (!month) return null
 
   const { expenses, total, fixedTotal, variableTotal, dailyAverage } = month
+  const monthName = formatMonthName(selected)
   // Where the money goes, without fixed payments: rent would dwarf everything you can change
   const variableByCategory = totalsByCategory(expenses.filter((e) => !isFixed(e)))
+  const changes = previous
+    ? changeByCategory(expenses, previous.expenses, isCurrent, now)
+    : new Map<string, number>()
+  // Fixed expenses not paid yet: money already spoken for this month
+  const committed = isCurrent ? (fixed?.totals.remaining ?? 0) : 0
 
   return (
     <Stack gap={6}>
-      {/* The hero reads as the screen's title visually; this names it for screen readers */}
-      <VisuallyHidden as="h1">Inicio</VisuallyHidden>
+      <PageHeader title={firstName ? `Hola, ${firstName}` : 'Hola'} />
       <Card as="section" variant="hero" padding="lg" aria-label="Resumen del mes">
-        <span className={styles.heroLabel}>Gastaste en {formatMonthName()}</span>
+        <span className={styles.heroLabel}>Gastaste en {monthName}</span>
         <Amount value={total} size="xl" />
-        {income !== undefined && <IncomeBar spent={total} income={income} />}
+        {income !== undefined && <IncomeBar spent={total} income={income} committed={committed} />}
         <dl className={styles.stats}>
           <div className={styles.stat}>
             <dt>Variables</dt>
@@ -66,23 +80,39 @@ export function HomePage() {
 
       <FixedHomeCard />
       <CardHomeCard />
-      <ShoppingHomeCard />
+      {/* The shopping list is about now, not about the month being looked at */}
+      {isCurrent && <ShoppingHomeCard />}
 
       {expenses.length === 0 ? (
         <EmptyState
           icon={<Sparkles />}
-          title="Todavía no cargaste gastos este mes"
-          description="Cargá tu primer gasto y mirá en qué se va la plata."
+          title={
+            isCurrent ? 'Todavía no cargaste gastos este mes' : `No hay gastos en ${monthName}`
+          }
+          description={
+            isCurrent ? 'Cargá tu primer gasto y mirá en qué se va la plata.' : undefined
+          }
           action={
-            <Button size="lg" icon={<Plus aria-hidden />} onClick={addExpense}>
-              Cargar gasto
-            </Button>
+            isCurrent && (
+              <Button size="lg" icon={<Plus aria-hidden />} onClick={addExpense}>
+                Cargar gasto
+              </Button>
+            )
           }
         />
       ) : (
         <>
           {variableByCategory.length > 0 && (
-            <HomeSection title="En qué se va la plata">
+            <HomeSection
+              title="En qué se va la plata"
+              action={
+                changes.size > 0 && (
+                  <span className={styles.versus}>
+                    vs {formatMonthName(shiftMonth(selected, -1))}
+                  </span>
+                )
+              }
+            >
               <Card>
                 <ul className={styles.categories}>
                   {variableByCategory.slice(0, TOP_CATEGORIES).map((c) => {
@@ -94,7 +124,10 @@ export function HomePage() {
                         <div className={styles.categoryBody}>
                           <div className={styles.categoryLine}>
                             <span className={styles.categoryLabel}>{label}</span>
-                            <Amount value={c.total} size="sm" compactFrom={10_000_000} />
+                            <span className={styles.categoryAmount}>
+                              <Change value={changes.get(c.category)} />
+                              <Amount value={c.total} size="sm" compactFrom={10_000_000} />
+                            </span>
                           </div>
                           <ProgressBar
                             label={`${label}: ${Math.round(share * 100)}% de lo variable`}
@@ -155,9 +188,33 @@ function HomeSection({
   )
 }
 
-// How much of the month's income is spent, once the profile has it
-function IncomeBar({ spent, income }: { spent: number; income: number }) {
+// "+18%" against the month before: spending more stands out, spending less is good news
+function Change({ value }: { value: number | undefined }) {
+  if (value === undefined) return null
+  const percent = Math.round(value * 100)
+  if (percent === 0) return null
+  const tone = percent >= 10 ? styles.up : percent <= -10 ? styles.down : undefined
+  return (
+    <span className={cx(styles.change, tone)}>
+      {percent > 0 ? '+' : '−'}
+      {Math.abs(percent)}%
+    </span>
+  )
+}
+
+// How much of the month's income is spent, once the profile has it. With fixed expenses
+// still to pay, what's really free once they're paid.
+function IncomeBar({
+  spent,
+  income,
+  committed,
+}: {
+  spent: number
+  income: number
+  committed: number
+}) {
   const left = income - spent
+  const free = left - committed
   return (
     <div className={styles.income}>
       <ProgressBar label="Ingreso gastado" value={spent} max={income} tone="limit" />
@@ -170,6 +227,17 @@ function IncomeBar({ spent, income }: { spent: number; income: number }) {
           de <Amount value={income} size="sm" compactFrom={1_000_000} />
         </span>
       </div>
+      {committed > 0 && left >= 0 && (
+        <p className={cx(styles.afterFixed, free < 0 && styles.over)}>
+          Después de los fijos:{' '}
+          <Amount
+            value={free}
+            size="sm"
+            tone={free < 0 ? 'danger' : 'default'}
+            compactFrom={1_000_000}
+          />
+        </p>
+      )}
     </div>
   )
 }
