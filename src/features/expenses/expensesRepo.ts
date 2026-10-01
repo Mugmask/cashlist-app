@@ -65,7 +65,9 @@ export function getExpensesSince(date: Date) {
 // Every payment of one fixed expense, the latest month first
 export async function getPaymentsOf(fixedExpenseId: string) {
   const payments = await db.expenses
-    .filter((e) => e.fixedExpenseId === fixedExpenseId && !e.deleted)
+    .where('fixedExpenseId')
+    .equals(fixedExpenseId)
+    .filter((e) => !e.deleted)
     .toArray()
   return payments.sort((a, b) => (b.fixedPeriod ?? '').localeCompare(a.fixedPeriod ?? ''))
 }
@@ -73,8 +75,11 @@ export async function getPaymentsOf(fixedExpenseId: string) {
 // The fixed expenses already in use by a month ("2026-09"): with a payment for it or for an
 // earlier one. Fixed expenses keep no creation date; this is how to tell they existed then.
 export async function getFixedInUseBy(period: string) {
+  // Only fixed payments carry a fixedPeriod, so its index finds them alone
   const payments = await db.expenses
-    .filter((e) => !!e.fixedExpenseId && !e.deleted && !!e.fixedPeriod && e.fixedPeriod <= period)
+    .where('fixedPeriod')
+    .belowOrEqual(period)
+    .filter((e) => !e.deleted)
     .toArray()
   return new Set(payments.map((e) => e.fixedExpenseId!))
 }

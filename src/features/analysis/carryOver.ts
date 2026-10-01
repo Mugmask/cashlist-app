@@ -1,4 +1,4 @@
-import { firstTrackedPeriod, forMonth } from '@/features/expenses'
+import { firstTrackedPeriod, installmentsOf, splitInstallments } from '@/features/expenses'
 import type { Expense, Income } from '@/lib/db'
 import { fromPeriod, monthsBetween, shiftMonth, toPeriod } from '@/utils/dates'
 
@@ -25,14 +25,22 @@ export function carryOver(
   const from = firstTrackedPeriod(before)
   if (from === undefined) return null
 
-  let cents = 0
-  for (let i = 0; i < monthsBetween(from, period); i++) {
-    const month = toPeriod(shiftMonth(fromPeriod(from), i))
-    const spent = before.reduce((sum, e) => sum + (forMonth(e, month)?.amount ?? 0), 0)
-    const received = incomes
-      .filter((i) => toPeriod(new Date(i.receivedAt)) === month)
-      .reduce((sum, i) => sum + i.amount, 0)
-    cents += Math.round((income + received - spent) * 100)
+  // One pass over the expenses and one over the incomes, each adding its cents to the months
+  // it counts in (an installment purchase, to each month of its plan), instead of going
+  // through every expense once per month: it stays quick with years of history.
+  const months = monthsBetween(from, period)
+  const net = new Array<number>(months).fill(Math.round(income * 100))
+  const add = (date: string, offset: number, cents: number) => {
+    const month = monthsBetween(from, toPeriod(new Date(date))) + offset
+    if (month >= 0 && month < months) net[month] += cents
   }
+  for (const e of before) {
+    const count = installmentsOf(e)
+    const parts = count === 1 ? [e.amount] : splitInstallments(e.amount, count)
+    parts.forEach((part, i) => add(e.spentAt, i, -Math.round(part * 100)))
+  }
+  for (const i of incomes) add(i.receivedAt, 0, Math.round(i.amount * 100))
+
+  const cents = net.reduce((sum, month) => sum + month, 0)
   return { amount: cents / 100, from, to: toPeriod(shiftMonth(fromPeriod(period), -1)) }
 }

@@ -96,4 +96,13 @@ describe('carryOver', () => {
       to: '2026-09',
     })
   })
+
+  it('counts each installment in its month, and none from the month looked at on', () => {
+    const list = [
+      rent(100, '2026-08-05T12:00'),
+      // 3 × 300 from August: August and September count, October is the month looked at
+      expense(900, '2026-08-10T12:00', { paymentMethod: 'card', installments: 3 }),
+    ]
+    expect(carryOver(list, 1000, '2026-10')?.amount).toBe(1000 - 100 - 300 + (1000 - 300))
+  })
 })

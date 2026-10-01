@@ -2,11 +2,11 @@ import { ChevronRight, Plus, Sparkles } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import {
-  carryOver,
   type CarryOver,
   Change,
   changeByCategory,
   describeChange,
+  useMonthBalance,
   variableChange,
 } from '@/features/analysis'
 import { CardHomeCard, useCardSummary } from '@/features/card'
@@ -15,7 +15,6 @@ import {
   ExpenseDetailSheet,
   ExpenseRow,
   getCategory,
-  getExpensesBefore,
   isFixed,
   totalsByCategory,
   useAddExpense,
@@ -23,11 +22,9 @@ import {
   useMonthExpenses,
 } from '@/features/expenses'
 import { FixedHomeCard, useFixedOverview } from '@/features/fixed'
-import { getIncomesBefore, useMonthIncomes } from '@/features/incomes'
 import { useMonth } from '@/features/month'
 import { useProfile } from '@/features/profile'
 import { ShoppingHomeCard, useShoppingList } from '@/features/shopping'
-import { useKeyedLiveQuery } from '@/lib/useKeyedLiveQuery'
 import {
   Amount,
   Button,
@@ -39,7 +36,7 @@ import {
   ProgressBar,
   Stack,
 } from '@/ui'
-import { formatMonthName, fromPeriod, shiftMonth, toPeriod } from '@/utils/dates'
+import { formatMonthName, fromPeriod, shiftMonth } from '@/utils/dates'
 import styles from './HomePage.module.css'
 
 const TOP_CATEGORIES = 3 // a glance; the whole breakdown is one tap away
@@ -50,14 +47,7 @@ export function HomePage() {
   useCategories() // re-renders when the user edits their categories: names and colors below
   const month = useMonthExpenses(selected)
   const previous = useMonthExpenses(shiftMonth(selected, -1))
-  const earlier = useKeyedLiveQuery(
-    async () => ({
-      expenses: await getExpensesBefore(selected),
-      incomes: await getIncomesBefore(selected),
-    }),
-    selected.getTime(),
-  )
-  const incomes = useMonthIncomes(selected)
+  const balance = useMonthBalance(selected)
   const fixed = useFixedOverview(selected)
   const card = useCardSummary(selected)
   const shopping = useShoppingList()
@@ -66,14 +56,13 @@ export function HomePage() {
   const [openId, setOpenId] = useState<string | null>(null)
 
   // Everything at once: numbers that fill in one by one look like they're changing
-  if (!month || !previous || !earlier || !incomes || !fixed || !card || !shopping) {
+  if (!month || !previous || !balance || !fixed || !card || !shopping) {
     return <PageLoader />
   }
   if (profile === undefined) return <PageLoader /> // null is loaded: no profile yet
 
   const { expenses, total, variableTotal } = month
   const monthName = formatMonthName(selected)
-  const received = incomes.total
   const before = previous.expenses
   // "Hola, Juan": the first name only, and just "Hola" until the profile has one
   const firstName = profile?.name?.trim().split(/\s+/)[0]
@@ -90,18 +79,8 @@ export function HomePage() {
     TOP_CATEGORIES,
   )
   const changes = changeByCategory(expenses, before, isCurrent, now)
-  const monthlyIncome = profile?.monthlyIncome
-  // What the month has to spend: the monthly income plus whatever else came in
-  const income =
-    monthlyIncome !== undefined || received > 0 ? (monthlyIncome ?? 0) + received : undefined
-  // Fixed expenses not paid yet: money already spoken for this month
-  const committed = isCurrent ? fixed.totals.remaining : 0
-  // What the months before left over or overspent comes along into this one. Only with a
-  // monthly income: without one, every month before would look overspent by all it spent.
-  const carry =
-    monthlyIncome !== undefined
-      ? carryOver(earlier.expenses, monthlyIncome, toPeriod(selected), earlier.incomes)
-      : null
+  // What the month has, what went and what's spoken for: the same balance Analysis uses
+  const { income, carry, committed } = balance
 
   return (
     <Stack gap={6}>

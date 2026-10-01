@@ -307,6 +307,12 @@ db.version(16).stores({
   cardStatements: null,
 })
 
+// v17: expenses indexed by the fixed expense they pay, so a fixed expense's payments are
+// looked up instead of read from the whole table
+db.version(17).stores({
+  expenses: 'id, category, spentAt, updatedAt, pending, fixedPeriod, fixedExpenseId',
+})
+
 // A local change (pending) always gets an updatedAt later than the version it changes, even
 // with this device's clock behind the one that wrote that version. Else the server's
 // last-write-wins trigger would drop it without an error, and the change would never leave

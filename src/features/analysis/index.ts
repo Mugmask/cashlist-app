@@ -3,6 +3,8 @@
 export const loadAnalysisPage = () =>
   import('./AnalysisPage').then((m) => ({ Component: m.AnalysisPage }))
 export { carryOver, type CarryOver } from './carryOver'
+export { type MonthBalance, monthBalance } from './monthBalance'
+export { useMonthBalance } from './useMonthBalance'
 export { changeByCategory, variableChange } from './comparison'
 export { Change } from './components/Change'
 export { describeChange } from './insight'

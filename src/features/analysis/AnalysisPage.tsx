@@ -4,25 +4,20 @@ import {
   ExpenseDetailSheet,
   ExpenseRow,
   getCategory,
-  getExpensesBefore,
   isFixed,
   totalsByCategory,
   useCategories,
   useMonthExpenses,
   type MonthExpense,
 } from '@/features/expenses'
-import { useFixedOverview } from '@/features/fixed'
-import { getIncomesBefore, useMonthIncomes } from '@/features/incomes'
 import { useMonth } from '@/features/month'
-import { useProfile } from '@/features/profile'
-import { useKeyedLiveQuery } from '@/lib/useKeyedLiveQuery'
 import { Amount, Card, EmptyState, PageHeader, PageLoader, Stack } from '@/ui'
-import { daysInMonth, formatMonthName, shiftMonth, toPeriod } from '@/utils/dates'
-import { carryOver } from './carryOver'
+import { daysInMonth, formatMonthName, shiftMonth } from '@/utils/dates'
 import { changeByCategory, variableChange } from './comparison'
 import { CategoryBreakdown } from './components/CategoryBreakdown'
 import { PerDayCard } from './components/PerDayCard'
 import { SplitBar, type SplitPart } from './components/SplitBar'
+import { useMonthBalance } from './useMonthBalance'
 import { describeChange } from './insight'
 import styles from './AnalysisPage.module.css'
 import { perDay, weeksOf } from './perDay'
@@ -36,28 +31,18 @@ export function AnalysisPage() {
   useCategories() // re-renders when the user edits their categories: names and colors below
   const month = useMonthExpenses(selected)
   const previous = useMonthExpenses(shiftMonth(selected, -1))
-  const profile = useProfile()
-  const incomes = useMonthIncomes(selected)
-  // What the months before carried and the fixed ones still to pay: the same balance as home
-  const earlier = useKeyedLiveQuery(
-    async () => ({
-      expenses: await getExpensesBefore(selected),
-      incomes: await getIncomesBefore(selected),
-    }),
-    selected.getTime(),
-  )
-  const fixed = useFixedOverview(selected)
+  // What the month has, what went and what's spoken for: the same balance as home
+  const balance = useMonthBalance(selected)
   const [openId, setOpenId] = useState<string | null>(null)
 
   // Everything at once: numbers that fill in one by one look like they're changing
-  if (!month || !previous || !incomes || !earlier || !fixed || profile === undefined) {
+  if (!month || !previous || !balance) {
     return <PageLoader />
   }
 
   const { expenses, total, fixedTotal, variableTotal } = month
   const monthName = formatMonthName(selected)
   const previousName = formatMonthName(shiftMonth(selected, -1))
-  const received = incomes.total
   const before = previous.expenses
   const insight = describeChange(
     variableChange(expenses, before, isCurrent, now),
@@ -69,24 +54,14 @@ export function AnalysisPage() {
     .filter((e) => e.paymentMethod === 'card')
     .reduce((sum, e) => sum + e.amount, 0)
   const biggest = topVariable(expenses)
-  // Per day, against what the month has: like home, the monthly income plus whatever else came
-  // in, plus what the months before carried (only with a monthly income to measure them by)
-  const monthlyIncome = profile?.monthlyIncome
-  const income =
-    monthlyIncome !== undefined || received > 0 ? (monthlyIncome ?? 0) + received : undefined
-  const carried =
-    monthlyIncome !== undefined
-      ? (carryOver(earlier.expenses, monthlyIncome, toPeriod(selected), earlier.incomes)?.amount ??
-        0)
-      : 0
   const today = isCurrent ? now.getDate() : null
   const pace = perDay({
     expenses,
     month: selected,
     today,
-    available: income === undefined ? undefined : income + carried,
-    spent: total,
-    committed: isCurrent ? fixed.totals.remaining : 0,
+    available: balance.available,
+    spent: balance.spent,
+    committed: balance.committed,
   })
 
   return (
