@@ -33,29 +33,30 @@
 
 /* A screen appearing (or its data, after the loader): its sections rise in one after the
    other. Anything added later at that level (an alert, say) rises in too. Sheets are left
-   out: they have their own slide. */
+   out, delay included: they have their own slide, and a delay on it made them open twice. */
 .page > * > :not(dialog) {
   animation: rise var(--duration-enter) var(--ease-out) both;
+  animation-delay: calc(var(--stagger) * var(--rise-step, 0));
 }
 
 .page > * > :nth-child(2) {
-  animation-delay: var(--stagger);
+  --rise-step: 1;
 }
 
 .page > * > :nth-child(3) {
-  animation-delay: calc(var(--stagger) * 2);
+  --rise-step: 2;
 }
 
 .page > * > :nth-child(4) {
-  animation-delay: calc(var(--stagger) * 3);
+  --rise-step: 3;
 }
 
 .page > * > :nth-child(5) {
-  animation-delay: calc(var(--stagger) * 4);
+  --rise-step: 4;
 }
 
 .page > * > :nth-child(n + 6) {
-  animation-delay: calc(var(--stagger) * 5);
+  --rise-step: 5;
 }
 
 @keyframes rise {

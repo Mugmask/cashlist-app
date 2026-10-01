@@ -171,7 +171,9 @@ export const shoppingItemsTable: SyncedTable<ShoppingItem, ShoppingItemRow> = {
     quantity: i.quantity,
     status: i.status,
     last_bought_at: i.lastBoughtAt ?? null,
-    times_bought: i.timesBought,
+    // Some local rows lack it (or got NaN from += 1 on it): the column is not null. Sent as 0,
+    // the next pull brings it back fixed.
+    times_bought: Number.isInteger(i.timesBought) ? i.timesBought : 0,
     updated_at: i.updatedAt,
     deleted: i.deleted,
   }),
