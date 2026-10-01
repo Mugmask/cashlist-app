@@ -9,6 +9,7 @@ import { formatCurrencyShort } from '@/utils/currency'
 import { formatFullDateTime, formatMonthName, fromPeriod } from '@/utils/dates'
 import { getCategory } from '../categories'
 import { expensesRepo } from '../expensesRepo'
+import { installmentsOf, splitInstallments } from '../installments'
 import { PAYMENT_METHOD_OPTIONS } from '../paymentMethods'
 import { isFixed } from '../selectors'
 import { CategoryIcon } from './CategoryIcon'
@@ -100,6 +101,12 @@ function ExpenseDetail({
           </Fact>
         )}
         <Fact label="Fecha">{formatFullDateTime(expense.spentAt)}</Fact>
+        {installmentsOf(expense) > 1 && (
+          <Fact label="Cuotas">
+            {installmentsOf(expense)} de{' '}
+            {formatCurrencyShort(splitInstallments(expense.amount, installmentsOf(expense))[0])}
+          </Fact>
+        )}
         <Fact label="Categoría">{category}</Fact>
         <Fact label="Cómo lo pagaste">{method.label}</Fact>
         {fixed && expense.fixedPeriod && (

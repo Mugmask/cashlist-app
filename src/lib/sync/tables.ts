@@ -24,6 +24,7 @@ interface ExpenseRow {
   foreign_amount: number | string | null
   exchange_rate: number | string | null
   exchange_rate_kind: ExchangeRateKind | null
+  installments: number | null
   updated_at: string
   deleted: boolean
   synced_at: string
@@ -33,7 +34,7 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
   name: 'expenses',
   local: db.expenses,
   columns:
-    'id, amount, category, spent_at, note, fixed_expense_id, fixed_period, payment_method, currency, foreign_amount, exchange_rate, exchange_rate_kind, updated_at, deleted, synced_at',
+    'id, amount, category, spent_at, note, fixed_expense_id, fixed_period, payment_method, currency, foreign_amount, exchange_rate, exchange_rate_kind, installments, updated_at, deleted, synced_at',
   toRow: (e) => ({
     id: e.id,
     amount: e.amount,
@@ -47,6 +48,7 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
     foreign_amount: e.foreignAmount ?? null,
     exchange_rate: e.exchangeRate ?? null,
     exchange_rate_kind: e.exchangeRateKind ?? null,
+    installments: e.installments ?? null,
     updated_at: e.updatedAt,
     deleted: e.deleted,
   }),
@@ -65,6 +67,7 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
       exchangeRate: Number(row.exchange_rate),
       exchangeRateKind: row.exchange_rate_kind ?? 'blue',
     }),
+    ...(row.installments !== null && { installments: row.installments }),
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,

@@ -2,9 +2,15 @@ import { describe, expect, it } from 'vitest'
 import type { CardStatement, Expense, PaymentMethod } from '@/lib/db'
 import { buildCardSummary } from './summary'
 
-function expense(amount: number, spentAt: Date, paymentMethod?: PaymentMethod): Expense {
+function expense(
+  amount: number,
+  spentAt: Date,
+  paymentMethod?: PaymentMethod,
+  installments?: number,
+): Expense {
   const iso = spentAt.toISOString()
   return {
+    installments,
     id: crypto.randomUUID(),
     amount,
     category: 'other',
@@ -63,5 +69,20 @@ describe('buildCardSummary', () => {
     const january = new Date(2027, 0, 5)
     const summary = buildCardSummary([expense(400, new Date(2026, 11, 28), 'card')], [], january)
     expect(summary.previous).toMatchObject({ period: '2026-12', total: 400 })
+  })
+
+  it('charges installments one per statement, and keeps the rest as upcoming', () => {
+    const summary = buildCardSummary(
+      [
+        expense(300000, new Date(2026, 7, 20), 'card', 6), // August, 6 × 50.000
+        expense(1000, new Date(2026, 9, 2), 'card'), // this month
+      ],
+      [],
+      now,
+    )
+    // October: 3rd installment + this month's purchase; September: 2nd installment
+    expect(summary.current).toEqual({ period: '2026-10', total: 51000, count: 2 })
+    expect(summary.previous).toMatchObject({ period: '2026-09', total: 50000 })
+    expect(summary.upcoming).toBe(150000) // 4th to 6th
   })
 })

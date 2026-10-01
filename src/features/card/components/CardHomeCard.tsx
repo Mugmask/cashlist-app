@@ -14,8 +14,8 @@ export function CardHomeCard() {
 
   if (!summary) return null
 
-  const { now, current, previous } = summary
-  if (current.total === 0 && !previous) return null
+  const { now, current, previous, upcoming } = summary
+  if (current.total === 0 && !previous && upcoming === 0) return null
 
   const thisMonth = formatMonthName(now)
   const lastMonth = formatMonthName(shiftMonth(now, -1))
@@ -71,6 +71,13 @@ export function CardHomeCard() {
         <span className={styles.label}>Acumulado en {thisMonth}</span>
         <Amount value={current.total} size="lg" />
       </div>
+
+      {upcoming > 0 && (
+        <div className={styles.line}>
+          <span className={styles.label}>Cuotas que siguen</span>
+          <Amount value={upcoming} size="sm" tone="muted" />
+        </div>
+      )}
     </Card>
   )
 }

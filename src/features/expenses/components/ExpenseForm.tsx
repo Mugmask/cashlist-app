@@ -4,10 +4,11 @@ import { convertAmount, toPesos } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { useConversionRate } from '@/lib/useDollarRate'
 import { AmountField, Button, ChipGroup, Stack, TextField } from '@/ui'
-import { amountToInput, parseAmount, type Currency } from '@/utils/currency'
+import { amountToInput, formatCurrencyShort, parseAmount, type Currency } from '@/utils/currency'
 import { toDayKey, withDayKey } from '@/utils/dates'
 import { EXPENSE_CATEGORIES, getCategory, type ExpenseCategoryId } from '../categories'
 import { CURRENCY_OPTIONS } from '../currencies'
+import { INSTALLMENT_OPTIONS, splitInstallments } from '../installments'
 import { expensesRepo } from '../expensesRepo'
 import {
   PAYMENT_METHOD_OPTIONS,
@@ -15,6 +16,12 @@ import {
   rememberPaymentMethod,
 } from '../paymentMethods'
 import { ConversionNote, ManualRateField } from './DollarConversion'
+import styles from './ExpenseForm.module.css'
+
+const INSTALLMENT_CHIPS = INSTALLMENT_OPTIONS.map((n) => ({
+  value: n,
+  label: n === '1' ? 'Sin cuotas' : n,
+}))
 
 const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map(({ id, label, icon: Icon }) => ({
   value: id,
@@ -43,6 +50,10 @@ export function ExpenseForm({ expense, onSaved }: ExpenseFormProps) {
   const [paymentMethod, setPaymentMethod] = useState(
     expense ? (expense.paymentMethod ?? 'cash') : readLastPaymentMethod,
   )
+  const [installments, setInstallments] = useState<(typeof INSTALLMENT_OPTIONS)[number]>(() => {
+    const current = String(expense?.installments ?? 1)
+    return INSTALLMENT_OPTIONS.find((n) => n === current) ?? '1'
+  })
   const [day, setDay] = useState(expense ? toDayKey(new Date(expense.spentAt)) : '')
   const [today] = useState(() => toDayKey(new Date())) // read once: the form is short-lived
 
@@ -57,6 +68,12 @@ export function ExpenseForm({ expense, onSaved }: ExpenseFormProps) {
   const { rate } = conversion
 
   const value = parseAmount(amount)
+  const inInstallments = paymentMethod === 'card' && installments !== '1'
+  // What each installment comes to, in pesos (what the statements charge)
+  const pesos =
+    value === null ? null : currency === 'USD' ? (rate ? toPesos(value, rate.rate) : null) : value
+  const installment =
+    inInstallments && pesos !== null ? splitInstallments(pesos, Number(installments))[0] : null
 
   // Editing, switching currency converts the amount already there: at the rate it was loaded
   // with if it was in dollars (back to pesos gives exactly what it cost), else today's
@@ -86,7 +103,14 @@ export function ExpenseForm({ expense, onSaved }: ExpenseFormProps) {
             exchangeRateKind: rate.kind,
           }
         : { amount: value }
-    const fields = { ...money, category, paymentMethod, note: note.trim() || undefined }
+    const fields = {
+      ...money,
+      category,
+      paymentMethod,
+      // Only card purchases go in installments; undefined clears them
+      installments: inInstallments ? Number(installments) : undefined,
+      note: note.trim() || undefined,
+    }
     if (expense) {
       await expensesRepo.update(expense.id, {
         // Back in pesos, the dollar fields go (undefined clears them)
@@ -146,6 +170,22 @@ export function ExpenseForm({ expense, onSaved }: ExpenseFormProps) {
           value={paymentMethod}
           onChange={setPaymentMethod}
         />
+        {paymentMethod === 'card' && (
+          <div>
+            <ChipGroup
+              label="Cuotas"
+              showLabel
+              options={INSTALLMENT_CHIPS}
+              value={installments}
+              onChange={setInstallments}
+            />
+            {installment !== null && (
+              <p className={styles.installments}>
+                {installments} cuotas de {formatCurrencyShort(installment)}
+              </p>
+            )}
+          </div>
+        )}
         {expense && (
           <TextField
             label="Día"

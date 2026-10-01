@@ -31,6 +31,9 @@ export interface Expense extends Syncable {
   foreignAmount?: number // what was charged, in dollars
   exchangeRate?: number // pesos per dollar when it was loaded
   exchangeRateKind?: ExchangeRateKind
+  // A card purchase in installments: how many (2 or more). `amount` is still the total, and
+  // it counts whole in the month it was bought; each statement charges one installment.
+  installments?: number
 }
 
 // The user's profile, a single row ('me'). Monthly income is in pesos.

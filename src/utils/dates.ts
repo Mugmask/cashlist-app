@@ -33,6 +33,15 @@ export function toPeriod(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 }
 
+// Months from one "2026-09" period to another: "2026-09" → "2026-12" is 3, backwards negative
+export function monthsBetween(from: string, to: string) {
+  const index = (period: string) => {
+    const [year, month] = period.split('-').map(Number)
+    return year * 12 + month
+  }
+  return index(to) - index(from)
+}
+
 export function daysInMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
 }

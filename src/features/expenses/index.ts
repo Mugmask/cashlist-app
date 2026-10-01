@@ -16,6 +16,14 @@ export {
   type NewExpense,
 } from './expensesRepo'
 export { ExpensesPage } from './ExpensesPage'
+export {
+  chargedAfter,
+  chargeOn,
+  INSTALLMENT_OPTIONS,
+  installmentsOf,
+  MAX_INSTALLMENTS,
+  splitInstallments,
+} from './installments'
 export { PAYMENT_METHOD_OPTIONS } from './paymentMethods'
 export { isFixed, totalsByCategory } from './selectors'
 export { useMonthExpenses } from './useMonthExpenses'
