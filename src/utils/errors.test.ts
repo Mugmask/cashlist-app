@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { getErrorMessage, loginErrorMessage, syncErrorMessage } from './errors'
+import {
+  getErrorMessage,
+  loginErrorMessage,
+  passwordErrorMessage,
+  syncErrorMessage,
+} from './errors'
 
 describe('getErrorMessage', () => {
   it('reads Error instances', () => {
@@ -45,5 +50,15 @@ describe('syncErrorMessage', () => {
   it('always reassures that changes are kept, except when the session must be renewed', () => {
     expect(syncErrorMessage(new TypeError('Failed to fetch'))).toMatch(/quedan guardados/)
     expect(syncErrorMessage({ code: '23505', message: 'x' })).toMatch(/quedan guardados/)
+  })
+})
+
+describe('passwordErrorMessage', () => {
+  it('explains what Supabase refused, in Spanish', () => {
+    expect(passwordErrorMessage({ code: 'same_password', message: 'x' })).toBe(
+      'Es la misma contraseña que ya tenés.',
+    )
+    expect(passwordErrorMessage({ code: 'weak_password', message: 'x' })).toMatch(/fácil/)
+    expect(passwordErrorMessage(new TypeError('Failed to fetch'))).toMatch(/internet/)
   })
 })

@@ -8,6 +8,7 @@ import { Alert, AmountField, Button, Sheet, Stack, TextField, useToast } from '@
 import { amountToInput, parseAmount } from '@/utils/currency'
 import { capitalize } from '@/utils/text'
 import { profileRepo, useProfile } from '../profileRepo'
+import { ChangePassword } from './ChangePassword'
 import styles from './ProfileButton.module.css'
 
 // The header's avatar: opens the profile (name, income) and signing out. Going to another
@@ -97,6 +98,8 @@ function ProfileForm({
           </Button>
         </Stack>
       </form>
+      {/* Its own form, beside the profile's: forms can't nest */}
+      <ChangePassword />
       <SignOutButton />
     </Stack>
   )

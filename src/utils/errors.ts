@@ -55,6 +55,20 @@ export function loginErrorMessage(error: unknown) {
   return 'No pudimos iniciar sesión. Probá de nuevo en un rato.'
 }
 
+export function passwordErrorMessage(error: unknown) {
+  const code = field(error, 'code')
+  if (code === 'same_password') return 'Es la misma contraseña que ya tenés.'
+  if (code === 'weak_password') {
+    return 'Es muy fácil de adivinar (o apareció en alguna filtración). Elegí otra.'
+  }
+  if (code === 'reauthentication_needed') {
+    return 'Por seguridad, cerrá sesión y volvé a entrar antes de cambiarla.'
+  }
+  if (isRateLimited(error)) return 'Hubo demasiados intentos. Esperá un minuto y probá de nuevo.'
+  if (isNetworkError(error)) return 'No hay conexión. Para cambiarla hace falta internet.'
+  return 'No pudimos cambiar la contraseña. Probá de nuevo en un rato.'
+}
+
 export function syncErrorMessage(error: unknown) {
   if (isNetworkError(error)) {
     return 'No hay conexión con el servidor. Tus cambios quedan guardados en este dispositivo y se suben solos cuando vuelva.'
