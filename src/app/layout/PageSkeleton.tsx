@@ -2,7 +2,7 @@ import { Card, Skeleton, Stack, VisuallyHidden } from '@/ui'
 import styles from './PageSkeleton.module.css'
 
 // What shows right after signing in on a device without the data yet, until the first sync
-// brings it: the shape of home (greeting, balance, two tiles, a list), so the screen appears
+// brings it: the shape of home (greeting, balance, two tiles, two lists), so the screen appears
 // once and whole instead of filling in card by card.
 export function PageSkeleton() {
   return (
@@ -34,8 +34,19 @@ export function PageSkeleton() {
           </Card>
         ))}
       </div>
+      <Section rows={3} />
+      <Section rows={4} />
+    </Stack>
+  )
+}
+
+// A section of home: its title, and a card of rows (icon, name and detail, amount)
+function Section({ rows }: { rows: number }) {
+  return (
+    <Stack gap={3}>
+      <Skeleton width="38%" height={18} />
       <Card padding="none">
-        {[0, 1, 2].map((i) => (
+        {Array.from({ length: rows }, (_, i) => (
           <div key={i} className={styles.row}>
             <Skeleton width={40} height={40} round />
             <Stack gap={2} className={styles.rowText}>

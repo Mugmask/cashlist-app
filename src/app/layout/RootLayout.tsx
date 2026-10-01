@@ -14,6 +14,7 @@ import { BackLink } from './BackLink'
 import { BottomNav, NAV_PATHS } from './BottomNav'
 import { OfflineBadge } from './OfflineBadge'
 import { PageSkeleton } from './PageSkeleton'
+import { PullToRefresh } from './PullToRefresh'
 import styles from './RootLayout.module.css'
 import { SplashScreen } from './SplashScreen'
 import { useBackTarget } from './useBackTarget'
@@ -85,6 +86,7 @@ function AppShell({ email }: { email?: string }) {
       <PrimaryActionProvider>
         <MonthProvider>
           <div className={styles.shell}>
+            <PullToRefresh />
             <header className={styles.header}>
               <OfflineBadge />
               {/* The month, centered on the screen; the shopping list isn't about a month */}
