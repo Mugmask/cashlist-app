@@ -19,7 +19,9 @@ export {
   removeExpense,
   type NewExpense,
 } from './expensesRepo'
-export { ExpensesPage } from './ExpensesPage'
+// The screen loads when it's first opened, not with the app: see app/router.tsx
+export const loadExpensesPage = () =>
+  import('./ExpensesPage').then((m) => ({ Component: m.ExpensesPage }))
 export {
   chargedAfter,
   chargeOn,

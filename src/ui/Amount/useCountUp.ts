@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-const DURATION_MS = 600
+const DURATION_MS = 400
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
 

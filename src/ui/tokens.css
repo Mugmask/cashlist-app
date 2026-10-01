@@ -103,8 +103,8 @@
   --duration-fast: 120ms;
   --duration-base: 200ms;
   --duration-slow: 320ms;
-  --duration-enter: 420ms; /* what appears: screens, their sections, numbers */
-  --stagger: 45ms; /* between sections appearing one after the other */
+  --duration-enter: 300ms; /* what appears: screens, their sections, numbers */
+  --stagger: 30ms; /* between sections appearing one after the other */
   --tap-scale: 0.97;
 
   /* Layout */

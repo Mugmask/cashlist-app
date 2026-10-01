@@ -7,6 +7,8 @@ const BACKGROUND = '#0a0b0d' // --color-bg
 
 // https://vite.dev/config/
 export default defineConfig({
+  // dist/.vite/manifest.json: which chunks the app loads at startup (scripts/size.mjs)
+  build: { manifest: true },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
@@ -80,8 +82,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,woff2}'],
         globIgnores: [
-          // Font subsets Spanish never needs; the browser only fetches them via unicode-range if used
-          '**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2',
+          // Font subsets Spanish never needs: "latin" has all of it (á, ñ, ü, ¿, ¡). The browser
+          // only fetches the others (unicode-range) if a character of theirs ever shows
+          '**/*-{latin-ext,cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2',
           // Only used by iOS at launch and by the install dialog: not worth precaching
           '**/apple-splash-*.png',
           '**/screenshots/*.png',
