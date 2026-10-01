@@ -1,8 +1,16 @@
-/* Under the amount: what the dollars come to in pesos, and at which rate */
+/* Under the amount: the rate, and what the dollars come to in pesos */
 .conversion {
-  min-height: 1.5em; /* reserved, so the form doesn't jump when it appears */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 3em; /* two lines reserved, so the form doesn't jump when the rate arrives */
   margin: calc(-1 * var(--space-2)) 0 0;
   font-size: var(--text-sm);
   color: var(--color-text-muted);
   text-align: center;
+}
+
+.total {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
 }

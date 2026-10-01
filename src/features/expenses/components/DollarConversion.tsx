@@ -1,9 +1,11 @@
-import { RATE_LABEL, toPesos } from '@/lib/exchangeRates'
+import { formatRate, toPesos } from '@/lib/exchangeRates'
 import type { ConversionRate } from '@/lib/useDollarRate'
-import { Amount, TextField } from '@/ui'
+import { TextField } from '@/ui'
+import { formatCurrencyShort } from '@/utils/currency'
 import styles from './DollarConversion.module.css'
 
-// Under a dollar amount: what it comes to in pesos, and at which rate
+// Under a dollar amount: the rate ("1 USD = $ 1.560 · dólar blue") and what it all comes to
+// in pesos. Plain text, so it reads (and copies) once.
 export function ConversionNote({
   dollars,
   rate,
@@ -19,8 +21,10 @@ export function ConversionNote({
         'Buscando cotización…'
       ) : rate ? (
         <>
-          <Amount value={toPesos(dollars ?? 0, rate.rate)} size="sm" /> al {RATE_LABEL[rate.kind]}{' '}
-          de <Amount value={rate.rate} size="sm" />
+          <span>{formatRate(rate)}</span>
+          <span className={styles.total}>
+            Total {formatCurrencyShort(toPesos(dollars ?? 0, rate.rate))}
+          </span>
         </>
       ) : (
         'Sin conexión: escribí la cotización'

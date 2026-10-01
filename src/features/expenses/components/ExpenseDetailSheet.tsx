@@ -2,9 +2,10 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { CloudOff, Pencil, Trash2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import type { Expense } from '@/lib/db'
-import { RATE_LABEL } from '@/lib/exchangeRates'
+import { formatRate } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { Amount, Button, Sheet, Stack, useToast } from '@/ui'
+import { formatCurrencyShort } from '@/utils/currency'
 import { formatFullDateTime, formatMonthName, fromPeriod } from '@/utils/dates'
 import { getCategory } from '../categories'
 import { expensesRepo } from '../expensesRepo'
@@ -91,9 +92,11 @@ function ExpenseDetail({
 
       <dl className={styles.facts}>
         {dollars && (
-          <Fact label="En pesos">
-            <Amount value={expense.amount} size="sm" /> al {RATE_LABEL[expense.exchangeRateKind!]}{' '}
-            de <Amount value={expense.exchangeRate!} size="sm" />
+          <Fact label="Total en pesos">
+            {formatCurrencyShort(expense.amount)}
+            <span className={styles.rate}>
+              {formatRate({ kind: expense.exchangeRateKind!, rate: expense.exchangeRate! })}
+            </span>
           </Fact>
         )}
         <Fact label="Fecha">{formatFullDateTime(expense.spentAt)}</Fact>

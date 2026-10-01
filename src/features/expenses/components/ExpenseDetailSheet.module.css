@@ -57,3 +57,10 @@
   width: 16px;
   height: 16px;
 }
+
+/* Under the pesos of a dollar expense: "1 USD = $ 2.002 · dólar tarjeta" */
+.rate {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}

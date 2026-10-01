@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { convertAmount, getDollarRate, rateKindFor, toPesos } from './exchangeRates'
+import { convertAmount, formatRate, getDollarRate, rateKindFor, toPesos } from './exchangeRates'
 
 const ok = (body: unknown) => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }))
 
@@ -81,5 +81,11 @@ describe('convertAmount', () => {
       vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
     )
     expect(await convertAmount(10, 'ARS', 'cash')).toBeNull()
+  })
+})
+
+describe('formatRate', () => {
+  it('reads as one dollar in pesos, and which dollar', () => {
+    expect(formatRate({ kind: 'blue', rate: 1560 })).toMatch(/^1 USD = \$\s1\.560 · dólar blue$/)
   })
 })

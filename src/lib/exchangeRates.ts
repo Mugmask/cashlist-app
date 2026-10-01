@@ -1,5 +1,5 @@
 import type { ExchangeRateKind, PaymentMethod } from '@/lib/db'
-import type { Currency } from '@/utils/currency'
+import { formatCurrencyShort, type Currency } from '@/utils/currency'
 
 const API = 'https://dolarapi.com/v1/dolares'
 const TIMEOUT_MS = 5000
@@ -15,6 +15,11 @@ export const RATE_LABEL: Record<ExchangeRateKind, string> = {
   tarjeta: 'dólar tarjeta',
   blue: 'dólar blue',
   oficial: 'dólar oficial',
+}
+
+// "1 USD = $ 1.560 · dólar blue"
+export function formatRate(rate: { kind: ExchangeRateKind; rate: number }) {
+  return `1 USD = ${formatCurrencyShort(rate.rate)} · ${RATE_LABEL[rate.kind]}`
 }
 
 // What a dollar expense costs in pesos: card purchases go at the card dollar, cash at blue
