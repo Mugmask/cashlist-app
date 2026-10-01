@@ -1,4 +1,5 @@
 import type { PaymentMethod } from '@/lib/db'
+import type { Currency } from '@/utils/currency'
 import { normalizeName } from '@/utils/text'
 import { getCategory } from './categories'
 import type { MonthExpense } from './installments'
@@ -11,14 +12,15 @@ export interface ExpenseFilters {
   category?: string
   method?: PaymentMethod
   kind?: 'fixed' | 'variable'
-  dollars: boolean // only expenses in dollars
+  currency?: Currency // only expenses in pesos, or only in dollars
   installments: boolean // only purchases in installments
 }
 
-export const NO_FILTERS: ExpenseFilters = { query: '', dollars: false, installments: false }
+export const NO_FILTERS: ExpenseFilters = { query: '', installments: false }
 
 const METHOD_PARAM: Record<PaymentMethod, string> = { card: 'tarjeta', cash: 'efectivo' }
 const KIND_PARAM = { fixed: 'fijos', variable: 'variables' } as const
+const CURRENCY_PARAM: Record<Currency, string> = { ARS: 'pesos', USD: 'dolares' }
 
 export function readFilters(params: URLSearchParams): ExpenseFilters {
   const method = (Object.keys(METHOD_PARAM) as PaymentMethod[]).find(
@@ -27,12 +29,15 @@ export function readFilters(params: URLSearchParams): ExpenseFilters {
   const kind = (Object.keys(KIND_PARAM) as (keyof typeof KIND_PARAM)[]).find(
     (k) => KIND_PARAM[k] === params.get('tipo'),
   )
+  const currency = (Object.keys(CURRENCY_PARAM) as Currency[]).find(
+    (c) => CURRENCY_PARAM[c] === params.get('moneda'),
+  )
   return {
     query: params.get('q') ?? '',
     category: params.get('cat') ?? undefined,
     method,
     kind,
-    dollars: params.get('usd') === '1',
+    currency,
     installments: params.get('cuotas') === '1',
   }
 }
@@ -44,7 +49,7 @@ export function writeFilters(filters: ExpenseFilters): URLSearchParams {
   if (filters.category) params.set('cat', filters.category)
   if (filters.method) params.set('pago', METHOD_PARAM[filters.method])
   if (filters.kind) params.set('tipo', KIND_PARAM[filters.kind])
-  if (filters.dollars) params.set('usd', '1')
+  if (filters.currency) params.set('moneda', CURRENCY_PARAM[filters.currency])
   if (filters.installments) params.set('cuotas', '1')
   return params
 }
@@ -67,7 +72,7 @@ export function applyFilters<T extends MonthExpense>(
       (!filters.category || e.category === filters.category) &&
       (!filters.method || (e.paymentMethod ?? 'cash') === filters.method) &&
       (!filters.kind || (filters.kind === 'fixed') === isFixed(e)) &&
-      (!filters.dollars || e.currency === 'USD') &&
+      (!filters.currency || (e.currency ?? 'ARS') === filters.currency) &&
       (!filters.installments || e.installment !== undefined),
   )
 }

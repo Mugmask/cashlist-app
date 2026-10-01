@@ -44,23 +44,31 @@ describe('applyFilters', () => {
     expect(ids({ kind: 'variable', method: 'card' })).toEqual(['pizza', 'steam', 'tv'])
   })
 
-  it('keeps only dollars or only installments', () => {
-    expect(ids({ dollars: true })).toEqual(['steam'])
+  it('keeps only pesos, only dollars or only installments', () => {
+    expect(ids({ currency: 'ARS' })).toEqual(['pizza', 'super', 'rent', 'tv'])
+    expect(ids({ currency: 'USD' })).toEqual(['steam'])
     expect(ids({ installments: true })).toEqual(['tv'])
   })
 })
 
 describe('readFilters / writeFilters', () => {
   it('round-trips through the URL, leaving defaults out', () => {
-    const filters = { ...NO_FILTERS, query: 'pedidos', method: 'card' as const, dollars: true }
+    const filters = {
+      ...NO_FILTERS,
+      query: 'pedidos',
+      method: 'card' as const,
+      currency: 'USD' as const,
+    }
     const params = writeFilters(filters)
-    expect(params.toString()).toBe('q=pedidos&pago=tarjeta&usd=1')
+    expect(params.toString()).toBe('q=pedidos&pago=tarjeta&moneda=dolares')
     expect(readFilters(params)).toEqual(filters)
     expect(writeFilters(NO_FILTERS).toString()).toBe('')
     expect(isFiltered(NO_FILTERS)).toBe(false)
   })
 
   it('ignores values it doesn’t know', () => {
-    expect(readFilters(new URLSearchParams('pago=bitcoin&tipo=raro'))).toEqual(NO_FILTERS)
+    expect(readFilters(new URLSearchParams('pago=bitcoin&tipo=raro&moneda=yenes'))).toEqual(
+      NO_FILTERS,
+    )
   })
 })

@@ -26,9 +26,10 @@ const KIND_OPTIONS = [
   { value: 'fixed', label: 'Fijos' },
 ]
 
-// "Only dollars" and "only installments" as one choice: together they'd rarely match anything
+// Currency and installments as one choice: installments are always in pesos
 const SHOW_OPTIONS = [
   { value: ALL, label: 'Todo' },
+  { value: 'pesos', label: 'En pesos' },
   { value: 'usd', label: 'En dólares' },
   { value: 'cuotas', label: 'En cuotas' },
 ]
@@ -50,7 +51,13 @@ export function ExpenseFilterSheet({
   resultCount,
 }: ExpenseFilterSheetProps) {
   const { query, ...rest } = filters
-  const show = filters.dollars ? 'usd' : filters.installments ? 'cuotas' : ALL
+  const show = filters.installments
+    ? 'cuotas'
+    : filters.currency === 'USD'
+      ? 'usd'
+      : filters.currency === 'ARS'
+        ? 'pesos'
+        : ALL
 
   return (
     <Sheet open={open} onClose={onClose} title="Filtrar gastos">
@@ -83,7 +90,12 @@ export function ExpenseFilterSheet({
           showLabel
           options={SHOW_OPTIONS}
           value={show}
-          onChange={(v) => onChange({ dollars: v === 'usd', installments: v === 'cuotas' })}
+          onChange={(v) =>
+            onChange({
+              currency: v === 'usd' ? 'USD' : v === 'pesos' ? 'ARS' : undefined,
+              installments: v === 'cuotas',
+            })
+          }
         />
         <Stack gap={3}>
           <Button size="lg" fullWidth onClick={onClose}>

@@ -141,7 +141,10 @@ function activeFilters(filters: ExpenseFilters) {
     const label = filters.kind === 'fixed' ? 'Fijos' : 'Variables'
     active.push({ key: 'tipo', label, clear: { kind: undefined } })
   }
-  if (filters.dollars) active.push({ key: 'usd', label: 'En dólares', clear: { dollars: false } })
+  if (filters.currency) {
+    const label = filters.currency === 'USD' ? 'En dólares' : 'En pesos'
+    active.push({ key: 'moneda', label, clear: { currency: undefined } })
+  }
   if (filters.installments) {
     active.push({ key: 'cuotas', label: 'En cuotas', clear: { installments: false } })
   }
