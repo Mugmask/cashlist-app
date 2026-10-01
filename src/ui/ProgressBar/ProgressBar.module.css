@@ -10,6 +10,14 @@
   border-radius: inherit;
   transform-origin: left;
   transition: transform var(--duration-slow) var(--ease-out);
+  /* Fills up from empty when it appears; later changes slide (the transition) */
+  animation: fill var(--duration-enter) var(--ease-out) 120ms both;
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
 }
 
 .accent {

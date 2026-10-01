@@ -19,6 +19,17 @@
   min-width: 4px; /* a tiny part still shows */
 }
 
+/* The bar draws itself from the left when it appears */
+.bar {
+  animation: draw var(--duration-enter) var(--ease-out) 120ms both;
+}
+
+@keyframes draw {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
 .legend {
   display: flex;
   flex-wrap: wrap;

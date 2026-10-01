@@ -26,6 +26,15 @@
   animation: fade-in var(--duration-slow) var(--ease-out);
 }
 
+/* Closing: slides back down, a bit faster than it came up, and the backdrop fades */
+.sheet.closing {
+  animation: slide-down var(--duration-base) cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.sheet.closing::backdrop {
+  animation: fade-out var(--duration-base) ease-in forwards;
+}
+
 .content {
   container-type: inline-size;
   padding: var(--space-3) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
@@ -58,6 +67,18 @@
 
 @keyframes fade-in {
   from {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-down {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes fade-out {
+  to {
     opacity: 0;
   }
 }

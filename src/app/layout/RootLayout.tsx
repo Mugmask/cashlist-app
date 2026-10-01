@@ -93,7 +93,8 @@ function AppShell({ email }: { email?: string }) {
               {syncError && <Alert tone="danger">{syncError}</Alert>}
               {/* Screens off the bottom nav go back to the one they were opened from */}
               {back && !NAV_PATHS.has(pathname) && <BackLink target={back} />}
-              {categories.loaded ? <Outlet /> : <PageLoader />}
+              {/* Each screen's sections rise in one after the other (RootLayout.module.css) */}
+              <div className={styles.page}>{categories.loaded ? <Outlet /> : <PageLoader />}</div>
             </main>
             <BottomNav />
           </div>

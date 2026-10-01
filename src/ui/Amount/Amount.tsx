@@ -8,6 +8,7 @@ import {
 import { cx } from '../cx'
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden'
 import styles from './Amount.module.css'
+import { useCountUp } from './useCountUp'
 
 export interface AmountProps {
   value: number
@@ -16,6 +17,8 @@ export interface AmountProps {
   currency?: Currency // pesos by default
   // From this absolute value on, abbreviate ("$ 38,9 M"). For tight spots like stat tiles.
   compactFrom?: number
+  // Counts up to the value when it appears or changes. On by default for the big sizes.
+  animate?: boolean
   className?: string
 }
 
@@ -30,14 +33,20 @@ export function Amount({
   tone = 'default',
   compactFrom,
   currency = 'ARS',
+  animate = size === 'lg' || size === 'xl',
   className,
 }: AmountProps) {
+  const shown = useCountUp(value, animate)
   // "$ 38,9 M" is pesos only; dollar amounts are never that big here
   const compact = currency === 'ARS' && compactFrom !== undefined && Math.abs(value) >= compactFrom
-  const { whole, fraction } = compact
-    ? { whole: formatCurrencyCompact(value), fraction: '' }
-    : withoutZeroCents(splitCurrency(value, currency))
-  const chars = whole.length + fraction.length * FRACTION_SCALE
+  const parts = (n: number) =>
+    compact
+      ? { whole: formatCurrencyCompact(n), fraction: '' }
+      : withoutZeroCents(splitCurrency(n, currency))
+  const { whole, fraction } = parts(shown)
+  // Sized by the final value, so the font doesn't change size while counting up
+  const final = parts(value)
+  const chars = final.whole.length + final.fraction.length * FRACTION_SCALE
 
   return (
     <span
