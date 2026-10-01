@@ -4,7 +4,7 @@ import { db, type Syncable } from '@/lib/db'
 
 // How one local Dexie table maps to one Supabase table. The engine below knows nothing
 // about expenses or shopping: adding a synced table means adding one of these.
-export interface SyncedTable<Local extends Syncable, Row extends { synced_at: string }> {
+export interface SyncedTable<Local extends Syncable, Row extends ServerRow> {
   name: string // Supabase table; also names the pull cursor
   local: EntityTable<Local, 'id'>
   columns: string // columns to select, synced_at included
@@ -15,13 +15,19 @@ export interface SyncedTable<Local extends Syncable, Row extends { synced_at: st
 
 type Client = Pick<SupabaseClient, 'from'>
 
+// What every server row has: the pull pages by these two
+interface ServerRow {
+  id: string
+  synced_at: string
+}
+
 // A table with its row types erased, so tables of different shapes fit in one list
 export interface SyncTask {
   name: string
   run: (client: Client) => Promise<void>
 }
 
-export function toSyncTask<L extends Syncable, R extends { synced_at: string }>(
+export function toSyncTask<L extends Syncable, R extends ServerRow>(
   table: SyncedTable<L, R>,
 ): SyncTask {
   return {
@@ -37,7 +43,7 @@ const EPOCH = '1970-01-01T00:00:00Z'
 const DEFAULT_PAGE_SIZE = 500
 
 // Uploads local changes. A row edited again while uploading stays pending for the next run.
-export async function pushTable<L extends Syncable, R extends { synced_at: string }>(
+export async function pushTable<L extends Syncable, R extends ServerRow>(
   client: Client,
   table: SyncedTable<L, R>,
 ) {
@@ -60,9 +66,22 @@ export async function pushTable<L extends Syncable, R extends { synced_at: strin
     .modify({ pending: 0 })
 }
 
+// Where the last pull stopped: the last row's synced_at, and its id to break ties. One upload
+// stamps all its rows with the same synced_at (Postgres' now() is the transaction's start), so
+// paging by synced_at alone skipped the rest of a tie that ran past a page's end.
+interface Cursor {
+  at: string // kept as the server wrote it: parsing it would drop the microseconds
+  id: string
+}
+
+// v1 cursors were synced_at alone. Starting over with v2 pulls everything once, which also
+// brings back any row a v1 cursor skipped.
+const cursorKey = (table: string) => `${table}-cursor-v2`
+const legacyCursorKey = (table: string) => `${table}-cursor`
+
 // Downloads everything that changed on the server since the last pull, page by page.
 // The cursor is the server's synced_at, so rows uploaded late by an offline device aren't missed.
-export async function pullTable<L extends Syncable, R extends { synced_at: string }>(
+export async function pullTable<L extends Syncable, R extends ServerRow>(
   client: Client,
   table: SyncedTable<L, R>,
   pageSize = DEFAULT_PAGE_SIZE,
@@ -70,16 +89,20 @@ export async function pullTable<L extends Syncable, R extends { synced_at: strin
   // Dexie's key-path generics can't be resolved for an open type parameter, so the engine
   // works on the Syncable view of the table: it only reads id, pending and updatedAt.
   const local = table.local as unknown as Table<Syncable, string>
-  const cursorKey = `${table.name}-cursor`
-  let cursor = (await db.syncState.get(cursorKey))?.value ?? EPOCH
+  const key = cursorKey(table.name)
+  const stored = (await db.syncState.get(key))?.value
+  let cursor: Cursor | null = stored ? JSON.parse(stored) : null
+  if (!cursor) await db.syncState.delete(legacyCursorKey(table.name))
 
   for (;;) {
-    const { data, error } = await client
-      .from(table.name)
-      .select(table.columns)
-      .gt('synced_at', cursor)
-      .order('synced_at')
-      .limit(pageSize)
+    const select = client.from(table.name).select(table.columns)
+    // After the cursor: a later synced_at, or the same one and a later id
+    const after = cursor
+      ? select.or(
+          `synced_at.gt."${cursor.at}",and(synced_at.eq."${cursor.at}",id.gt."${cursor.id}")`,
+        )
+      : select.gt('synced_at', EPOCH)
+    const { data, error } = await after.order('synced_at').order('id').limit(pageSize)
     if (error) throw error
     const rows = data as unknown as R[]
     if (rows.length === 0) return
@@ -94,8 +117,9 @@ export async function pullTable<L extends Syncable, R extends { synced_at: strin
         }
         await local.put(incoming)
       }
-      cursor = rows[rows.length - 1].synced_at
-      await db.syncState.put({ key: cursorKey, value: cursor })
+      const last = rows[rows.length - 1]
+      cursor = { at: last.synced_at, id: last.id }
+      await db.syncState.put({ key, value: JSON.stringify(cursor) })
     })
 
     if (rows.length < pageSize) return

@@ -66,17 +66,23 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
       ref={ref}
       className={cx(styles.sheet, closing && styles.closing)}
       aria-labelledby={titleId}
-      // Esc: closes through the parent, so it slides down like every other way out
+      // Esc: closes through the parent, so it slides down like every other way out. React
+      // passes a nested sheet's cancel/close up to the sheets around it (even through a
+      // portal), so each one only answers to its own: else closing an inner sheet would
+      // close the one it was opened from, and lose what was being typed there.
       onCancel={(e) => {
+        if (e.target !== e.currentTarget) return
         e.preventDefault()
         onClose()
       }}
-      onClose={() => open && onClose()}
+      onClose={(e) => e.target === e.currentTarget && open && onClose()}
       // A click whose target is the dialog itself landed on the backdrop
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       {(open || mounted) && (
-        <div className={styles.content}>
+        // Sliding down it still shows, but takes no taps: a second tap on "Guardar" would
+        // save twice
+        <div className={styles.content} inert={closing}>
           <div className={styles.handle} aria-hidden />
           <header className={styles.header}>
             <h2 id={titleId} className={styles.title}>

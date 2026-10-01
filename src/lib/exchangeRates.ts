@@ -1,5 +1,5 @@
 import type { ExchangeRateKind, PaymentMethod } from '@/lib/db'
-import { formatCurrencyShort, type Currency } from '@/utils/currency'
+import { formatCurrencyShort, MAX_AMOUNT, type Currency } from '@/utils/currency'
 
 const API = 'https://dolarapi.com/v1/dolares'
 const TIMEOUT_MS = 5000
@@ -51,6 +51,12 @@ export async function getDollarRate(kind: ExchangeRateKind): Promise<DollarRate 
 }
 
 // Pesos for a dollar amount, rounded to cents like every stored amount
+// Whether a dollar amount still fits once in pesos: the amounts' columns hold up to
+// MAX_AMOUNT, and one that doesn't would make the server refuse every pending expense with it
+export function fitsInPesos(dollars: number, rate: number) {
+  return toPesos(dollars, rate) <= MAX_AMOUNT
+}
+
 export function toPesos(dollars: number, rate: number) {
   return Math.round(dollars * rate * 100) / 100
 }

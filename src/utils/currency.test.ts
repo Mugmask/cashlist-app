@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  amountInputChange,
   amountToInput,
   formatAmountInput,
   formatCurrency,
@@ -117,5 +118,26 @@ describe('formatCurrencyTiny', () => {
     [0, '$0'],
   ])('%s → %s', (amount, text) => {
     expect(formatCurrencyTiny(amount)).toBe(text)
+  })
+})
+
+describe('amountInputChange', () => {
+  it('groups thousands as typed', () => {
+    expect(amountInputChange('1.250', '1.2500')).toBe('12.500')
+  })
+
+  it('reads a dot just typed as the decimal separator', () => {
+    expect(amountInputChange('1.234', '1.234.')).toBe('1.234,')
+    expect(amountInputChange('1.234,', '1.234,5')).toBe('1.234,5')
+    expect(amountInputChange('15', '15.')).toBe('15,')
+  })
+
+  it('keeps thousands when a digit is deleted ("12.500" → "12.50" is 1.250)', () => {
+    expect(amountInputChange('12.500', '12.50')).toBe('1.250')
+  })
+
+  it('reads a pasted amount with one dot and up to 2 decimals as decimals', () => {
+    expect(amountInputChange('', '1234.56')).toBe('1.234,56')
+    expect(amountInputChange('', '12.500')).toBe('12.500') // 3 digits after: thousands
   })
 })

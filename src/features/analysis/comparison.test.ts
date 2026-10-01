@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { MonthExpense } from '@/features/expenses'
 import type { Expense } from '@/lib/db'
 import { changeByCategory, variableChange } from './comparison'
 
@@ -54,5 +55,22 @@ describe('variableChange', () => {
 
   it('is null without anything to compare with', () => {
     expect(variableChange(october, [], true, now)).toBeNull()
+  })
+})
+
+describe('installments of earlier purchases', () => {
+  // A TV bought on August 20th in 12 installments: its rows keep that date in every month
+  const tv = (n: number): MonthExpense => ({
+    ...expense(10_000, 'other', new Date(2026, 7, 20)),
+    id: `tv-${n}`,
+    installment: { number: n, count: 12, total: 120_000 },
+  })
+  const now = new Date(2026, 9, 5, 12) // October 5th
+
+  it('are left out of both months, so they never tilt the comparison', () => {
+    const october = [expense(20_000, 'groceries', new Date(2026, 9, 3)), tv(3)]
+    const september = [expense(20_000, 'groceries', new Date(2026, 8, 3)), tv(2)]
+    expect(variableChange(october, september, true, now)).toBe(0)
+    expect(changeByCategory(october, september, true, now).has('other')).toBe(false)
   })
 })

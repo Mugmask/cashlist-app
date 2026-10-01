@@ -61,6 +61,7 @@ function Cook({
 }) {
   const toast = useToast()
   const [have, setHave] = useState(() => new Set<string>())
+  const [busy, setBusy] = useState(false) // a double tap would add everything twice
   const missing = recipe.ingredients.filter((i) => !have.has(i.name))
 
   function toggle(name: string) {
@@ -73,6 +74,8 @@ function Cook({
   }
 
   async function handleAdd() {
+    if (busy) return
+    setBusy(true)
     const count = await recipesRepo.cook(missing)
     toast(count === 1 ? '1 ingrediente a la lista' : `${count} ingredientes a la lista`)
     runSync().catch(() => {})
@@ -117,7 +120,13 @@ function Cook({
         })}
       </ul>
       <Stack gap={2}>
-        <Button size="lg" fullWidth disabled={missing.length === 0} onClick={handleAdd}>
+        <Button
+          size="lg"
+          fullWidth
+          disabled={missing.length === 0}
+          loading={busy}
+          onClick={handleAdd}
+        >
           {missing.length === 0
             ? 'Tenés todo'
             : missing.length === 1
@@ -148,6 +157,7 @@ function RecipeForm({
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>(recipe?.ingredients ?? [])
   const [typed, setTyped] = useState('')
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [busy, setBusy] = useState(false) // a double tap would create the recipe twice
   const parsed = parseItemInput(typed)
   const suggestions = productSuggestions(products, parseItemInput(typed)?.name ?? '', ingredients)
   const clean = capitalize(name.trim())
@@ -167,7 +177,8 @@ function RecipeForm({
   }
 
   async function handleSave() {
-    if (!clean) return
+    if (!clean || busy) return
+    setBusy(true)
     const input = { name: clean, ingredients }
     if (recipe) await recipesRepo.update(recipe.id, input)
     else await recipesRepo.create(input)
@@ -251,7 +262,7 @@ function RecipeForm({
         )}
       </div>
 
-      <Button size="lg" fullWidth disabled={!clean} onClick={handleSave}>
+      <Button size="lg" fullWidth disabled={!clean} loading={busy} onClick={handleSave}>
         {recipe ? 'Guardar cambios' : 'Crear receta'}
       </Button>
       {recipe &&

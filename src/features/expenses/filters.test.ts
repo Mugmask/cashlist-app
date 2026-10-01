@@ -72,3 +72,12 @@ describe('readFilters / writeFilters', () => {
     )
   })
 })
+
+describe('category filter', () => {
+  it('goes by the category an expense shows as: a deleted one counts as Otros', () => {
+    const gone = expense('nafta', { category: 'c0ffee00-0000-0000-0000-000000000000' })
+    expect(applyFilters([gone], { ...NO_FILTERS, category: 'other' }).map((e) => e.id)).toEqual([
+      'nafta',
+    ])
+  })
+})

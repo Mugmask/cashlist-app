@@ -295,6 +295,19 @@ db.version(14).stores({
   recipes: 'id, pending',
 })
 
+// A local change (pending) always gets an updatedAt later than the version it changes, even
+// with this device's clock behind the one that wrote that version. Else the server's
+// last-write-wins trigger would drop it without an error, and the change would never leave
+// this device. Rows coming from the server (pending 0) keep theirs.
+for (const table of db.tables) {
+  table.hook('updating', (changes, _key, current) => {
+    const next = changes as Partial<Syncable>
+    const previous = (current as Partial<Syncable>).updatedAt
+    if (next.pending !== 1 || !next.updatedAt || !previous || next.updatedAt > previous) return
+    return { updatedAt: new Date(Date.parse(previous) + 1).toISOString() }
+  })
+}
+
 // The local database holds one user's data at a time. The owner is kept next to the sync
 // cursors, so clearing everything also forgets who it belonged to.
 const OWNER_KEY = 'owner'

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { ConversionNote, ManualRateField } from '@/features/expenses'
+import { fitsInPesos } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { useConversionRate } from '@/lib/useDollarRate'
 import { AmountField, Button, DayField, Stack, useToast } from '@/ui'
@@ -31,7 +32,14 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
   })
   const parsed = parseAmount(amount)
   const changed = parsed !== null && parsed !== fixed.amount
-  const isValid = parsed !== null && (!dollars || conversion.rate !== null) && day <= today
+  // A dollar amount that doesn't fit once in pesos can't be saved (a zero too many)
+  const tooBig =
+    dollars &&
+    parsed !== null &&
+    conversion.rate !== null &&
+    !fitsInPesos(parsed, conversion.rate.rate)
+  const isValid =
+    parsed !== null && (!dollars || conversion.rate !== null) && !tooBig && day <= today
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -62,6 +70,11 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
           />
           {dollars && (
             <ConversionNote dollars={parsed} rate={conversion.rate} loading={conversion.loading} />
+          )}
+          {tooBig && (
+            <p className={styles.tooBig} role="alert">
+              En pesos es más de lo que se puede cargar. ¿Sobra un cero?
+            </p>
           )}
         </div>
         <DayField label="Día del pago" value={day} max={today} onChange={setDay} />

@@ -1,5 +1,5 @@
 import { useId, type CSSProperties, type InputHTMLAttributes } from 'react'
-import { formatAmountInput } from '@/utils/currency'
+import { amountInputChange } from '@/utils/currency'
 import { cx } from '../cx'
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden'
 import styles from './AmountField.module.css'
@@ -57,7 +57,7 @@ export function AmountField({
           placeholder={PLACEHOLDER}
           className={styles.input}
           value={value}
-          onChange={(e) => onValueChange(formatAmountInput(e.target.value))}
+          onChange={(e) => onValueChange(amountInputChange(value, e.target.value))}
           {...rest}
         />
       </span>

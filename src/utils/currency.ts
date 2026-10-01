@@ -74,6 +74,26 @@ export function parseAmount(text: string) {
   return value > 0 && value <= MAX_AMOUNT ? value : null
 }
 
+// What the amount field holds after a change, from what it held before. Thousands are grouped
+// by the field itself, so a "." the user types (some phone keyboards only have that one) or
+// pastes ("1234.56") is the decimal separator. Deleting a digit of "12.500" ("12.50") stays
+// thousands: only a dot just typed, or a pasted amount with one dot and 1 or 2 decimals, counts.
+export function amountInputChange(previous: string, raw: string) {
+  // The one character inserted, when that's all the change was
+  const at = raw.length === previous.length + 1 ? firstDifference(previous, raw) : -1
+  if (at !== -1 && raw[at] === '.' && !previous.includes(',')) {
+    return formatAmountInput(`${raw.slice(0, at)},${raw.slice(at + 1)}`)
+  }
+  const pasted = raw.length > previous.length + 1 && /^\s*\d+\.\d{1,2}\s*$/.test(raw)
+  return formatAmountInput(pasted ? raw.trim().replace('.', ',') : raw)
+}
+
+function firstDifference(a: string, b: string) {
+  let i = 0
+  while (i < a.length && a[i] === b[i]) i++
+  return i
+}
+
 // Formats what the user is typing: groups thousands and keeps up to two decimals.
 // "12500" → "12.500", "12500,5" → "12.500,5". Dots typed by the user are dropped.
 export function formatAmountInput(text: string) {

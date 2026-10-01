@@ -69,7 +69,8 @@ export function applyFilters<T extends MonthExpense>(
         normalizeName(`${e.name ?? ''} ${e.note ?? ''} ${getCategory(e.category).label}`).includes(
           query,
         )) &&
-      (!filters.category || e.category === filters.category) &&
+      // By the category it shows as: one deleted or folded into another counts as that one
+      (!filters.category || getCategory(e.category).id === filters.category) &&
       (!filters.method || (e.paymentMethod ?? 'cash') === filters.method) &&
       (!filters.kind || (filters.kind === 'fixed') === isFixed(e)) &&
       (!filters.currency || (e.currency ?? 'ARS') === filters.currency) &&

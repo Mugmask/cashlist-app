@@ -68,3 +68,28 @@ describe('local data', () => {
     expect(await db.expenses.count()).toBe(1)
   })
 })
+
+describe('updatedAt of a local change', () => {
+  it('always moves forward, even with this device clock behind the version it changes', async () => {
+    // A version written by a device whose clock runs ahead
+    await db.expenses.put(expense('a', 0))
+    await db.expenses.update('a', { updatedAt: '2026-10-01T12:05:00.000Z', pending: 0 })
+
+    // Edited here at 12:02, by this device's clock
+    await db.expenses.update('a', {
+      amount: 200,
+      updatedAt: '2026-10-01T12:02:00.000Z',
+      pending: 1,
+    })
+
+    expect((await db.expenses.get('a'))?.updatedAt).toBe('2026-10-01T12:05:00.001Z')
+  })
+
+  it('leaves rows coming from the server as they are', async () => {
+    await db.expenses.put(expense('a', 0))
+    await db.expenses.update('a', { updatedAt: '2026-10-01T12:05:00.000Z', pending: 0 })
+    await db.expenses.update('a', { updatedAt: '2026-10-01T11:00:00.000Z', pending: 0 })
+
+    expect((await db.expenses.get('a'))?.updatedAt).toBe('2026-10-01T11:00:00.000Z')
+  })
+})

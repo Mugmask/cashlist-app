@@ -15,3 +15,11 @@
   color: var(--color-accent);
   text-align: center;
 }
+
+/* A dollar amount too big once in pesos */
+.tooBig {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  text-align: center;
+  color: var(--color-danger);
+}

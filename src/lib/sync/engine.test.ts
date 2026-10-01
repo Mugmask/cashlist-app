@@ -12,7 +12,11 @@ interface Payload {
 type Row = Payload & { synced_at: string }
 
 // In-memory stand-in for Supabase that mimics the server trigger: it stamps synced_at
-// and ignores updates older than the stored row (last write wins).
+// and ignores updates older than the stored row (last write wins). Like Postgres' now(), one
+// upsert stamps all its rows with the same synced_at (the transaction's start).
+
+// The pull's filter: `synced_at.gt."X",and(synced_at.eq."X",id.gt."Y")`
+const AFTER = /^synced_at\.gt\."([^"]+)",and\(synced_at\.eq\."([^"]+)",id\.gt\."([^"]+)"\)$/
 function createFakeServer() {
   const rows = new Map<string, Row>()
   let clock = 0
@@ -26,25 +30,32 @@ function createFakeServer() {
       async upsert(payload: Payload[]) {
         await onUpsert?.()
         if (failUpserts) return { error: { message: 'upsert failed' } }
+        const at = stamp()
         for (const incoming of payload) {
           const existing = rows.get(incoming.id)
           if (existing && incoming.updated_at < existing.updated_at) continue
-          rows.set(incoming.id, { ...existing, ...incoming, synced_at: stamp() })
+          rows.set(incoming.id, { ...existing, ...incoming, synced_at: at })
         }
         return { error: null }
       },
       select() {
-        let after = ''
+        let keep = (_r: Row) => true
         let max = Infinity
         const query = {
-          gt: (_column: string, value: string) => ((after = value), query),
+          gt: (_column: string, value: string) => ((keep = (r) => r.synced_at > value), query),
+          or: (filter: string) => {
+            const [, at, , id] = filter.match(AFTER) ?? []
+            if (!at) throw new Error(`unexpected filter: ${filter}`)
+            keep = (r) => r.synced_at > at || (r.synced_at === at && r.id > id)
+            return query
+          },
           order: () => query,
           limit: (n: number) => ((max = n), query),
           then: (resolve: (r: { data: Row[]; error: null }) => unknown) =>
             resolve({
               data: [...rows.values()]
-                .filter((r) => r.synced_at > after)
-                .sort((a, b) => a.synced_at.localeCompare(b.synced_at))
+                .filter(keep)
+                .sort((a, b) => a.synced_at.localeCompare(b.synced_at) || a.id.localeCompare(b.id))
                 .slice(0, max),
               error: null,
             }),
@@ -134,6 +145,32 @@ describe('pushTable', () => {
 })
 
 describe('pullTable', () => {
+  // A batch uploaded in one request shares its synced_at. Paging by synced_at alone, the rows
+  // of a tie that fell past a page's end were skipped by the next page's synced_at > cursor.
+  it('starts over once from a v1 cursor, bringing back rows it skipped', async () => {
+    server.remoteWrite(remoteExpense('skipped', '2026-01-01T00:00:00.000Z'))
+    // A v1 cursor already past that row, as if a tie had made it skip it
+    await db.syncState.put({ key: 'expenses-cursor', value: '2099-01-01T00:00:00.000Z' })
+
+    await pullTable(server.client, expensesTable)
+
+    expect(await db.expenses.get('skipped')).toBeDefined()
+    expect(await db.syncState.get('expenses-cursor')).toBeUndefined()
+  })
+
+  it('brings every row of a tie that spans pages', async () => {
+    await db.expenses.bulkAdd(
+      ['a', 'b', 'c', 'd', 'e'].map((id) => localExpense(id, '2026-01-01T00:00:00.000Z')),
+    )
+    await pushTable(server.client, expensesTable)
+    await db.expenses.clear() // "another device" with an empty database
+    await db.syncState.clear()
+
+    await pullTable(server.client, expensesTable, 2)
+
+    expect((await db.expenses.toArray()).map((e) => e.id).sort()).toEqual(['a', 'b', 'c', 'd', 'e'])
+  })
+
   it('downloads remote rows and only fetches newer ones on the next pull', async () => {
     server.remoteWrite(remoteExpense('a', '2026-09-01T10:00:00.000Z', 50))
     await pullTable(server.client, expensesTable)

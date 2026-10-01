@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { Expense } from '@/lib/db'
-import { convertAmount, toPesos } from '@/lib/exchangeRates'
+import { convertAmount, fitsInPesos, toPesos } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { useConversionRate } from '@/lib/useDollarRate'
 import { AmountField, Button, ChipGroup, DayField, Stack, TextField } from '@/ui'
@@ -66,9 +66,12 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
     setName(s.name)
     setCategory(getCategory(s.category).id)
     setPaymentMethod(s.paymentMethod)
-    setCurrency(s.currency)
-    // An amount already typed stays: maybe it cost something else this time
-    if (amount === '') setAmount(amountToInput(s.amount))
+    // An amount already typed stays, in the currency it was typed in: maybe it cost something
+    // else this time. Switching the currency under it would read 15.000 pesos as US$ 15.000.
+    if (amount === '') {
+      setCurrency(s.currency)
+      setAmount(amountToInput(s.amount))
+    }
   }
   const [day, setDay] = useState(expense ? toDayKey(new Date(expense.spentAt)) : today)
 
@@ -100,8 +103,11 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
     // Unless it was retyped meanwhile
     if (converted) setAmount((current) => (current === typed ? amountToInput(converted) : current))
   }
+  // In dollars, an amount that doesn't fit once in pesos can't be saved (a zero too many)
+  const tooBig =
+    currency === 'USD' && value !== null && rate !== null && !fitsInPesos(value, rate.rate)
   const isValid =
-    value !== null && (currency === 'ARS' || rate !== null) && day !== '' && day <= today
+    value !== null && (currency === 'ARS' || rate !== null) && !tooBig && day !== '' && day <= today
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -192,6 +198,11 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
           />
           {currency === 'USD' && (
             <ConversionNote dollars={value} rate={rate} loading={conversion.loading} />
+          )}
+          {tooBig && (
+            <p className={styles.tooBig} role="alert">
+              En pesos es más de lo que se puede cargar. ¿Sobra un cero?
+            </p>
           )}
         </div>
         <ChipGroup

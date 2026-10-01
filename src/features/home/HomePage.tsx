@@ -46,7 +46,7 @@ const TOP_CATEGORIES = 3 // a glance; the whole breakdown is one tap away
 const RECENT_COUNT = 5
 
 export function HomePage() {
-  const { month: selected, isCurrent } = useMonth()
+  const { month: selected, isCurrent, today: now } = useMonth()
   useCategories() // re-renders when the user edits their categories: names and colors below
   const month = useMonthExpenses(selected)
   const previous = useMonthExpenses(shiftMonth(selected, -1))
@@ -64,7 +64,6 @@ export function HomePage() {
   const addExpense = useAddExpense()
   const profile = useProfile()
   const [openId, setOpenId] = useState<string | null>(null)
-  const [now] = useState(() => new Date()) // read once: only the day of the month matters here
 
   // Everything at once: numbers that fill in one by one look like they're changing
   if (!month || !previous || !earlier || !incomes || !fixed || !card || !shopping) {

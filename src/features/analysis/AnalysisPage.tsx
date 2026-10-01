@@ -32,7 +32,7 @@ const SPLIT_CATEGORIES = 5 // the bar stays readable; the rest goes together, in
 
 // "En qué se va la plata": the month in depth, for the month picked in the header
 export function AnalysisPage() {
-  const { month: selected, isCurrent } = useMonth()
+  const { month: selected, isCurrent, today: now } = useMonth()
   useCategories() // re-renders when the user edits their categories: names and colors below
   const month = useMonthExpenses(selected)
   const previous = useMonthExpenses(shiftMonth(selected, -1))
@@ -48,7 +48,6 @@ export function AnalysisPage() {
   )
   const fixed = useFixedOverview(selected)
   const [openId, setOpenId] = useState<string | null>(null)
-  const [now] = useState(() => new Date()) // read once: only the day of the month matters
 
   // Everything at once: numbers that fill in one by one look like they're changing
   if (!month || !previous || !incomes || !earlier || !fixed || profile === undefined) {
