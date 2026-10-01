@@ -1,8 +1,9 @@
 // Public API of the feature: the rest of the app imports only from here
-export { EXPENSE_CATEGORIES, getCategory, type ExpenseCategoryId } from './categories'
+export { type Category, getCategory, OTHER_ID, useCategories } from './categories'
 export { useAddExpense } from './addExpense'
 export { AddExpenseProvider } from './components/AddExpenseProvider'
 export { CategoryIcon } from './components/CategoryIcon'
+export { CategoryPicker } from './components/CategoryPicker'
 export { ConversionNote, ManualRateField } from './components/DollarConversion'
 export { CURRENCY_OPTIONS } from './currencies'
 export { ExpenseDetailSheet } from './components/ExpenseDetailSheet'

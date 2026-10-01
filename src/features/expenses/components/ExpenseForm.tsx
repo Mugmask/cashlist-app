@@ -7,7 +7,7 @@ import { AmountField, Button, ChipGroup, DayField, Stack, TextField } from '@/ui
 import { amountToInput, formatCurrencyShort, parseAmount, type Currency } from '@/utils/currency'
 import { nowOnDay, toDayKey, withDayKey } from '@/utils/dates'
 import { capitalize } from '@/utils/text'
-import { EXPENSE_CATEGORIES, getCategory, type ExpenseCategoryId } from '../categories'
+import { BUILT_IN_CATEGORIES, getCategory } from '../categories'
 import { CURRENCY_OPTIONS } from '../currencies'
 import { INSTALLMENT_OPTIONS, splitInstallments } from '../installments'
 import { expensesRepo } from '../expensesRepo'
@@ -16,6 +16,7 @@ import {
   readLastPaymentMethod,
   rememberPaymentMethod,
 } from '../paymentMethods'
+import { CategoryPicker } from './CategoryPicker'
 import { ConversionNote, ManualRateField } from './DollarConversion'
 import styles from './ExpenseForm.module.css'
 
@@ -24,17 +25,11 @@ const INSTALLMENT_CHIPS = INSTALLMENT_OPTIONS.map((n) => ({
   label: n === '1' ? 'Sin cuotas' : n,
 }))
 
-const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map(({ id, label, icon: Icon }) => ({
-  value: id,
-  label,
-  icon: <Icon aria-hidden />,
-}))
-
 export interface ExpenseFormProps {
   // Editing this expense; without it, a new one
   expense?: Expense
   // A new one already filled in: a finished purchase is Súper, with its products as the note
-  defaults?: { category?: ExpenseCategoryId; name?: string; note?: string }
+  defaults?: { category?: string; name?: string; note?: string }
   submitLabel?: string
   onSaved?: () => void
 }
@@ -47,8 +42,8 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
   const [amount, setAmount] = useState(
     expense ? amountToInput(wasDollars ? expense.foreignAmount! : expense.amount) : '',
   )
-  const [category, setCategory] = useState<ExpenseCategoryId>(
-    expense ? getCategory(expense.category).id : (defaults?.category ?? EXPENSE_CATEGORIES[0].id),
+  const [category, setCategory] = useState(
+    expense ? getCategory(expense.category).id : (defaults?.category ?? BUILT_IN_CATEGORIES[0].id),
   )
   const [name, setName] = useState(expense?.name ?? defaults?.name ?? '')
   const [note, setNote] = useState(expense?.note ?? defaults?.note ?? '')
@@ -174,13 +169,7 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
         {conversion.needsManual && (
           <ManualRateField value={conversion.manual} onChange={conversion.setManual} />
         )}
-        <ChipGroup
-          label="Categoría"
-          showLabel
-          options={CATEGORY_OPTIONS}
-          value={category}
-          onChange={setCategory}
-        />
+        <CategoryPicker value={category} onChange={setCategory} />
         <ChipGroup
           label="Cómo lo pagaste"
           showLabel

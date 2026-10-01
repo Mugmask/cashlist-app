@@ -12,6 +12,7 @@ import {
   isFixed,
   totalsByCategory,
   useAddExpense,
+  useCategories,
   useMonthExpenses,
 } from '@/features/expenses'
 import { FixedHomeCard, useFixedOverview } from '@/features/fixed'
@@ -40,6 +41,7 @@ const RECENT_COUNT = 5
 
 export function HomePage() {
   const { month: selected, isCurrent } = useMonth()
+  useCategories() // re-renders when the user edits their categories: names and colors below
   const month = useMonthExpenses(selected)
   const previous = useMonthExpenses(shiftMonth(selected, -1))
   const earlier = useKeyedLiveQuery(

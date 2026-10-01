@@ -1,0 +1,45 @@
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 60px;
+}
+
+.row + .row,
+.row + .confirm,
+.confirm + .row {
+  border-top: 1px solid var(--color-border);
+}
+
+.name {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+}
+
+.question {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}

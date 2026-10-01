@@ -5,7 +5,7 @@ import { useMonth } from '@/features/month'
 import { Amount, Button, EmptyState, PageHeader, PageLoader, Stack, TextField } from '@/ui'
 import { formatMonthName } from '@/utils/dates'
 import { useAddExpense } from './addExpense'
-import { getCategory } from './categories'
+import { getCategory, useCategories } from './categories'
 import { ExpenseFilterSheet } from './components/ExpenseFilterSheet'
 import { ExpenseList } from './components/ExpenseList'
 import styles from './ExpensesPage.module.css'
@@ -23,6 +23,7 @@ import { useMonthExpenses } from './useMonthExpenses'
 // reload and links (the home's card → "?pago=tarjeta") keep them.
 export function ExpensesPage() {
   const { month: selected } = useMonth()
+  useCategories() // re-renders when the user edits their categories: names and colors below
   const month = useMonthExpenses(selected)
   const addExpense = useAddExpense()
   const [params, setParams] = useSearchParams()

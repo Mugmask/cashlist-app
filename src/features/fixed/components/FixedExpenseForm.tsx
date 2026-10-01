@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { CURRENCY_OPTIONS, EXPENSE_CATEGORIES, PAYMENT_METHOD_OPTIONS } from '@/features/expenses'
+import { CategoryPicker, CURRENCY_OPTIONS, PAYMENT_METHOD_OPTIONS } from '@/features/expenses'
 import type { FixedExpense } from '@/lib/db'
 import { convertAmount } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
@@ -8,12 +8,6 @@ import { amountToInput, parseAmount, type Currency } from '@/utils/currency'
 import { capitalize } from '@/utils/text'
 import { fixedRepo } from '../fixedRepo'
 import { FixedHistory } from './FixedHistory'
-
-const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map(({ id, label, icon: Icon }) => ({
-  value: id as string,
-  label,
-  icon: <Icon aria-hidden />,
-}))
 
 export interface FixedExpenseFormProps {
   fixed?: FixedExpense // editing when set, creating otherwise
@@ -92,13 +86,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
           value={currency}
           onChange={changeCurrency}
         />
-        <ChipGroup
-          label="Categoría"
-          showLabel
-          options={CATEGORY_OPTIONS}
-          value={category}
-          onChange={setCategory}
-        />
+        <CategoryPicker value={category} onChange={setCategory} />
         <ChipGroup
           label="Cómo lo pagás"
           showLabel

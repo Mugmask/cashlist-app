@@ -1,0 +1,11 @@
+/* The icons in the color being picked: the grid doubles as the preview */
+.icons [role='radio'],
+.icons [role='radio']:hover {
+  color: var(--option-color);
+}
+
+.swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+}

@@ -46,6 +46,14 @@ export interface Income extends Syncable {
   note?: string
 }
 
+// A category the user made, besides the built-in ones. Icon and color are picked from short
+// lists (a key of CATEGORY_ICONS, a palette index from 1 to 8) so charts stay readable.
+export interface CustomCategory extends Syncable {
+  name: string
+  icon: string
+  color: number
+}
+
 // The user's profile, a single row ('me'). Monthly income is in pesos.
 export interface Profile extends Syncable {
   name?: string
@@ -90,6 +98,7 @@ interface SyncState {
 export const db = new Dexie('cashlist') as Dexie & {
   expenses: EntityTable<Expense, 'id'>
   incomes: EntityTable<Income, 'id'>
+  categories: EntityTable<CustomCategory, 'id'>
   shoppingItems: EntityTable<ShoppingItem, 'id'>
   fixedExpenses: EntityTable<FixedExpense, 'id'>
   cardStatements: EntityTable<CardStatement, 'id'>
@@ -261,6 +270,11 @@ db.version(11).upgrade(async (tx) => {
 // v12: incomes apart from the monthly income
 db.version(12).stores({
   incomes: 'id, receivedAt, pending',
+})
+
+// v13: categories the user makes
+db.version(13).stores({
+  categories: 'id, pending',
 })
 
 // The local database holds one user's data at a time. The owner is kept next to the sync

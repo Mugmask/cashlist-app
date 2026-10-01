@@ -1,18 +1,9 @@
 import type { PaymentMethod } from '@/lib/db'
 import { Button, ChipGroup, Sheet, Stack } from '@/ui'
-import { EXPENSE_CATEGORIES } from '../categories'
+import { useCategories } from '../categories'
 import { isFiltered, NO_FILTERS, type ExpenseFilters } from '../filters'
 
 const ALL = 'all'
-
-const CATEGORY_OPTIONS = [
-  { value: ALL, label: 'Todas' },
-  ...EXPENSE_CATEGORIES.map(({ id, label, icon: Icon }) => ({
-    value: id as string,
-    label,
-    icon: <Icon aria-hidden />,
-  })),
-]
 
 const METHOD_OPTIONS = [
   { value: ALL, label: 'Todos' },
@@ -51,6 +42,14 @@ export function ExpenseFilterSheet({
   resultCount,
 }: ExpenseFilterSheetProps) {
   const { query, ...rest } = filters
+  const categoryOptions = [
+    { value: ALL, label: 'Todas' },
+    ...useCategories().list.map(({ id, label, icon: Icon }) => ({
+      value: id,
+      label,
+      icon: <Icon aria-hidden />,
+    })),
+  ]
   const show = filters.installments
     ? 'cuotas'
     : filters.currency === 'USD'
@@ -65,7 +64,7 @@ export function ExpenseFilterSheet({
         <ChipGroup
           label="Categoría"
           showLabel
-          options={CATEGORY_OPTIONS}
+          options={categoryOptions}
           value={filters.category ?? ALL}
           onChange={(v) => onChange({ category: v === ALL ? undefined : v })}
         />

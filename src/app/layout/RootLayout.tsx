@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Outlet, ScrollRestoration, useLocation, useSearchParams } from 'react-router'
 import { Login, useSession } from '@/features/auth'
-import { AddExpenseProvider } from '@/features/expenses'
+import { AddExpenseProvider, useCategories } from '@/features/expenses'
 import { MonthProvider, MonthSwitcher } from '@/features/month'
 import { ProfileButton } from '@/features/profile'
 import { requestPersistentStorage } from '@/lib/db'
 import { supabase } from '@/lib/supabase'
 import { useAutoSync } from '@/lib/sync'
-import { Alert, PrimaryActionProvider, ToastProvider } from '@/ui'
+import { Alert, PageLoader, PrimaryActionProvider, ToastProvider } from '@/ui'
 import { UpdatePrompt } from '../UpdatePrompt'
 import { AuthShell } from './AuthShell'
 import { BackLink } from './BackLink'
@@ -57,6 +57,8 @@ export function RootLayout() {
 
 function AppShell({ email }: { email?: string }) {
   const syncError = useAutoSync()
+  // The screens look categories up by id: the user's ones must be read before they show
+  const categories = useCategories()
   const mainRef = useRef<HTMLElement>(null)
   usePageTitle()
   useFocusHeadingOnNavigate(mainRef)
@@ -91,7 +93,7 @@ function AppShell({ email }: { email?: string }) {
               {syncError && <Alert tone="danger">{syncError}</Alert>}
               {/* Screens off the bottom nav go back to the one they were opened from */}
               {back && !NAV_PATHS.has(pathname) && <BackLink target={back} />}
-              <Outlet />
+              {categories.loaded ? <Outlet /> : <PageLoader />}
             </main>
             <BottomNav />
           </div>

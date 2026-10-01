@@ -1,6 +1,7 @@
 import {
   db,
   type CardStatement,
+  type CustomCategory,
   type ExchangeRateKind,
   type Expense,
   type FixedExpense,
@@ -108,6 +109,39 @@ export const incomesTable: SyncedTable<Income, IncomeRow> = {
     receivedAt: row.received_at,
     name: row.name ?? undefined,
     note: row.note ?? undefined,
+    updatedAt: row.updated_at,
+    deleted: row.deleted,
+    pending: 0,
+  }),
+}
+
+interface CategoryRow {
+  id: string
+  name: string
+  icon: string
+  color: number
+  updated_at: string
+  deleted: boolean
+  synced_at: string
+}
+
+export const categoriesTable: SyncedTable<CustomCategory, CategoryRow> = {
+  name: 'categories',
+  local: db.categories,
+  columns: 'id, name, icon, color, updated_at, deleted, synced_at',
+  toRow: (c) => ({
+    id: c.id,
+    name: c.name,
+    icon: c.icon,
+    color: c.color,
+    updated_at: c.updatedAt,
+    deleted: c.deleted,
+  }),
+  fromRow: (row) => ({
+    id: row.id,
+    name: row.name,
+    icon: row.icon,
+    color: row.color,
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,
@@ -251,6 +285,7 @@ export const profileTable: SyncedTable<Profile, ProfileRow> = {
 export const SYNCED_TABLES = [
   toSyncTask(expensesTable),
   toSyncTask(incomesTable),
+  toSyncTask(categoriesTable),
   toSyncTask(shoppingItemsTable),
   toSyncTask(fixedExpensesTable),
   toSyncTask(cardStatementsTable),
