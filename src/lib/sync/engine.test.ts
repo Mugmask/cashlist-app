@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db, type Expense } from '@/lib/db'
-import { pullTable, pushTable } from './engine'
+import { pullTable, pushTable, toSyncTask } from './engine'
 import { expensesTable } from './tables'
 
 interface Payload {
@@ -21,6 +21,7 @@ function createFakeServer() {
   const rows = new Map<string, Row>()
   let clock = 0
   let failUpserts = false
+  let invalid: ((row: Payload) => boolean) | null = null
   let onUpsert: (() => Promise<void>) | null = null
 
   const stamp = () => new Date(Date.UTC(2026, 0, 1) + ++clock * 1000).toISOString()
@@ -30,6 +31,10 @@ function createFakeServer() {
       async upsert(payload: Payload[]) {
         await onUpsert?.()
         if (failUpserts) return { error: { message: 'upsert failed' } }
+        // Like Postgres: one invalid row rejects the whole statement
+        if (invalid && payload.some(invalid)) {
+          return { error: { code: '22003', message: 'numeric field overflow' } }
+        }
         const at = stamp()
         for (const incoming of payload) {
           const existing = rows.get(incoming.id)
@@ -71,6 +76,7 @@ function createFakeServer() {
     // Simulates another device writing straight to the server
     remoteWrite: (row: Payload) => rows.set(row.id, { ...row, synced_at: stamp() }),
     failUpserts: (fail: boolean) => (failUpserts = fail),
+    rejectRows: (test: (row: Payload) => boolean) => (invalid = test),
     beforeUpsert: (fn: () => Promise<void>) => (onUpsert = fn),
   }
 }
@@ -141,6 +147,44 @@ describe('pushTable', () => {
       message: 'upsert failed',
     })
     expect((await db.expenses.get('a'))?.pending).toBe(1)
+  })
+})
+
+describe('a row the server rejects', () => {
+  // A row Postgres refuses (a value out of range, say) made it refuse the whole batch: every
+  // pending change of the table stayed stuck, and nothing came down for it either
+  it('stays pending alone: the rest uploads, and the table still pulls', async () => {
+    server.rejectRows((row) => row.id === 'bad')
+    await db.expenses.bulkAdd([
+      localExpense('bad', '2026-01-01T00:00:00.000Z'),
+      localExpense('ok-1', '2026-01-01T00:00:00.000Z'),
+      localExpense('ok-2', '2026-01-01T00:00:00.000Z'),
+    ])
+    server.remoteWrite(remoteExpense('from-elsewhere', '2026-01-01T00:00:00.000Z'))
+
+    await expect(toSyncTask(expensesTable).run(server.client)).rejects.toMatchObject({
+      code: '22003',
+    })
+
+    expect([...server.rows.keys()].sort()).toEqual(['from-elsewhere', 'ok-1', 'ok-2'])
+    expect((await db.expenses.get('bad'))?.pending).toBe(1)
+    expect((await db.expenses.get('ok-1'))?.pending).toBe(0)
+    expect(await db.expenses.get('from-elsewhere')).toBeDefined()
+  })
+
+  it('a network failure is not retried row by row', async () => {
+    server.failUpserts(true)
+    await db.expenses.bulkAdd([
+      localExpense('a', '2026-01-01T00:00:00.000Z'),
+      localExpense('b', '2026-01-01T00:00:00.000Z'),
+    ])
+    let calls = 0
+    server.beforeUpsert(async () => void calls++)
+
+    await expect(pushTable(server.client, expensesTable)).rejects.toMatchObject({
+      message: 'upsert failed',
+    })
+    expect(calls).toBe(1)
   })
 })
 

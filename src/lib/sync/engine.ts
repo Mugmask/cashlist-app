@@ -32,9 +32,15 @@ export function toSyncTask<L extends Syncable, R extends ServerRow>(
 ): SyncTask {
   return {
     name: table.name,
+    // The pull runs even when the push failed: a change that can't go up mustn't keep the
+    // other devices' changes from coming down. The push's error is still reported after.
     run: async (client) => {
-      await pushTable(client, table)
+      const pushed = await pushTable(client, table).then(
+        () => null,
+        (error: unknown) => ({ error }),
+      )
       await pullTable(client, table)
+      if (pushed) throw pushed.error
     },
   }
 }
@@ -42,7 +48,15 @@ export function toSyncTask<L extends Syncable, R extends ServerRow>(
 const EPOCH = '1970-01-01T00:00:00Z'
 const DEFAULT_PAGE_SIZE = 500
 
+// Postgres refused the data itself (a code like "22003", out of range), not the network or
+// the API: then it's about some row, and the others can still go
+function isDataError(error: { code?: string }) {
+  return !!error.code && /^[0-9A-Z]{5}$/.test(error.code) && !error.code.startsWith('PGRST')
+}
+
 // Uploads local changes. A row edited again while uploading stays pending for the next run.
+// One upsert for all of them; if Postgres refuses it for its data, one by one, so a single
+// invalid row stays pending alone instead of holding back every change of the table.
 export async function pushTable<L extends Syncable, R extends ServerRow>(
   client: Client,
   table: SyncedTable<L, R>,
@@ -53,17 +67,31 @@ export async function pushTable<L extends Syncable, R extends ServerRow>(
   const pending = (await local.where('pending').equals(1).toArray()) as L[]
   if (pending.length === 0) return
 
-  const { error } = await client
-    .from(table.name)
-    .upsert(pending.map(table.toRow), table.onConflict ? { onConflict: table.onConflict } : {})
-  if (error) throw error
+  const upsert = (rows: L[]) =>
+    client
+      .from(table.name)
+      .upsert(rows.map(table.toRow), table.onConflict ? { onConflict: table.onConflict } : {})
 
-  const sent = new Map(pending.map((r) => [r.id, r.updatedAt]))
+  let uploaded = pending
+  let rejected: unknown = null
+  const { error } = await upsert(pending)
+  if (error) {
+    if (!isDataError(error)) throw error
+    uploaded = []
+    for (const row of pending) {
+      const { error: rowError } = await upsert([row])
+      if (!rowError) uploaded.push(row)
+      else rejected ??= rowError
+    }
+  }
+
+  const sent = new Map(uploaded.map((r) => [r.id, r.updatedAt]))
   await local
     .where('id')
     .anyOf([...sent.keys()])
     .filter((r) => r.updatedAt === sent.get(r.id))
     .modify({ pending: 0 })
+  if (rejected) throw rejected
 }
 
 // Where the last pull stopped: the last row's synced_at, and its id to break ties. One upload
