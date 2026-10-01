@@ -20,7 +20,7 @@ export interface Expense extends Syncable {
   amount: number
   category: string
   spentAt: string // ISO
-  name?: string // "Pizzaluna", "Alquiler": what the lists show; the category when missing
+  name?: string // "Nafta", "Alquiler": what the lists show; the category when missing
   note?: string // a free comment, only in the detail
   // Set when this expense is the payment of a fixed expense for a given month
   fixedExpenseId?: string
@@ -42,7 +42,7 @@ export interface Expense extends Syncable {
 export interface Income extends Syncable {
   amount: number
   receivedAt: string // ISO
-  name?: string // "Martina", "Venta de la bici"
+  name?: string // "Trabajo extra", "Venta"
   note?: string
 }
 

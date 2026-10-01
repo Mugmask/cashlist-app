@@ -77,7 +77,8 @@ function readAll(): Partial<Record<ExchangeRateKind, DollarRate>> {
   }
 }
 
-function readCached(kind: ExchangeRateKind) {
+// The last rate fetched on this device; null if there never was one
+export function readCached(kind: ExchangeRateKind) {
   return readAll()[kind] ?? null
 }
 

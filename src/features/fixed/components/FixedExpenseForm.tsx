@@ -5,6 +5,7 @@ import { convertAmount } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { AmountField, Button, ChipGroup, Stack, TextField, useToast } from '@/ui'
 import { amountToInput, parseAmount, type Currency } from '@/utils/currency'
+import { capitalize } from '@/utils/text'
 import { fixedRepo } from '../fixedRepo'
 import { FixedHistory } from './FixedHistory'
 
@@ -45,7 +46,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
     e.preventDefault()
     if (!isValid) return
     const input = {
-      name: name.trim(),
+      name: capitalize(name.trim()),
       category,
       amount: parsedAmount!,
       paymentMethod,
@@ -71,6 +72,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
       <Stack gap={4}>
         <TextField
           label="Nombre"
+          autoCapitalize="sentences"
           placeholder="Alquiler, expensas, internet…"
           value={name}
           onChange={(e) => setName(e.target.value)}

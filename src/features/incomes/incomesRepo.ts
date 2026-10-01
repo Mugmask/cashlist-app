@@ -1,5 +1,5 @@
-import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type Income } from '@/lib/db'
+import { useKeyedLiveQuery } from '@/lib/useKeyedLiveQuery'
 import { shiftMonth } from '@/utils/dates'
 
 export interface NewIncome {
@@ -60,8 +60,8 @@ export function getIncomesBefore(date: Date) {
 
 // A month's incomes, newest first, and what they add up to; undefined while loading
 export function useMonthIncomes(month: Date) {
-  return useLiveQuery(async () => {
+  return useKeyedLiveQuery(async () => {
     const incomes = await incomesRepo.between(month, shiftMonth(month, 1))
     return { incomes, total: incomes.reduce((sum, i) => sum + i.amount, 0) }
-  }, [month.getTime()])
+  }, month.getTime())
 }

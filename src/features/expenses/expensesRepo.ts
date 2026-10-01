@@ -23,7 +23,7 @@ export type ExpenseChanges = Partial<
 export interface NewExpense {
   amount: number
   category: string // an ExpenseCategoryId; unknown ids show as "Otros"
-  name?: string // "Pizzaluna", "Alquiler"
+  name?: string // "Nafta", "Alquiler"
   note?: string
   paymentMethod?: PaymentMethod // cash when missing
   // Only for an expense in dollars (then `amount` is the pesos it came to)

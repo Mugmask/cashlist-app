@@ -1,9 +1,8 @@
-import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronRight, Plus, Sparkles } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Change, changeByCategory, describeChange, variableChange } from '@/features/analysis'
-import { CardHomeCard } from '@/features/card'
+import { CardHomeCard, useCardSummary } from '@/features/card'
 import {
   CategoryIcon,
   ExpenseDetailSheet,
@@ -19,8 +18,19 @@ import { FixedHomeCard, useFixedOverview } from '@/features/fixed'
 import { getIncomesBefore, useMonthIncomes } from '@/features/incomes'
 import { useMonth } from '@/features/month'
 import { useProfile } from '@/features/profile'
-import { ShoppingHomeCard } from '@/features/shopping'
-import { Amount, Button, Card, cx, EmptyState, PageHeader, ProgressBar, Stack } from '@/ui'
+import { ShoppingHomeCard, useShoppingList } from '@/features/shopping'
+import { useKeyedLiveQuery } from '@/lib/useKeyedLiveQuery'
+import {
+  Amount,
+  Button,
+  Card,
+  cx,
+  EmptyState,
+  PageHeader,
+  PageLoader,
+  ProgressBar,
+  Stack,
+} from '@/ui'
 import { formatMonthName, fromPeriod, shiftMonth, toPeriod } from '@/utils/dates'
 import { carryOver, type CarryOver } from './carryOver'
 import styles from './HomePage.module.css'
@@ -32,26 +42,33 @@ export function HomePage() {
   const { month: selected, isCurrent } = useMonth()
   const month = useMonthExpenses(selected)
   const previous = useMonthExpenses(shiftMonth(selected, -1))
-  const earlier = useLiveQuery(
+  const earlier = useKeyedLiveQuery(
     async () => ({
       expenses: await getExpensesBefore(selected),
       incomes: await getIncomesBefore(selected),
     }),
-    [selected.getTime()],
+    selected.getTime(),
   )
-  const received = useMonthIncomes(selected)?.total ?? 0
+  const incomes = useMonthIncomes(selected)
   const fixed = useFixedOverview(selected)
+  const card = useCardSummary(selected)
+  const shopping = useShoppingList()
   const addExpense = useAddExpense()
   const profile = useProfile()
   const [openId, setOpenId] = useState<string | null>(null)
   const [now] = useState(() => new Date()) // read once: only the day of the month matters here
 
-  if (!month) return null
+  // Everything at once: numbers that fill in one by one look like they're changing
+  if (!month || !previous || !earlier || !incomes || !fixed || !card || !shopping) {
+    return <PageLoader />
+  }
+  if (profile === undefined) return <PageLoader /> // null is loaded: no profile yet
 
   const { expenses, total, variableTotal } = month
   const monthName = formatMonthName(selected)
-  const before = previous?.expenses ?? []
-  // "Hola, Francisco": the first name only, and just "Hola" until the profile has one
+  const received = incomes.total
+  const before = previous.expenses
+  // "Hola, Juan": the first name only, and just "Hola" until the profile has one
   const firstName = profile?.name?.trim().split(/\s+/)[0]
   // How the month goes, in one sentence under the greeting
   const insight =
@@ -71,11 +88,11 @@ export function HomePage() {
   const income =
     monthlyIncome !== undefined || received > 0 ? (monthlyIncome ?? 0) + received : undefined
   // Fixed expenses not paid yet: money already spoken for this month
-  const committed = isCurrent ? (fixed?.totals.remaining ?? 0) : 0
+  const committed = isCurrent ? fixed.totals.remaining : 0
   // What the months before left over or overspent comes along into this one. Only with a
   // monthly income: without one, every month before would look overspent by all it spent.
   const carry =
-    monthlyIncome !== undefined && earlier
+    monthlyIncome !== undefined
       ? carryOver(earlier.expenses, monthlyIncome, toPeriod(selected), earlier.incomes)
       : null
 
@@ -118,11 +135,11 @@ export function HomePage() {
 
       {/* Side by side, small: what's left of the fixed ones and what's on the card */}
       <div className={styles.tiles}>
-        <FixedHomeCard />
-        <CardHomeCard />
+        <FixedHomeCard overview={fixed} />
+        <CardHomeCard summary={card} />
       </div>
       {/* The shopping list is about now, not about the month being looked at */}
-      {isCurrent && <ShoppingHomeCard />}
+      {isCurrent && <ShoppingHomeCard list={shopping} />}
 
       {expenses.length === 0 ? (
         <EmptyState

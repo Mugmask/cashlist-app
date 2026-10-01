@@ -11,6 +11,7 @@ export { DayField, type DayFieldProps } from './DayField/DayField'
 export { EmptyState, type EmptyStateProps } from './EmptyState/EmptyState'
 export { IconButton, type IconButtonProps } from './IconButton/IconButton'
 export { PageHeader, type PageHeaderProps } from './PageHeader/PageHeader'
+export { PageLoader } from './PageLoader/PageLoader'
 export { PrimaryActionProvider } from './PrimaryAction/PrimaryAction'
 export {
   type PrimaryAction,

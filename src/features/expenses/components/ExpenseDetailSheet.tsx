@@ -66,7 +66,7 @@ function ExpenseDetail({
   const fixed = isFixed(expense)
   const dollars = expense.currency === 'USD'
   const category = getCategory(expense.category).label
-  // Its name ("Pizzaluna", "Alquiler"), like in the lists; the category when it has none
+  // Its name ("Nafta", "Alquiler"), like in the lists; the category when it has none
   const title = expense.name || category
   const method = PAYMENT_METHOD_OPTIONS.find((o) => o.value === (expense.paymentMethod ?? 'cash'))!
 

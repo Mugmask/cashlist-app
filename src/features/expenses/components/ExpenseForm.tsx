@@ -6,6 +6,7 @@ import { useConversionRate } from '@/lib/useDollarRate'
 import { AmountField, Button, ChipGroup, DayField, Stack, TextField } from '@/ui'
 import { amountToInput, formatCurrencyShort, parseAmount, type Currency } from '@/utils/currency'
 import { nowOnDay, toDayKey, withDayKey } from '@/utils/dates'
+import { capitalize } from '@/utils/text'
 import { EXPENSE_CATEGORIES, getCategory, type ExpenseCategoryId } from '../categories'
 import { CURRENCY_OPTIONS } from '../currencies'
 import { INSTALLMENT_OPTIONS, splitInstallments } from '../installments'
@@ -111,8 +112,8 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
       paymentMethod,
       // Only card purchases go in installments; undefined clears them
       installments: inInstallments ? Number(installments) : undefined,
-      name: name.trim() || undefined,
-      note: note.trim() || undefined,
+      name: capitalize(name.trim()) || undefined,
+      note: capitalize(note.trim()) || undefined,
     }
     if (expense) {
       await expensesRepo.update(expense.id, {
@@ -145,7 +146,8 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
         {/* Like the fixed expenses' form: the name on top, here optional */}
         <TextField
           label="Nombre (opcional)"
-          placeholder="Pizzaluna, nafta, cine…"
+          autoCapitalize="sentences"
+          placeholder="Nafta, cine, supermercado…"
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoComplete="off"
@@ -205,6 +207,7 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
         <DayField label="Día del gasto" value={day} max={today} onChange={setDay} />
         <TextField
           label="Nota"
+          autoCapitalize="sentences"
           hideLabel
           placeholder="Nota (opcional)"
           value={note}

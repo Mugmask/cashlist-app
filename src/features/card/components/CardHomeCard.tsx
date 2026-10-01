@@ -4,17 +4,13 @@ import { useMonth } from '@/features/month'
 import { Amount, Card } from '@/ui'
 import { formatCurrencyShort } from '@/utils/currency'
 import { formatMonthName } from '@/utils/dates'
-import { useCardSummary } from '../useCardSummary'
+import type { CardSummary } from '../useCardSummary'
 import styles from './CardHomeCard.module.css'
 
 // What's on the credit card this month, a small tile on home, and the installments still to
 // come. It leads to the month's card expenses. Hidden for anyone who doesn't use a card.
-export function CardHomeCard() {
+export function CardHomeCard({ summary }: { summary: CardSummary }) {
   const { month } = useMonth()
-  const summary = useCardSummary(month)
-
-  if (!summary) return null
-
   const { current, upcoming } = summary
   if (current.total === 0 && upcoming === 0) return null
 

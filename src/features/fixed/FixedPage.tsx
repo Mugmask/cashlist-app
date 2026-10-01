@@ -8,6 +8,7 @@ import {
   Card,
   EmptyState,
   PageHeader,
+  PageLoader,
   usePrimaryAction,
   ProgressBar,
   Sheet,
@@ -35,7 +36,7 @@ export function FixedPage() {
   const [sheet, setSheet] = useState<SheetState>(null)
   usePrimaryAction('Agregar gasto fijo', () => setSheet({ kind: 'create' }))
 
-  if (!overview) return null
+  if (!overview) return <PageLoader />
 
   const { pending, paid, totals, period } = overview
   const monthName = formatMonthName(month)

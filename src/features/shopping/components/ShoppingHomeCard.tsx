@@ -1,16 +1,14 @@
 import { ChevronRight, ShoppingBasket } from 'lucide-react'
 import { Link } from 'react-router'
 import { Card } from '@/ui'
-import { useShoppingList } from '../useShoppingList'
+import type { ShoppingList } from '../useShoppingList'
 import styles from './ShoppingHomeCard.module.css'
 
 const PREVIEW_COUNT = 3
 
 // The shopping list at a glance on the home screen; hidden when there's nothing on it
-export function ShoppingHomeCard() {
-  const list = useShoppingList()
-
-  if (!list || list.toBuy.length + list.inCart.length === 0) return null
+export function ShoppingHomeCard({ list }: { list: ShoppingList }) {
+  if (list.toBuy.length + list.inCart.length === 0) return null
 
   // What's on the list, the missing ones first (the cart may be half full)
   const onList = [...list.toBuy, ...list.inCart]

@@ -1,7 +1,16 @@
 import { Plus, ShoppingBasket } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { runSync } from '@/lib/sync'
-import { Button, Card, EmptyState, PageHeader, Sheet, Stack, usePrimaryAction } from '@/ui'
+import {
+  Button,
+  Card,
+  EmptyState,
+  PageHeader,
+  PageLoader,
+  Sheet,
+  Stack,
+  usePrimaryAction,
+} from '@/ui'
 import { AddItemForm } from './components/AddItemForm'
 import { FinishPurchaseForm } from './components/FinishPurchaseForm'
 import { ItemList } from './components/ItemList'
@@ -20,7 +29,7 @@ export function ShoppingPage() {
   const addInputRef = useRef<HTMLInputElement>(null)
   usePrimaryAction('Agregar a la lista', () => addInputRef.current?.focus())
 
-  if (!shopping) return null
+  if (!shopping) return <PageLoader />
 
   const { toBuy, inCart, frequent, known } = shopping
   const listCount = toBuy.length + inCart.length

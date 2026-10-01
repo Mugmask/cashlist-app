@@ -20,7 +20,7 @@ describe('local data', () => {
     await db.expenses.bulkPut([expense('a', 1), expense('b', 0)])
     await db.profile.put({
       id: 'me',
-      name: 'Fran',
+      name: 'Juan',
       updatedAt: '2026-10-01T12:00:00Z',
       deleted: false,
       pending: 1,

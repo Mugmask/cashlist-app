@@ -12,7 +12,7 @@ import {
 import { useMonthIncomes } from '@/features/incomes'
 import { useMonth } from '@/features/month'
 import { useProfile } from '@/features/profile'
-import { Amount, Card, EmptyState, PageHeader, Stack } from '@/ui'
+import { Amount, Card, EmptyState, PageHeader, PageLoader, Stack } from '@/ui'
 import { daysInMonth, formatMonthName, shiftMonth } from '@/utils/dates'
 import { changeByCategory, variableChange } from './comparison'
 import { CategoryBreakdown } from './components/CategoryBreakdown'
@@ -31,16 +31,18 @@ export function AnalysisPage() {
   const month = useMonthExpenses(selected)
   const previous = useMonthExpenses(shiftMonth(selected, -1))
   const profile = useProfile()
-  const received = useMonthIncomes(selected)?.total ?? 0
+  const incomes = useMonthIncomes(selected)
   const [openId, setOpenId] = useState<string | null>(null)
   const [now] = useState(() => new Date()) // read once: only the day of the month matters
 
-  if (!month) return null
+  // Everything at once: numbers that fill in one by one look like they're changing
+  if (!month || !previous || !incomes || profile === undefined) return <PageLoader />
 
   const { expenses, total, fixedTotal, variableTotal } = month
   const monthName = formatMonthName(selected)
   const previousName = formatMonthName(shiftMonth(selected, -1))
-  const before = previous?.expenses ?? []
+  const received = incomes.total
+  const before = previous.expenses
   const insight = describeChange(
     variableChange(expenses, before, isCurrent, now),
     previousName,

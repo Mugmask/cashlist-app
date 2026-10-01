@@ -10,6 +10,7 @@ import {
   Card,
   EmptyState,
   PageHeader,
+  PageLoader,
   Sheet,
   Stack,
   usePrimaryAction,
@@ -36,7 +37,7 @@ export function IncomesPage() {
   const [isEditingSalary, setIsEditingSalary] = useState(false)
   usePrimaryAction('Cargar ingreso', () => setIsAdding(true))
 
-  if (!data) return null
+  if (!data || profile === undefined) return <PageLoader />
 
   const { incomes, total } = data
   const salary = profile?.monthlyIncome ?? 0

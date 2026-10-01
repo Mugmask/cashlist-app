@@ -1,17 +1,33 @@
 import { useEffect, useState } from 'react'
 import type { ExchangeRateKind, PaymentMethod } from '@/lib/db'
-import { getDollarRate, rateKindFor, type DollarRate } from '@/lib/exchangeRates'
+import { getDollarRate, rateKindFor, readCached, type DollarRate } from '@/lib/exchangeRates'
 import { parseAmount } from '@/utils/currency'
+
+const FRESH_MS = 5 * 60_000
+
+// One fetch per kind every few minutes, shared by every screen: going from one to another
+// doesn't fetch it again
+const recentFetches = new Map<ExchangeRateKind, { at: number; rate: Promise<DollarRate | null> }>()
+
+function fetchRate(kind: ExchangeRateKind) {
+  const recent = recentFetches.get(kind)
+  if (recent && Date.now() - recent.at < FRESH_MS) return recent.rate
+  const rate = getDollarRate(kind)
+  recentFetches.set(kind, { at: Date.now(), rate })
+  return rate
+}
 
 // Today's rate for a dollar, fetched when `kind` is set (null: not needed right now).
 // `rate` is null while loading, and also when it couldn't be fetched nor was ever cached.
+// `estimate` is `rate`, or while loading the last one fetched on this device: enough for
+// totals that would otherwise show without the dollars for a moment and then jump.
 export function useDollarRate(kind: ExchangeRateKind | null) {
   const [result, setResult] = useState<{ kind: ExchangeRateKind; rate: DollarRate | null }>()
 
   useEffect(() => {
     if (!kind) return
     let cancelled = false
-    getDollarRate(kind).then((rate) => {
+    fetchRate(kind).then((rate) => {
       if (!cancelled) setResult({ kind, rate })
     })
     return () => {
@@ -20,7 +36,9 @@ export function useDollarRate(kind: ExchangeRateKind | null) {
   }, [kind])
 
   const current = kind !== null && result?.kind === kind ? result : undefined
-  return { rate: current?.rate ?? null, loading: kind !== null && !current }
+  const rate = current?.rate ?? null
+  const estimate = current || !kind ? rate : readCached(kind)
+  return { rate, estimate, loading: kind !== null && !current }
 }
 
 export interface ConversionRate {

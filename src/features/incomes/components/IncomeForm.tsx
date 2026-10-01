@@ -4,6 +4,7 @@ import { runSync } from '@/lib/sync'
 import { AmountField, Button, DayField, Stack, TextField } from '@/ui'
 import { amountToInput, parseAmount } from '@/utils/currency'
 import { nowOnDay, toDayKey, withDayKey } from '@/utils/dates'
+import { capitalize } from '@/utils/text'
 import { incomesRepo } from '../incomesRepo'
 
 export interface IncomeFormProps {
@@ -28,8 +29,8 @@ export function IncomeForm({ income, onSaved }: IncomeFormProps) {
     if (!isValid || value === null) return
     const fields = {
       amount: value,
-      name: name.trim() || undefined,
-      note: note.trim() || undefined,
+      name: capitalize(name.trim()) || undefined,
+      note: capitalize(note.trim()) || undefined,
     }
     if (income) {
       await incomesRepo.update(income.id, {
@@ -54,7 +55,8 @@ export function IncomeForm({ income, onSaved }: IncomeFormProps) {
       <Stack gap={4}>
         <TextField
           label="De qué es (opcional)"
-          placeholder="Martina, venta de la bici, un trabajo…"
+          autoCapitalize="sentences"
+          placeholder="Trabajo extra, una venta, un regalo…"
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoComplete="off"
@@ -69,6 +71,7 @@ export function IncomeForm({ income, onSaved }: IncomeFormProps) {
         <DayField label="Día del ingreso" value={day} max={today} onChange={setDay} />
         <TextField
           label="Nota"
+          autoCapitalize="sentences"
           hideLabel
           placeholder="Nota (opcional)"
           value={note}

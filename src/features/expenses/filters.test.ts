@@ -18,7 +18,7 @@ function expense(id: string, patch: Partial<MonthExpense> = {}): MonthExpense {
 }
 
 const list = [
-  expense('pizza', { note: 'PedidosYa · Pizzaluna', paymentMethod: 'card' }),
+  expense('pizza', { note: 'Delivery · Pizzería', paymentMethod: 'card' }),
   expense('super', { category: 'groceries', note: 'Supermercado Ex' }),
   expense('rent', { category: 'rent', note: 'Alquiler', fixedExpenseId: 'f1' }),
   expense('steam', { category: 'other', currency: 'USD', paymentMethod: 'card' }),
@@ -33,7 +33,7 @@ const ids = (filters: Partial<typeof NO_FILTERS>) =>
 
 describe('applyFilters', () => {
   it('searches the note and the category, ignoring case and accents', () => {
-    expect(ids({ query: 'pedidosya' })).toEqual(['pizza'])
+    expect(ids({ query: 'delivery' })).toEqual(['pizza'])
     expect(ids({ query: 'SÚPER' })).toEqual(['super']) // the category label "Súper"
   })
 

@@ -6,6 +6,7 @@ import type { Profile } from '@/lib/db'
 import { runSync } from '@/lib/sync'
 import { Alert, AmountField, Button, Sheet, Stack, TextField, useToast } from '@/ui'
 import { amountToInput, parseAmount } from '@/utils/currency'
+import { capitalize } from '@/utils/text'
 import { profileRepo, useProfile } from '../profileRepo'
 import styles from './ProfileButton.module.css'
 
@@ -65,7 +66,10 @@ function ProfileForm({
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (parsedIncome === null) return
-    await profileRepo.save({ name: name.trim() || undefined, monthlyIncome: parsedIncome })
+    await profileRepo.save({
+      name: capitalize(name.trim()) || undefined,
+      monthlyIncome: parsedIncome,
+    })
     toast('Perfil guardado')
     runSync().catch(() => {}) // on failure it stays pending and retries on its own
     onSaved()
@@ -78,6 +82,7 @@ function ProfileForm({
           {email && <p className={styles.email}>{email}</p>}
           <TextField
             label="Nombre"
+            autoCapitalize="sentences"
             placeholder="Cómo te llamás"
             value={name}
             onChange={(e) => setName(e.target.value)}

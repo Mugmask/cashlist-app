@@ -2,7 +2,7 @@ import { Plus, ReceiptText, Search, SearchX, SlidersHorizontal, X } from 'lucide
 import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { useMonth } from '@/features/month'
-import { Amount, Button, EmptyState, PageHeader, Stack, TextField } from '@/ui'
+import { Amount, Button, EmptyState, PageHeader, PageLoader, Stack, TextField } from '@/ui'
 import { formatMonthName } from '@/utils/dates'
 import { useAddExpense } from './addExpense'
 import { getCategory } from './categories'
@@ -31,7 +31,7 @@ export function ExpensesPage() {
   const update = (patch: Partial<ExpenseFilters>) =>
     setParams(writeFilters({ ...filters, ...patch }), { replace: true })
 
-  if (!month) return null
+  if (!month) return <PageLoader />
 
   const expenses = applyFilters(month.expenses, filters)
   const total = expenses.reduce((sum, e) => sum + e.amount, 0)
@@ -50,7 +50,7 @@ export function ExpensesPage() {
               label="Buscar gastos"
               hideLabel
               type="search"
-              placeholder="Buscar (ej: pedidosya)"
+              placeholder="Buscar (ej: nafta)"
               icon={<Search />}
               value={filters.query}
               onChange={(e) => update({ query: e.target.value })}
