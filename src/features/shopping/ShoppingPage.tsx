@@ -1,4 +1,4 @@
-import { Plus, ShoppingBasket } from 'lucide-react'
+import { ChefHat, Plus, ShoppingBasket } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { runSync } from '@/lib/sync'
 import {
@@ -15,6 +15,8 @@ import { AddItemForm } from './components/AddItemForm'
 import { FinishPurchaseForm } from './components/FinishPurchaseForm'
 import { ItemList } from './components/ItemList'
 import { KnownProductsSheet } from './components/KnownProductsSheet'
+import { RecipeSheet } from './components/RecipeSheet'
+import { useRecipes } from './recipesRepo'
 import styles from './ShoppingPage.module.css'
 import { shoppingRepo } from './shoppingRepo'
 import { useShoppingList } from './useShoppingList'
@@ -25,14 +27,19 @@ export function ShoppingPage() {
   const shopping = useShoppingList()
   const [isFinishing, setIsFinishing] = useState(false)
   const [isBrowsing, setIsBrowsing] = useState(false)
+  const recipes = useRecipes()
+  // The recipe open in its sheet: an id, 'new' for a new one, null when closed
+  const [recipeSheet, setRecipeSheet] = useState<string | null>(null)
   // Adding here is typing into the field, so the + just takes you there (keyboard up)
   const addInputRef = useRef<HTMLInputElement>(null)
   usePrimaryAction('Agregar a la lista', () => addInputRef.current?.focus())
 
-  if (!shopping) return <PageLoader />
+  if (!shopping || !recipes) return <PageLoader />
 
   const { toBuy, inCart, frequent, known } = shopping
   const listCount = toBuy.length + inCart.length
+  const products = [...known, ...toBuy, ...inCart].map((i) => i.name)
+  const openRecipe = recipes.find((r) => r.id === recipeSheet)
 
   async function addFrequent(id: string) {
     await shoppingRepo.addAgain(id)
@@ -71,6 +78,31 @@ export function ShoppingPage() {
         </section>
       )}
 
+      <section aria-label="Recetas" className={styles.frequent}>
+        <h2 className={styles.label}>Recetas</h2>
+        <ul className={styles.chips}>
+          {recipes.map((recipe) => (
+            <li key={recipe.id}>
+              <button
+                type="button"
+                className={styles.chip}
+                onClick={() => setRecipeSheet(recipe.id)}
+                aria-label={`Cocinar ${recipe.name}`}
+              >
+                <ChefHat aria-hidden />
+                {recipe.name}
+              </button>
+            </li>
+          ))}
+          <li>
+            <button type="button" className={styles.chip} onClick={() => setRecipeSheet('new')}>
+              <Plus aria-hidden />
+              Nueva receta
+            </button>
+          </li>
+        </ul>
+      </section>
+
       {listCount === 0 ? (
         <EmptyState
           icon={<ShoppingBasket />}
@@ -107,6 +139,12 @@ export function ShoppingPage() {
         <FinishPurchaseForm items={inCart} onDone={() => setIsFinishing(false)} />
       </Sheet>
       <KnownProductsSheet open={isBrowsing} onClose={() => setIsBrowsing(false)} items={known} />
+      <RecipeSheet
+        open={recipeSheet !== null}
+        recipe={openRecipe}
+        products={products}
+        onClose={() => setRecipeSheet(null)}
+      />
     </Stack>
   )
 }

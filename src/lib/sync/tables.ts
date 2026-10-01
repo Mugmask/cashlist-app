@@ -8,6 +8,8 @@ import {
   type Income,
   type PaymentMethod,
   type Profile,
+  type Recipe,
+  type RecipeIngredient,
   type ShoppingItem,
   type ShoppingItemStatus,
 } from '@/lib/db'
@@ -142,6 +144,36 @@ export const categoriesTable: SyncedTable<CustomCategory, CategoryRow> = {
     name: row.name,
     icon: row.icon,
     color: row.color,
+    updatedAt: row.updated_at,
+    deleted: row.deleted,
+    pending: 0,
+  }),
+}
+
+interface RecipeRow {
+  id: string
+  name: string
+  ingredients: RecipeIngredient[]
+  updated_at: string
+  deleted: boolean
+  synced_at: string
+}
+
+export const recipesTable: SyncedTable<Recipe, RecipeRow> = {
+  name: 'recipes',
+  local: db.recipes,
+  columns: 'id, name, ingredients, updated_at, deleted, synced_at',
+  toRow: (r) => ({
+    id: r.id,
+    name: r.name,
+    ingredients: r.ingredients,
+    updated_at: r.updatedAt,
+    deleted: r.deleted,
+  }),
+  fromRow: (row) => ({
+    id: row.id,
+    name: row.name,
+    ingredients: row.ingredients ?? [],
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,
@@ -289,6 +321,7 @@ export const SYNCED_TABLES = [
   toSyncTask(incomesTable),
   toSyncTask(categoriesTable),
   toSyncTask(shoppingItemsTable),
+  toSyncTask(recipesTable),
   toSyncTask(fixedExpensesTable),
   toSyncTask(cardStatementsTable),
   toSyncTask(profileTable),

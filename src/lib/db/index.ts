@@ -46,6 +46,18 @@ export interface Income extends Syncable {
   note?: string
 }
 
+// Something cooked often and what it takes. Ingredients are shopping products with a count,
+// like the list ("Papa x4"): cooking it puts the missing ones on the list.
+export interface RecipeIngredient {
+  name: string
+  quantity: number
+}
+
+export interface Recipe extends Syncable {
+  name: string
+  ingredients: RecipeIngredient[]
+}
+
 // A category the user made, besides the built-in ones. Icon and color are picked from short
 // lists (a key of CATEGORY_ICONS, a palette index from 1 to 8) so charts stay readable.
 export interface CustomCategory extends Syncable {
@@ -99,6 +111,7 @@ export const db = new Dexie('cashlist') as Dexie & {
   expenses: EntityTable<Expense, 'id'>
   incomes: EntityTable<Income, 'id'>
   categories: EntityTable<CustomCategory, 'id'>
+  recipes: EntityTable<Recipe, 'id'>
   shoppingItems: EntityTable<ShoppingItem, 'id'>
   fixedExpenses: EntityTable<FixedExpense, 'id'>
   cardStatements: EntityTable<CardStatement, 'id'>
@@ -275,6 +288,11 @@ db.version(12).stores({
 // v13: categories the user makes
 db.version(13).stores({
   categories: 'id, pending',
+})
+
+// v14: recipes, to put what they take on the shopping list
+db.version(14).stores({
+  recipes: 'id, pending',
 })
 
 // The local database holds one user's data at a time. The owner is kept next to the sync

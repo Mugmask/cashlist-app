@@ -53,7 +53,7 @@ describe('db migrations', () => {
 
     await db.open()
 
-    expect(db.verno).toBe(13)
+    expect(db.verno).toBe(14)
     expect(db.tables.map((t) => t.name).sort()).toEqual([
       'cardStatements',
       'categories',
@@ -61,6 +61,7 @@ describe('db migrations', () => {
       'fixedExpenses',
       'incomes',
       'profile',
+      'recipes',
       'shoppingItems',
       'syncState',
     ])
