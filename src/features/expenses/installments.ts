@@ -12,10 +12,13 @@ export function installmentsOf(expense: Pick<Expense, 'installments'>) {
 
 // The total split into `count` installments, in cents; the last one absorbs the rounding so
 // they always add up to the total: 100 in 3 → 33.33, 33.33, 33.34
+// Whole cents throughout: (12289.08 / 12) * 100 lands a hair under 102409 in floating point,
+// and flooring that gave 1024.08 eleven times and 1024.20 last, not 1024.09 twelve times.
 export function splitInstallments(total: number, count: number): number[] {
-  const each = Math.floor((total / count) * 100) / 100
-  const last = Math.round((total - each * (count - 1)) * 100) / 100
-  return [...Array.from({ length: count - 1 }, () => each), last]
+  const cents = Math.round(total * 100)
+  const each = Math.floor(cents / count)
+  const last = cents - each * (count - 1)
+  return [...Array.from({ length: count - 1 }, () => each / 100), last / 100]
 }
 
 // An expense as one month sees it. A purchase in installments counts one installment a month,

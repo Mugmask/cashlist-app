@@ -61,6 +61,8 @@ export function ChipGroup<T extends string>({
       >
         {options.map((option, index) => {
           const checked = option.value === value
+          // Tab lands on the picked chip; with none picked (a value no option has), the first
+          const focusable = checked || (index === 0 && !options.some((o) => o.value === value))
           return (
             <button
               key={option.value}
@@ -70,7 +72,7 @@ export function ChipGroup<T extends string>({
               type="button"
               role="radio"
               aria-checked={checked}
-              tabIndex={checked ? 0 : -1}
+              tabIndex={focusable ? 0 : -1}
               className={cx(styles.chip, checked && styles.checked)}
               onClick={() => onChange(option.value)}
               onKeyDown={(e) => handleKeyDown(e, index)}

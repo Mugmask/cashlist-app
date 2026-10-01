@@ -23,6 +23,11 @@ describe('splitInstallments', () => {
     expect(splitInstallments(100, 3)).toEqual([33.33, 33.33, 33.34])
     expect(splitInstallments(1500, 1)).toEqual([1500])
   })
+
+  it('splits in whole cents, without floating point leaving one installment off', () => {
+    expect(splitInstallments(12289.08, 12)).toEqual(Array(12).fill(1024.09))
+    expect(splitInstallments(1.74, 3)).toEqual([0.58, 0.58, 0.58])
+  })
 })
 
 describe('chargeOn', () => {

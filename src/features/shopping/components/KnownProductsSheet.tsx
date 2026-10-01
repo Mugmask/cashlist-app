@@ -17,6 +17,15 @@ export interface KnownProductsSheetProps {
 // Every product off the list, searchable: add one back, or forget one that's no longer bought
 // (so it stops showing among the frequent ones)
 export function KnownProductsSheet({ open, onClose, items }: KnownProductsSheetProps) {
+  return (
+    <Sheet open={open} onClose={onClose} title="Tus productos">
+      <KnownProducts items={items} />
+    </Sheet>
+  )
+}
+
+// Inside the sheet, so the search starts empty every time it opens
+function KnownProducts({ items }: { items: readonly ShoppingItem[] }) {
   const [query, setQuery] = useState('')
   const toast = useToast()
   const key = normalizeName(query)
@@ -35,50 +44,48 @@ export function KnownProductsSheet({ open, onClose, items }: KnownProductsSheetP
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title="Tus productos">
-      <div className={styles.content}>
-        <TextField
-          label="Buscar productos"
-          hideLabel
-          type="search"
-          placeholder="Buscar…"
-          icon={<Search />}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          autoComplete="off"
-        />
-        {shown.length === 0 ? (
-          <p className={styles.empty}>
-            {items.length === 0 ? 'Lo que compres va a aparecer acá.' : 'Ningún producto coincide.'}
-          </p>
-        ) : (
-          <ul className={styles.list}>
-            {shown.map((item) => (
-              <li key={item.id} className={styles.row}>
-                <span className={styles.info}>
-                  <span className={styles.name}>{item.name}</span>
-                  <span className={styles.meta}>
-                    {item.lastBoughtAt
-                      ? `Comprado ${formatDaysAgo(item.lastBoughtAt)}`
-                      : 'Todavía no lo compraste'}
-                  </span>
+    <div className={styles.content}>
+      <TextField
+        label="Buscar productos"
+        hideLabel
+        type="search"
+        placeholder="Buscar…"
+        icon={<Search />}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        autoComplete="off"
+      />
+      {shown.length === 0 ? (
+        <p className={styles.empty}>
+          {items.length === 0 ? 'Lo que compres va a aparecer acá.' : 'Ningún producto coincide.'}
+        </p>
+      ) : (
+        <ul className={styles.list}>
+          {shown.map((item) => (
+            <li key={item.id} className={styles.row}>
+              <span className={styles.info}>
+                <span className={styles.name}>{item.name}</span>
+                <span className={styles.meta}>
+                  {item.lastBoughtAt
+                    ? `Comprado ${formatDaysAgo(item.lastBoughtAt)}`
+                    : 'Todavía no lo compraste'}
                 </span>
-                <IconButton
-                  label={`Olvidar ${item.name}`}
-                  icon={<Trash2 />}
-                  onClick={() => handleForget(item)}
-                />
-                <IconButton
-                  label={`Agregar ${item.name} a la lista`}
-                  icon={<Plus />}
-                  variant="secondary"
-                  onClick={() => handleAdd(item)}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </Sheet>
+              </span>
+              <IconButton
+                label={`Olvidar ${item.name}`}
+                icon={<Trash2 />}
+                onClick={() => handleForget(item)}
+              />
+              <IconButton
+                label={`Agregar ${item.name} a la lista`}
+                icon={<Plus />}
+                variant="secondary"
+                onClick={() => handleAdd(item)}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }

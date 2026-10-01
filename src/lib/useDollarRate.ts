@@ -6,15 +6,19 @@ import { parseAmount } from '@/utils/currency'
 const FRESH_MS = 5 * 60_000
 
 // One fetch per kind every few minutes, shared by every screen: going from one to another
-// doesn't fetch it again
+// doesn't fetch it again. One that got nothing (offline, never cached) isn't kept: the next
+// screen asks again, so coming back online doesn't mean typing the rate for 5 more minutes.
 const recentFetches = new Map<ExchangeRateKind, { at: number; rate: Promise<DollarRate | null> }>()
 
 function fetchRate(kind: ExchangeRateKind) {
   const recent = recentFetches.get(kind)
   if (recent && Date.now() - recent.at < FRESH_MS) return recent.rate
-  const rate = getDollarRate(kind)
-  recentFetches.set(kind, { at: Date.now(), rate })
-  return rate
+  const entry = { at: Date.now(), rate: getDollarRate(kind) }
+  recentFetches.set(kind, entry)
+  entry.rate.then((rate) => {
+    if (!rate && recentFetches.get(kind) === entry) recentFetches.delete(kind)
+  })
+  return entry.rate
 }
 
 // Today's rate for a dollar, fetched when `kind` is set (null: not needed right now).
