@@ -1,4 +1,5 @@
 import { createBrowserRouter, type RouteObject } from 'react-router'
+import { AnalysisPage } from '@/features/analysis'
 import { ExpensesPage } from '@/features/expenses'
 import { FixedPage } from '@/features/fixed'
 import { HomePage } from '@/features/home'
@@ -35,6 +36,11 @@ export const router = createBrowserRouter([
           { path: 'expenses', element: <ExpensesPage />, handle: titled('Gastos') },
           { path: 'fixed', element: <FixedPage />, handle: titled('Gastos fijos') },
           { path: 'shopping', element: <ShoppingPage />, handle: titled('Compras') },
+          {
+            path: 'analysis',
+            element: <AnalysisPage />,
+            handle: titled('En qué se va la plata'),
+          },
           ...devRoutes,
           { path: '*', element: <NotFoundPage />, handle: titled('Página no encontrada') },
         ],

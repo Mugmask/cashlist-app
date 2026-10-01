@@ -5,6 +5,7 @@ import {
   formatCurrency,
   formatCurrencyCompact,
   formatCurrencyShort,
+  formatCurrencyTiny,
   MAX_AMOUNT,
   parseAmount,
   splitCurrency,
@@ -104,5 +105,17 @@ describe('amountToInput', () => {
   it('shows stored amounts the way the input formats them', () => {
     expect(amountToInput(24500)).toBe('24.500')
     expect(amountToInput(1500.5)).toBe('1.500,5')
+  })
+})
+
+describe('formatCurrencyTiny', () => {
+  it.each([
+    [1_643_711.69, '$1,6M'],
+    [815_000, '$815k'],
+    [999_499, '$999k'],
+    [900, '$900'],
+    [0, '$0'],
+  ])('%s → %s', (amount, text) => {
+    expect(formatCurrencyTiny(amount)).toBe(text)
   })
 })

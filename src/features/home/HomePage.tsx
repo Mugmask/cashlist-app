@@ -1,6 +1,7 @@
 import { ChevronRight, Plus, Sparkles } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
+import { Change, changeByCategory, describeChange, variableChange } from '@/features/analysis'
 import { CardHomeCard } from '@/features/card'
 import {
   CategoryIcon,
@@ -18,10 +19,9 @@ import { useProfile } from '@/features/profile'
 import { ShoppingHomeCard } from '@/features/shopping'
 import { Amount, Button, Card, cx, EmptyState, PageHeader, ProgressBar, Stack } from '@/ui'
 import { formatMonthName, shiftMonth } from '@/utils/dates'
-import { changeByCategory } from './comparison'
 import styles from './HomePage.module.css'
 
-const TOP_CATEGORIES = 4
+const TOP_CATEGORIES = 3 // a glance; the whole breakdown is one tap away
 const RECENT_COUNT = 5
 
 export function HomePage() {
@@ -31,52 +31,62 @@ export function HomePage() {
   const fixed = useFixedOverview(selected)
   const addExpense = useAddExpense()
   const profile = useProfile()
-  const income = profile?.monthlyIncome
-  // "Hola, Francisco": the first name only, and just "Hola" until the profile has one
-  const firstName = profile?.name?.trim().split(/\s+/)[0]
   const [openId, setOpenId] = useState<string | null>(null)
   const [now] = useState(() => new Date()) // read once: only the day of the month matters here
 
   if (!month) return null
 
-  const { expenses, total, fixedTotal, variableTotal, dailyAverage } = month
+  const { expenses, total, variableTotal } = month
   const monthName = formatMonthName(selected)
+  const before = previous?.expenses ?? []
+  // "Hola, Francisco": the first name only, and just "Hola" until the profile has one
+  const firstName = profile?.name?.trim().split(/\s+/)[0]
+  // How the month goes, in one sentence under the greeting
+  const insight =
+    describeChange(
+      variableChange(expenses, before, isCurrent, now),
+      formatMonthName(shiftMonth(selected, -1)),
+      isCurrent,
+    ) ?? (isCurrent ? 'Así viene tu mes' : `Así fue tu ${monthName}`)
   // Where the money goes, without fixed payments: rent would dwarf everything you can change
-  const variableByCategory = totalsByCategory(expenses.filter((e) => !isFixed(e)))
-  const changes = previous
-    ? changeByCategory(expenses, previous.expenses, isCurrent, now)
-    : new Map<string, number>()
+  const topCategories = totalsByCategory(expenses.filter((e) => !isFixed(e))).slice(
+    0,
+    TOP_CATEGORIES,
+  )
+  const changes = changeByCategory(expenses, before, isCurrent, now)
+  const income = profile?.monthlyIncome
   // Fixed expenses not paid yet: money already spoken for this month
   const committed = isCurrent ? (fixed?.totals.remaining ?? 0) : 0
 
   return (
     <Stack gap={6}>
-      <PageHeader title={firstName ? `Hola, ${firstName}` : 'Hola'} />
-      <Card as="section" variant="hero" padding="lg" aria-label="Resumen del mes">
-        <span className={styles.heroLabel}>Gastaste en {monthName}</span>
-        <Amount value={total} size="xl" />
-        {income !== undefined && <IncomeBar spent={total} income={income} committed={committed} />}
-        <dl className={styles.stats}>
-          <div className={styles.stat}>
-            <dt>Variables</dt>
-            <dd>
-              <Amount value={variableTotal} size="sm" compactFrom={1_000_000} />
-            </dd>
-          </div>
-          <div className={styles.stat}>
-            <dt>Fijos</dt>
-            <dd>
-              <Amount value={fixedTotal} size="sm" compactFrom={1_000_000} />
-            </dd>
-          </div>
-          <div className={styles.stat}>
-            <dt>Por día</dt>
-            <dd>
-              <Amount value={Math.round(dailyAverage)} size="sm" compactFrom={1_000_000} />
-            </dd>
-          </div>
-        </dl>
-      </Card>
+      <PageHeader
+        title={firstName ? `Hola, ${firstName}` : 'Hola'}
+        subtitle={
+          <Link to="/analysis" className={styles.insight}>
+            {insight}
+            <ChevronRight aria-hidden />
+          </Link>
+        }
+      />
+
+      {/* Everything on home leads somewhere: the month's total, to its expenses */}
+      <Link
+        to="/expenses"
+        className={styles.cardLink}
+        aria-label={`Ver los gastos de ${monthName}`}
+      >
+        <Card as="section" variant="hero" padding="lg">
+          <span className={styles.heroLabel}>
+            Gastaste en {monthName}
+            <ChevronRight aria-hidden />
+          </span>
+          <Amount value={total} size="xl" />
+          {income !== undefined && (
+            <IncomeBar spent={total} income={income} committed={committed} />
+          )}
+        </Card>
+      </Link>
 
       <FixedHomeCard />
       <CardHomeCard />
@@ -102,45 +112,51 @@ export function HomePage() {
         />
       ) : (
         <>
-          {variableByCategory.length > 0 && (
+          {topCategories.length > 0 && (
             <HomeSection
               title="En qué se va la plata"
               action={
-                changes.size > 0 && (
-                  <span className={styles.versus}>
-                    vs {formatMonthName(shiftMonth(selected, -1))}
-                  </span>
-                )
+                <Link to="/analysis" className={styles.seeAll}>
+                  Ver más
+                  <ChevronRight aria-hidden />
+                </Link>
               }
             >
-              <Card>
-                <ul className={styles.categories}>
-                  {variableByCategory.slice(0, TOP_CATEGORIES).map((c) => {
-                    const { label } = getCategory(c.category)
-                    const share = c.total / variableTotal
-                    return (
-                      <li key={c.category} className={styles.category}>
-                        <CategoryIcon category={c.category} />
-                        <div className={styles.categoryBody}>
-                          <div className={styles.categoryLine}>
-                            <span className={styles.categoryLabel}>{label}</span>
-                            <span className={styles.categoryAmount}>
-                              <Change value={changes.get(c.category)} />
-                              <Amount value={c.total} size="sm" compactFrom={10_000_000} />
-                            </span>
+              {/* The whole card leads to the breakdown too: it's the obvious thing to tap */}
+              <Link
+                to="/analysis"
+                className={styles.cardLink}
+                aria-label="Ver en qué se va la plata"
+              >
+                <Card>
+                  <ul className={styles.categories}>
+                    {topCategories.map((c) => {
+                      const { label } = getCategory(c.category)
+                      const share = c.total / variableTotal
+                      return (
+                        <li key={c.category} className={styles.category}>
+                          <CategoryIcon category={c.category} />
+                          <div className={styles.categoryBody}>
+                            <div className={styles.categoryLine}>
+                              <span className={styles.categoryLabel}>{label}</span>
+                              <span className={styles.categoryAmount}>
+                                <Change value={changes.get(c.category)} />
+                                <Amount value={c.total} size="sm" compactFrom={10_000_000} />
+                              </span>
+                            </div>
+                            <ProgressBar
+                              label={`${label}: ${Math.round(share * 100)}% de lo variable`}
+                              value={c.total}
+                              max={variableTotal}
+                              tone="accent"
+                            />
                           </div>
-                          <ProgressBar
-                            label={`${label}: ${Math.round(share * 100)}% de lo variable`}
-                            value={c.total}
-                            max={variableTotal}
-                            tone="accent"
-                          />
-                        </div>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </Card>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </Card>
+              </Link>
             </HomeSection>
           )}
 
@@ -185,20 +201,6 @@ function HomeSection({
       </header>
       {children}
     </section>
-  )
-}
-
-// "+18%" against the month before: spending more stands out, spending less is good news
-function Change({ value }: { value: number | undefined }) {
-  if (value === undefined) return null
-  const percent = Math.round(value * 100)
-  if (percent === 0) return null
-  const tone = percent >= 10 ? styles.up : percent <= -10 ? styles.down : undefined
-  return (
-    <span className={cx(styles.change, tone)}>
-      {percent > 0 ? '+' : '−'}
-      {Math.abs(percent)}%
-    </span>
   )
 }
 

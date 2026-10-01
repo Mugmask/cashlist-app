@@ -32,6 +32,11 @@
   --color-accent-soft: rgb(44 255 143 / 0.12);
   --color-on-accent: #04140b;
 
+  /* Charts: the accent marks what matters, this gray the context around it
+     (>= 3:1 on the surface, validated with the dataviz palette script) */
+  --color-chart-muted: #646975;
+  --color-chart-grid: rgb(255 255 255 / 0.06);
+
   /* Status */
   --color-danger: #ff6464;
   --color-danger-soft: rgb(255 100 100 / 0.12);

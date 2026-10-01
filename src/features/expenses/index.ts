@@ -27,5 +27,5 @@ export {
   splitInstallments,
 } from './installments'
 export { PAYMENT_METHOD_OPTIONS } from './paymentMethods'
-export { isFixed, totalsByCategory } from './selectors'
+export { isFixed, summarizeMonth, totalsByCategory } from './selectors'
 export { useMonthExpenses } from './useMonthExpenses'

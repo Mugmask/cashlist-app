@@ -3,7 +3,6 @@ import { Amount, VisuallyHidden } from '@/ui'
 import { formatShortDay } from '@/utils/dates'
 import { getCategory } from '../categories'
 import type { MonthExpense } from '../installments'
-import { isFixed } from '../selectors'
 import { CategoryIcon } from './CategoryIcon'
 import styles from './ExpenseRow.module.css'
 
@@ -13,12 +12,11 @@ export interface ExpenseRowProps {
   onOpen: (id: string) => void // shows its detail, where it can be edited or deleted
 }
 
-// Just what tells expenses apart at a glance; note, payment method and the rest are in the detail
+// Just what tells expenses apart at a glance; payment method and the rest are in the detail
 export function ExpenseRow({ expense, showDate = true, onOpen }: ExpenseRowProps) {
-  // A fixed payment or a purchase in installments reads as its name ("Alquiler", "Amurrio SA"),
-  // so its months tell apart; a regular expense as its category
-  const named = isFixed(expense) || expense.installment !== undefined
-  const title = named && expense.note ? expense.note : getCategory(expense.category).label
+  // Its name when it has one ("PedidosYa · Pizzaluna", "Alquiler"), so a list of the same
+  // category still tells apart; else the category. The icon always says the category.
+  const title = expense.note || getCategory(expense.category).label
 
   const { installment } = expense
   const meta = [

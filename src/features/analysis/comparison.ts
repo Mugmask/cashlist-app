@@ -11,9 +11,7 @@ export function changeByCategory(
   inProgress: boolean,
   now: Date,
 ): Map<string, number> {
-  const comparable = inProgress
-    ? previous.filter((e) => new Date(e.spentAt).getDate() <= now.getDate())
-    : previous
+  const comparable = comparableSoFar(previous, inProgress, now)
   const before = new Map(
     totalsByCategory(comparable.filter((e) => !isFixed(e))).map((c) => [c.category, c.total]),
   )
@@ -23,4 +21,25 @@ export function changeByCategory(
     if (old) changes.set(category, (total - old) / old)
   }
   return changes
+}
+
+// Change of the whole variable spending against the month before, compared the same way;
+// null when the month before had none
+export function variableChange(
+  expenses: readonly Expense[],
+  previous: readonly Expense[],
+  inProgress: boolean,
+  now: Date,
+): number | null {
+  const variable = (list: readonly Expense[]) =>
+    list.filter((e) => !isFixed(e)).reduce((sum, e) => sum + e.amount, 0)
+  const before = variable(comparableSoFar(previous, inProgress, now))
+  return before > 0 ? (variable(expenses) - before) / before : null
+}
+
+// The month before, cut at today's day of the month while this one is still going
+function comparableSoFar(previous: readonly Expense[], inProgress: boolean, now: Date) {
+  return inProgress
+    ? previous.filter((e) => new Date(e.spentAt).getDate() <= now.getDate())
+    : previous
 }

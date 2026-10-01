@@ -1,5 +1,5 @@
 import type { Expense } from '@/lib/db'
-import { daysInMonth, toDayKey } from '@/utils/dates'
+import { toDayKey } from '@/utils/dates'
 
 export interface DayGroup<T extends Expense = Expense> {
   key: string
@@ -18,14 +18,13 @@ export interface MonthSummary {
   total: number
   fixedTotal: number // payments of fixed expenses
   variableTotal: number // everything else: what you actually control day to day
-  dailyAverage: number // of variable spending, over the month's days elapsed (all, if it's over)
 }
 
 export function isFixed(expense: Expense) {
   return expense.fixedExpenseId !== undefined
 }
 
-export function summarizeMonth(expenses: readonly Expense[], month: Date, now: Date): MonthSummary {
+export function summarizeMonth(expenses: readonly Expense[]): MonthSummary {
   let fixedTotal = 0
   let variableTotal = 0
   for (const e of expenses) {
@@ -36,14 +35,7 @@ export function summarizeMonth(expenses: readonly Expense[], month: Date, now: D
     total: fixedTotal + variableTotal,
     fixedTotal,
     variableTotal,
-    dailyAverage: variableTotal / daysElapsed(month, now),
   }
-}
-
-// Days of `month` gone by: up to today in this month, all of them in a past one
-function daysElapsed(month: Date, now: Date) {
-  const sameMonth = month.getFullYear() === now.getFullYear() && month.getMonth() === now.getMonth()
-  return sameMonth ? now.getDate() : daysInMonth(month)
 }
 
 // Groups consecutive expenses by local day, keeping the input order (newest first)

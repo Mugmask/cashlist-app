@@ -1,85 +1,47 @@
-import { CircleCheck, CreditCard } from 'lucide-react'
+import { ChevronRight, CreditCard } from 'lucide-react'
+import { Link } from 'react-router'
 import { useMonth } from '@/features/month'
-import { runSync } from '@/lib/sync'
-import { Amount, Button, Card, useToast } from '@/ui'
-import { formatMonthName, shiftMonth } from '@/utils/dates'
-import { cardRepo } from '../cardRepo'
+import { Amount, Card } from '@/ui'
+import { formatMonthName } from '@/utils/dates'
 import { useCardSummary } from '../useCardSummary'
 import styles from './CardHomeCard.module.css'
 
-// What's accumulating on the credit card this month, and last month's statement to pay.
-// Hidden for anyone who doesn't use a card.
+// What's on the credit card this month, and the installments still to come. It leads to the
+// month's card expenses. Hidden for anyone who doesn't use a card.
 export function CardHomeCard() {
   const { month } = useMonth()
   const summary = useCardSummary(month)
-  const toast = useToast()
 
   if (!summary) return null
 
-  const { current, previous, upcoming } = summary
-  if (current.total === 0 && !previous && upcoming === 0) return null
-
-  const thisMonth = formatMonthName(month)
-  const lastMonth = formatMonthName(shiftMonth(month, -1))
-
-  async function handleMarkPaid(period: string) {
-    await cardRepo.markPaid(period)
-    toast(`Resumen de ${lastMonth} marcado como pagado`)
-    runSync().catch(() => {})
-  }
-
-  async function handleUndo(period: string) {
-    await cardRepo.unmarkPaid(period)
-    toast(`Resumen de ${lastMonth} sin pagar`)
-    runSync().catch(() => {})
-  }
+  const { current, upcoming } = summary
+  if (current.total === 0 && upcoming === 0) return null
 
   return (
-    <Card as="section" aria-labelledby="card-summary-title">
-      <header className={styles.header}>
-        <span className={styles.icon} aria-hidden>
-          <CreditCard />
-        </span>
-        <h2 id="card-summary-title" className={styles.title}>
-          Tarjeta de crédito
-        </h2>
-      </header>
+    <Link to="/expenses?pago=tarjeta" className={styles.link}>
+      <Card as="section" aria-labelledby="card-summary-title">
+        <header className={styles.header}>
+          <span className={styles.icon} aria-hidden>
+            <CreditCard />
+          </span>
+          <h2 id="card-summary-title" className={styles.title}>
+            Tarjeta de crédito
+          </h2>
+          <ChevronRight aria-hidden className={styles.chevron} />
+        </header>
 
-      {previous && (
-        <div className={styles.statement}>
-          <div className={styles.line}>
-            <span className={styles.label}>Resumen de {lastMonth}</span>
-            <Amount value={previous.total} tone={previous.paid ? 'muted' : 'default'} />
-          </div>
-          {previous.paid ? (
-            <div className={styles.paid}>
-              <span className={styles.paidText}>
-                <CircleCheck aria-hidden />
-                Pagado
-              </span>
-              <Button variant="ghost" onClick={() => handleUndo(previous.period)}>
-                Deshacer
-              </Button>
-            </div>
-          ) : (
-            <Button variant="secondary" fullWidth onClick={() => handleMarkPaid(previous.period)}>
-              Pagué el resumen
-            </Button>
-          )}
-        </div>
-      )}
-
-      <div className={styles.line}>
-        <span className={styles.label}>Acumulado en {thisMonth}</span>
-        <Amount value={current.total} size="lg" />
-      </div>
-
-      {upcoming > 0 && (
         <div className={styles.line}>
-          <span className={styles.label}>Cuotas que siguen</span>
-          <Amount value={upcoming} size="sm" tone="muted" />
+          <span className={styles.label}>Acumulado en {formatMonthName(month)}</span>
+          <Amount value={current.total} size="lg" />
         </div>
-      )}
-    </Card>
+
+        {upcoming > 0 && (
+          <div className={styles.line}>
+            <span className={styles.label}>Cuotas que siguen</span>
+            <Amount value={upcoming} size="sm" tone="muted" />
+          </div>
+        )}
+      </Card>
+    </Link>
   )
 }

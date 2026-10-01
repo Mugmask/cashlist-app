@@ -47,6 +47,15 @@ export function formatCurrencyCompact(amount: number): string {
   return `${amount < 0 ? '-' : ''}$ ${number} M`
 }
 
+// "$815k", "$1,6M", "$900": for chart labels, where a column is a few characters wide
+export function formatCurrencyTiny(amount: number): string {
+  const abs = Math.abs(amount)
+  const sign = amount < 0 ? '-' : ''
+  if (abs >= MILLION) return `${sign}$${millionsOneDecimal.format(abs / MILLION)}M`
+  if (abs >= 1000) return `${sign}$${Math.round(abs / 1000)}k`
+  return `${sign}$${Math.round(abs)}`
+}
+
 // "$ 12.500,00" → { whole: "$ 12.500", fraction: ",00" }, so the cents can be styled apart
 export function splitCurrency(amount: number, currency: Currency = 'ARS') {
   const parts = formatters[currency].formatToParts(amount)
