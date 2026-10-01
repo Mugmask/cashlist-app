@@ -11,11 +11,14 @@ import { BUILT_IN_CATEGORIES, getCategory } from '../categories'
 import { CURRENCY_OPTIONS } from '../currencies'
 import { INSTALLMENT_OPTIONS, splitInstallments } from '../installments'
 import { expensesRepo } from '../expensesRepo'
+import { matchSuggestions, type NameSuggestion } from '../suggestions'
+import { useNameSuggestions } from '../useNameSuggestions'
 import {
   PAYMENT_METHOD_OPTIONS,
   readLastPaymentMethod,
   rememberPaymentMethod,
 } from '../paymentMethods'
+import { CategoryIcon } from './CategoryIcon'
 import { CategoryPicker } from './CategoryPicker'
 import { ConversionNote, ManualRateField } from './DollarConversion'
 import styles from './ExpenseForm.module.css'
@@ -55,6 +58,18 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
     return INSTALLMENT_OPTIONS.find((n) => n === current) ?? '1'
   })
   const [today] = useState(() => toDayKey(new Date())) // read once: the form is short-lived
+  // A new expense: names used before, picked to fill the form as it was loaded the last time
+  const named = useNameSuggestions()
+  const suggestions = expense ? [] : matchSuggestions(named, name)
+
+  function pick(s: NameSuggestion) {
+    setName(s.name)
+    setCategory(getCategory(s.category).id)
+    setPaymentMethod(s.paymentMethod)
+    setCurrency(s.currency)
+    // An amount already typed stays: maybe it cost something else this time
+    if (amount === '') setAmount(amountToInput(s.amount))
+  }
   const [day, setDay] = useState(expense ? toDayKey(new Date(expense.spentAt)) : today)
 
   // An edited dollar expense keeps the rate it was loaded with, unless how it was paid changes
@@ -147,6 +162,25 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
           onChange={(e) => setName(e.target.value)}
           autoComplete="off"
         />
+        {suggestions.length > 0 && (
+          <div className={styles.suggestions} role="group" aria-label="Usados antes">
+            {suggestions.map((s) => (
+              <button
+                key={s.name}
+                type="button"
+                className={styles.suggestion}
+                onClick={() => pick(s)}
+                aria-label={`${s.name}, ${formatCurrencyShort(s.amount, s.currency)} la última vez`}
+              >
+                <CategoryIcon category={s.category} />
+                <span className={styles.suggestionName}>{s.name}</span>
+                <span className={styles.suggestionAmount}>
+                  {formatCurrencyShort(s.amount, s.currency)}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
         <div>
           <AmountField
             label={currency === 'USD' ? 'Monto en dólares' : 'Monto'}

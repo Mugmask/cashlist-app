@@ -4,3 +4,78 @@
   font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
+
+/* Names used before, under the name field: one tap fills the form. One row that scrolls
+   sideways, so the form below doesn't jump while typing */
+.suggestions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: calc(var(--space-2) * -1); /* close to the field they complete */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.suggestions::-webkit-scrollbar {
+  display: none;
+}
+
+.suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 0 var(--space-3) 0 var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  animation: pop var(--duration-base) var(--ease-out) both;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.suggestion:active {
+  transform: scale(var(--tap-scale));
+}
+
+@media (hover: hover) {
+  .suggestion:hover {
+    border-color: var(--color-accent);
+  }
+}
+
+/* The category's disc, smaller than in the lists */
+.suggestion > span:first-child {
+  width: 30px;
+  height: 30px;
+}
+
+.suggestion > span:first-child svg {
+  width: 16px;
+  height: 16px;
+}
+
+.suggestionName {
+  overflow: hidden;
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestionAmount {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
