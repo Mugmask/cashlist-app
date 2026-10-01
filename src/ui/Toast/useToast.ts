@@ -1,6 +1,12 @@
 import { createContext, use } from 'react'
 
-export type ShowToast = (message: string) => void
+// A button in the toast for taking the action back ("Deshacer")
+export interface ToastAction {
+  label: string
+  onClick: () => void
+}
+
+export type ShowToast = (message: string, options?: { action?: ToastAction }) => void
 
 export const ToastContext = createContext<ShowToast | null>(null)
 

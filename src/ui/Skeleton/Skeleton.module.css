@@ -1,0 +1,28 @@
+.skeleton {
+  display: block;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, transparent 0%, rgb(255 255 255 / 0.05) 50%, transparent 100%)
+    var(--color-surface-raised);
+  background-size: 200% 100%;
+  animation: sheen 1.4s ease-in-out infinite;
+}
+
+.round {
+  border-radius: var(--radius-pill);
+}
+
+@keyframes sheen {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

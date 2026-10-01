@@ -53,7 +53,7 @@ describe('db migrations', () => {
 
     await db.open()
 
-    expect(db.verno).toBe(14)
+    expect(db.verno).toBe(15)
     expect(db.tables.map((t) => t.name).sort()).toEqual([
       'cardStatements',
       'categories',
@@ -157,5 +157,31 @@ describe('db migrations', () => {
     expect((await db.shoppingItems.get('leche-1'))?.deleted).toBe(true)
     expect(await db.shoppingItems.where('pending').equals(1).count()).toBe(5)
     expect(await db.syncState.get('shopping_items-cursor')).toBeUndefined()
+  })
+
+  it('v14 → v15 marks a device that already pulled as synced once', async () => {
+    db.close()
+    await Dexie.delete('cashlist')
+    const v14 = new Dexie('cashlist')
+    v14.version(14).stores({ syncState: 'key', expenses: 'id, pending' })
+    await v14.table('syncState').put({ key: 'expenses-cursor-v2', value: '{}' })
+    v14.close()
+
+    await db.open()
+
+    expect(await db.syncState.get('synced-once')).toBeDefined()
+  })
+
+  it('v14 → v15 leaves a device that never pulled waiting for its first sync', async () => {
+    db.close()
+    await Dexie.delete('cashlist')
+    const v14 = new Dexie('cashlist')
+    v14.version(14).stores({ syncState: 'key', expenses: 'id, pending' })
+    await v14.open()
+    v14.close()
+
+    await db.open()
+
+    expect(await db.syncState.get('synced-once')).toBeUndefined()
   })
 })

@@ -51,6 +51,22 @@ describe('expensesRepo', () => {
     expect(stored?.note).toBeUndefined()
   })
 
+  it('restore brings a removed expense back, pending upload', async () => {
+    const id = await expensesRepo.add({ amount: 800, category: 'delivery' })
+    await expensesRepo.remove(id, new Date('2026-09-16T08:00:00Z'))
+    await db.expenses.update(id, { pending: 0 }) // the removal already uploaded
+
+    const later = new Date('2026-09-16T08:00:05Z')
+    await expensesRepo.restore(id, later)
+
+    expect(await db.expenses.get(id)).toMatchObject({
+      amount: 800,
+      deleted: false,
+      updatedAt: later.toISOString(),
+      pending: 1,
+    })
+  })
+
   it('remove soft-deletes, bumps updatedAt and marks it pending', async () => {
     const id = await expensesRepo.add(
       { amount: 800, category: 'delivery' },

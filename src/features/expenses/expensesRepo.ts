@@ -126,6 +126,15 @@ export const expensesRepo = {
     })
   },
 
+  // Takes a removal back ("Deshacer"): the expense is back as it was
+  async restore(id: string, now = new Date()) {
+    await db.expenses.update(id, {
+      deleted: false,
+      updatedAt: now.toISOString(),
+      pending: 1,
+    })
+  },
+
   // Non-deleted expenses from `start` up to (not including) `end`, newest first
   between(start: Date, end: Date) {
     return db.expenses

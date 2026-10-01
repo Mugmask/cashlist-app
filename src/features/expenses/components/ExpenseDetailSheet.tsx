@@ -71,8 +71,17 @@ function ExpenseDetail({
   const method = PAYMENT_METHOD_OPTIONS.find((o) => o.value === (expense.paymentMethod ?? 'cash'))!
 
   async function handleDelete() {
-    await expensesRepo.remove(expense.id)
-    toast(fixed ? `Pago de ${title} borrado` : 'Gasto borrado')
+    const { id } = expense
+    await expensesRepo.remove(id)
+    toast(fixed ? `Pago de ${title} borrado` : 'Gasto borrado', {
+      action: {
+        label: 'Deshacer',
+        onClick: async () => {
+          await expensesRepo.restore(id)
+          runSync().catch(() => {})
+        },
+      },
+    })
     runSync().catch(() => {})
     onDeleted()
   }

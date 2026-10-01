@@ -26,6 +26,7 @@ export {
   type SegmentedControlProps,
 } from './SegmentedControl/SegmentedControl'
 export { Sheet, type SheetProps } from './Sheet/Sheet'
+export { Skeleton, type SkeletonProps } from './Skeleton/Skeleton'
 export { Spinner } from './Spinner/Spinner'
 export { Stack, type StackProps } from './Stack/Stack'
 export { TextField, type TextFieldProps } from './TextField/TextField'

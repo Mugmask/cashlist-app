@@ -295,6 +295,19 @@ db.version(14).stores({
   recipes: 'id, pending',
 })
 
+// Written after the first sync that ran whole for this user. Kept with the cursors, so
+// clearing the local data (signing out, another user) forgets it too.
+export const SYNCED_ONCE_KEY = 'synced-once'
+
+// v15: a device that already pulled (it has cursors) counts as synced once, so it doesn't
+// wait on a skeleton for the first sync after this update (see useFirstSync)
+db.version(15).upgrade(async (tx) => {
+  const keys = (await tx.table('syncState').toCollection().primaryKeys()) as string[]
+  if (keys.some((key) => key.endsWith('-cursor-v2'))) {
+    await tx.table('syncState').put({ key: SYNCED_ONCE_KEY, value: new Date().toISOString() })
+  }
+})
+
 // A local change (pending) always gets an updatedAt later than the version it changes, even
 // with this device's clock behind the one that wrote that version. Else the server's
 // last-write-wins trigger would drop it without an error, and the change would never leave

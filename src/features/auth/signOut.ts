@@ -1,6 +1,6 @@
 import { clearLocalData, countPendingChanges } from '@/lib/db'
 import { supabase } from '@/lib/supabase'
-import { runSync } from '@/lib/sync'
+import { resetFirstSync, runSync } from '@/lib/sync'
 
 // Uploads what's left and tells how many changes still didn't make it (offline, say):
 // signing out with any of them loses them, so the caller asks first
@@ -16,4 +16,5 @@ export async function signOut() {
   await supabase.auth.signOut({ scope: 'local' })
   await runSync().catch(() => {}) // waits out a sync already running, so it can't write after the clear
   await clearLocalData()
+  resetFirstSync()
 }

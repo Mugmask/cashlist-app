@@ -6,13 +6,14 @@ import { MonthProvider, MonthSwitcher } from '@/features/month'
 import { ProfileButton } from '@/features/profile'
 import { requestPersistentStorage } from '@/lib/db'
 import { supabase } from '@/lib/supabase'
-import { useAutoSync } from '@/lib/sync'
+import { useAutoSync, useFirstSync } from '@/lib/sync'
 import { Alert, PageLoader, PrimaryActionProvider, ToastProvider } from '@/ui'
 import { UpdatePrompt } from '../UpdatePrompt'
 import { AuthShell } from './AuthShell'
 import { BackLink } from './BackLink'
 import { BottomNav, NAV_PATHS } from './BottomNav'
 import { OfflineBadge } from './OfflineBadge'
+import { PageSkeleton } from './PageSkeleton'
 import styles from './RootLayout.module.css'
 import { SplashScreen } from './SplashScreen'
 import { useBackTarget } from './useBackTarget'
@@ -59,6 +60,9 @@ function AppShell({ email }: { email?: string }) {
   const syncError = useAutoSync()
   // The screens look categories up by id: the user's ones must be read before they show
   const categories = useCategories()
+  // Signed in on a device without the data yet: a skeleton until the first sync brings it,
+  // so screens don't fill in table by table
+  const synced = useFirstSync()
   const mainRef = useRef<HTMLElement>(null)
   usePageTitle()
   useFocusHeadingOnNavigate(mainRef)
@@ -94,7 +98,15 @@ function AppShell({ email }: { email?: string }) {
               {/* Screens off the bottom nav go back to the one they were opened from */}
               {back && !NAV_PATHS.has(pathname) && <BackLink target={back} />}
               {/* Each screen's sections rise in one after the other (RootLayout.module.css) */}
-              <div className={styles.page}>{categories.loaded ? <Outlet /> : <PageLoader />}</div>
+              <div className={styles.page}>
+                {synced === false ? (
+                  <PageSkeleton />
+                ) : categories.loaded && synced ? (
+                  <Outlet />
+                ) : (
+                  <PageLoader />
+                )}
+              </div>
             </main>
             <BottomNav />
           </div>
