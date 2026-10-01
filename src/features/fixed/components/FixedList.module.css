@@ -61,29 +61,22 @@
 }
 
 /* Fits whole on a 360px phone; truncates only next to amounts with cents */
-.due {
+.paidOn {
   overflow: hidden;
   font-size: var(--text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.due::before {
+.paidOn::before {
   content: '·';
   margin-right: var(--space-2);
   color: var(--color-text-muted);
 }
 
+.paidOn,
 .muted {
   color: var(--color-text-muted);
-}
-
-.warning {
-  color: var(--color-warning);
-}
-
-.danger {
-  color: var(--color-danger);
 }
 
 /* One line on any phone: the name truncates. Only when the text is enlarged enough that the
@@ -104,7 +97,7 @@
     gap: 0;
   }
 
-  .due::before {
+  .paidOn::before {
     display: none;
   }
 }

@@ -116,7 +116,6 @@ interface FixedExpenseRow {
   name: string
   category: string
   amount: number | string
-  due_day: number | null
   payment_method: PaymentMethod
   currency: 'ARS' | 'USD'
   updated_at: string
@@ -127,14 +126,12 @@ interface FixedExpenseRow {
 export const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
   name: 'fixed_expenses',
   local: db.fixedExpenses,
-  columns:
-    'id, name, category, amount, due_day, payment_method, currency, updated_at, deleted, synced_at',
+  columns: 'id, name, category, amount, payment_method, currency, updated_at, deleted, synced_at',
   toRow: (f) => ({
     id: f.id,
     name: f.name,
     category: f.category,
     amount: f.amount,
-    due_day: f.dueDay ?? null,
     payment_method: f.paymentMethod ?? 'cash',
     currency: f.currency ?? 'ARS',
     updated_at: f.updatedAt,
@@ -145,7 +142,6 @@ export const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
     name: row.name,
     category: row.category,
     amount: Number(row.amount),
-    dueDay: row.due_day ?? undefined,
     paymentMethod: row.payment_method,
     ...(row.currency === 'USD' && { currency: 'USD' as const }),
     updatedAt: row.updated_at,

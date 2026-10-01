@@ -13,13 +13,6 @@ const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map(({ id, label, icon: Icon }) => (
   icon: <Icon aria-hidden />,
 }))
 
-// Empty is fine (no due day); otherwise a whole day of the month
-function parseDueDay(text: string): number | undefined | null {
-  if (!text.trim()) return undefined
-  const day = Number(text)
-  return Number.isInteger(day) && day >= 1 && day <= 31 ? day : null
-}
-
 export interface FixedExpenseFormProps {
   fixed?: FixedExpense // editing when set, creating otherwise
   onDone: () => void
@@ -30,7 +23,6 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
   const [name, setName] = useState(fixed?.name ?? '')
   const [amount, setAmount] = useState(fixed ? amountToInput(fixed.amount) : '')
   const [category, setCategory] = useState(fixed?.category ?? 'rent')
-  const [dueDay, setDueDay] = useState(fixed?.dueDay ? String(fixed.dueDay) : '')
   const [paymentMethod, setPaymentMethod] = useState(fixed?.paymentMethod ?? 'cash')
   const [currency, setCurrency] = useState<Currency>(fixed?.currency ?? 'ARS')
 
@@ -46,8 +38,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
   }
 
   const parsedAmount = parseAmount(amount)
-  const parsedDueDay = parseDueDay(dueDay)
-  const isValid = name.trim() !== '' && parsedAmount !== null && parsedDueDay !== null
+  const isValid = name.trim() !== '' && parsedAmount !== null
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -56,7 +47,6 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
       name: name.trim(),
       category,
       amount: parsedAmount!,
-      dueDay: parsedDueDay ?? undefined,
       paymentMethod,
       currency: currency === 'USD' ? ('USD' as const) : undefined,
     }
@@ -112,14 +102,6 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
           options={PAYMENT_METHOD_OPTIONS}
           value={paymentMethod}
           onChange={setPaymentMethod}
-        />
-        <TextField
-          label="Día de vencimiento (opcional)"
-          placeholder="Ej: 10"
-          inputMode="numeric"
-          value={dueDay}
-          onChange={(e) => setDueDay(e.target.value)}
-          error={parsedDueDay === null ? 'Tiene que ser un día del 1 al 31' : null}
         />
         <Button type="submit" size="lg" fullWidth disabled={!isValid}>
           {fixed ? 'Guardar cambios' : 'Agregar gasto fijo'}

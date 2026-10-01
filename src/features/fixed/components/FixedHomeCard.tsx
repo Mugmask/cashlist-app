@@ -1,9 +1,10 @@
 import { CalendarCheck, ChevronRight, CircleCheck } from 'lucide-react'
 import { Link } from 'react-router'
-import { Amount, Card, cx } from '@/ui'
-import { dueLabel } from '../dueLabel'
+import { Amount, Card } from '@/ui'
 import { useFixedOverview } from '../useFixedOverview'
 import styles from './FixedHomeCard.module.css'
+
+const PREVIEW_COUNT = 3
 
 // This month's fixed expenses at a glance: what's left to pay and the most urgent one
 export function FixedHomeCard() {
@@ -49,8 +50,9 @@ export function FixedHomeCard() {
     )
   }
 
-  const next = pending[0]
-  const due = dueLabel(next)
+  // Which ones are left, like the shopping card: "Internet, Netflix y 2 más"
+  const names = pending.slice(0, PREVIEW_COUNT).map((l) => l.fixed.name)
+  const rest = pending.length - names.length
 
   return (
     <Link to="/fixed" className={styles.link}>
@@ -66,8 +68,8 @@ export function FixedHomeCard() {
           <Amount value={totals.remaining} size="lg" />
         </div>
         <p className={styles.next}>
-          <span>{next.fixed.name}</span>
-          <span className={cx(styles.due, styles[due.tone])}>{due.text}</span>
+          {names.join(', ')}
+          {rest > 0 && ` y ${rest} más`}
         </p>
       </Card>
     </Link>

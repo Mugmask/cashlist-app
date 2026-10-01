@@ -3,7 +3,7 @@ import { CategoryIcon } from '@/features/expenses'
 import { runSync } from '@/lib/sync'
 import { Button, cx, IconButton, useToast, VisuallyHidden } from '@/ui'
 import { formatCurrencyShort } from '@/utils/currency'
-import { dueLabel } from '../dueLabel'
+import { formatShortDay } from '@/utils/dates'
 import { fixedRepo } from '../fixedRepo'
 import type { FixedLine } from '../overview'
 import styles from './FixedList.module.css'
@@ -26,8 +26,7 @@ export function FixedList({ lines, onEdit, onPay }: FixedListProps) {
   return (
     <ul className={styles.list}>
       {lines.map((line) => {
-        const due = dueLabel(line)
-        const isPaid = line.status === 'paid'
+        const isPaid = line.payment !== undefined
         return (
           <li key={line.fixed.id} className={styles.row}>
             <button type="button" className={styles.body} onClick={() => onEdit(line)}>
@@ -41,7 +40,11 @@ export function FixedList({ lines, onEdit, onPay }: FixedListProps) {
                   <span className={cx(styles.amount, isPaid && styles.muted)}>
                     {formatCurrencyShort(line.shown.value, line.shown.currency)}
                   </span>
-                  <span className={cx(styles.due, styles[due.tone])}>{due.text}</span>
+                  {isPaid && (
+                    <span className={styles.paidOn}>
+                      Pagado el {formatShortDay(line.payment!.spentAt)}
+                    </span>
+                  )}
                 </span>
               </span>
             </button>

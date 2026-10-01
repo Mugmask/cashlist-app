@@ -7,7 +7,6 @@ export interface FixedExpenseInput {
   name: string
   category: string
   amount: number // in dollars when currency is USD
-  dueDay?: number
   paymentMethod: PaymentMethod
   currency?: 'USD'
 }
@@ -28,13 +27,12 @@ export const fixedRepo = {
 
   async update(id: string, input: FixedExpenseInput, now = new Date()) {
     // A full put, not update(): Dexie's update() skips undefined fields, and a missing
-    // dueDay or currency has to clear the stored one
+    // currency has to clear the stored one
     const existing = await db.fixedExpenses.get(id)
     if (!existing) return
     await db.fixedExpenses.put({
       ...existing,
       ...input,
-      dueDay: input.dueDay,
       currency: input.currency,
       updatedAt: now.toISOString(),
       pending: 1,

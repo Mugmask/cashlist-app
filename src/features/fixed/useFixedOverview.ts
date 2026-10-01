@@ -23,5 +23,5 @@ export function useFixedOverview() {
   if (!data) return undefined
   const { today, period, fixed, payments } = data
   const rates = { tarjeta: card.rate?.rate, blue: blue.rate?.rate }
-  return { today, period, ...buildFixedOverview(fixed, payments, today, rates) }
+  return { today, period, ...buildFixedOverview(fixed, payments, rates) }
 }

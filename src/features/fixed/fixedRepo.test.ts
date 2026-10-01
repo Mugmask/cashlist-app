@@ -14,7 +14,6 @@ describe('fixedRepo', () => {
       name: 'Internet',
       category: 'utilities',
       amount: 20000,
-      dueDay: 10,
       paymentMethod: 'cash',
     })
     const fixed = (await db.fixedExpenses.get(id))!
@@ -57,24 +56,6 @@ describe('fixedRepo', () => {
     await fixedRepo.undoPayment(expenseId)
 
     expect(await getFixedPayments('2026-09')).toHaveLength(0)
-  })
-
-  it('update can clear the due day', async () => {
-    const id = await fixedRepo.create({
-      name: 'Gym',
-      category: 'health',
-      amount: 30000,
-      dueDay: 5,
-      paymentMethod: 'cash',
-    })
-    await fixedRepo.update(id, {
-      name: 'Gym',
-      category: 'health',
-      amount: 32000,
-      paymentMethod: 'cash',
-    })
-
-    expect(await db.fixedExpenses.get(id)).toMatchObject({ amount: 32000, dueDay: undefined })
   })
 
   it('a fixed expense paid by card records its payment as a card expense', async () => {

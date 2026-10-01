@@ -73,23 +73,12 @@
 }
 
 .next {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-2);
+  overflow: hidden;
   margin: var(--space-3) 0 0;
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
   font-size: var(--text-sm);
-}
-
-.due {
-  flex-shrink: 0;
-}
-
-.warning {
-  color: var(--color-warning);
-}
-
-.danger {
-  color: var(--color-danger);
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

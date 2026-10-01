@@ -45,7 +45,6 @@ export interface FixedExpense extends Syncable {
   name: string
   category: string
   amount: number
-  dueDay?: number // 1-31, day of the month it's due
   paymentMethod?: PaymentMethod // how its payments are made
   // Charged in dollars (Netflix, Spotify...): then `amount` is in dollars, and each payment
   // is a dollar expense converted at that day's rate
