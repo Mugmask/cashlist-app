@@ -1,3 +1,4 @@
+import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronRight, Plus, Sparkles } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
@@ -8,17 +9,20 @@ import {
   ExpenseDetailSheet,
   ExpenseRow,
   getCategory,
+  getExpensesBefore,
   isFixed,
   totalsByCategory,
   useAddExpense,
   useMonthExpenses,
 } from '@/features/expenses'
 import { FixedHomeCard, useFixedOverview } from '@/features/fixed'
+import { getIncomesBefore, IncomesHomeCard, useMonthIncomes } from '@/features/incomes'
 import { useMonth } from '@/features/month'
 import { useProfile } from '@/features/profile'
 import { ShoppingHomeCard } from '@/features/shopping'
 import { Amount, Button, Card, cx, EmptyState, PageHeader, ProgressBar, Stack } from '@/ui'
-import { formatMonthName, shiftMonth } from '@/utils/dates'
+import { formatMonthName, fromPeriod, shiftMonth, toPeriod } from '@/utils/dates'
+import { carryOver, type CarryOver } from './carryOver'
 import styles from './HomePage.module.css'
 
 const TOP_CATEGORIES = 3 // a glance; the whole breakdown is one tap away
@@ -28,6 +32,14 @@ export function HomePage() {
   const { month: selected, isCurrent } = useMonth()
   const month = useMonthExpenses(selected)
   const previous = useMonthExpenses(shiftMonth(selected, -1))
+  const earlier = useLiveQuery(
+    async () => ({
+      expenses: await getExpensesBefore(selected),
+      incomes: await getIncomesBefore(selected),
+    }),
+    [selected.getTime()],
+  )
+  const received = useMonthIncomes(selected)?.total ?? 0
   const fixed = useFixedOverview(selected)
   const addExpense = useAddExpense()
   const profile = useProfile()
@@ -54,9 +66,17 @@ export function HomePage() {
     TOP_CATEGORIES,
   )
   const changes = changeByCategory(expenses, before, isCurrent, now)
-  const income = profile?.monthlyIncome
+  const monthlyIncome = profile?.monthlyIncome
+  // What the month has to spend: the monthly income plus whatever else came in
+  const income =
+    monthlyIncome !== undefined || received > 0 ? (monthlyIncome ?? 0) + received : undefined
   // Fixed expenses not paid yet: money already spoken for this month
   const committed = isCurrent ? (fixed?.totals.remaining ?? 0) : 0
+  // What the months before left over or overspent comes along into this one
+  const carry =
+    income !== undefined && earlier
+      ? carryOver(earlier.expenses, monthlyIncome ?? 0, toPeriod(selected), earlier.incomes)
+      : null
 
   return (
     <Stack gap={6}>
@@ -83,11 +103,12 @@ export function HomePage() {
           </span>
           <Amount value={total} size="xl" />
           {income !== undefined && (
-            <IncomeBar spent={total} income={income} committed={committed} />
+            <IncomeBar spent={total} income={income} carry={carry} committed={committed} />
           )}
         </Card>
       </Link>
 
+      <IncomesHomeCard />
       <FixedHomeCard />
       <CardHomeCard />
       {/* The shopping list is about now, not about the month being looked at */}
@@ -204,22 +225,32 @@ function HomeSection({
   )
 }
 
-// How much of the month's income is spent, once the profile has it. With fixed expenses
-// still to pay, what's really free once they're paid.
+// How much of the month's income is spent, once the profile has it, counting what the months
+// before left over or overspent. With fixed expenses still to pay, what's really free once
+// they're paid.
 function IncomeBar({
   spent,
   income,
+  carry,
   committed,
 }: {
   spent: number
   income: number
+  carry: CarryOver | null
   committed: number
 }) {
-  const left = income - spent
+  const available = income + (carry?.amount ?? 0)
+  const left = available - spent
   const free = left - committed
   return (
     <div className={styles.income}>
-      <ProgressBar label="Ingreso gastado" value={spent} max={income} tone="limit" />
+      {/* Nothing available (the months before ate it all) is a full bar, already over */}
+      <ProgressBar
+        label="Ingreso gastado"
+        value={available > 0 ? spent : 1}
+        max={available > 0 ? available : 1}
+        tone="limit"
+      />
       <div className={styles.incomeLine}>
         <span className={left < 0 ? styles.over : undefined}>
           {left < 0 ? 'Te pasaste' : 'Te quedan'}{' '}
@@ -229,6 +260,17 @@ function IncomeBar({
           de <Amount value={income} size="sm" compactFrom={1_000_000} />
         </span>
       </div>
+      {carry && carry.amount !== 0 && (
+        <p className={styles.afterFixed}>
+          Incluye lo que te {carry.amount < 0 ? 'pasaste' : 'sobró'} {describeMonths(carry)}:{' '}
+          <Amount
+            value={Math.abs(carry.amount)}
+            size="sm"
+            tone={carry.amount < 0 ? 'danger' : 'default'}
+            compactFrom={1_000_000}
+          />
+        </p>
+      )}
       {committed > 0 && left >= 0 && (
         <p className={cx(styles.afterFixed, free < 0 && styles.over)}>
           Después de los fijos:{' '}
@@ -242,4 +284,10 @@ function IncomeBar({
       )}
     </div>
   )
+}
+
+// "en septiembre", or "de agosto a octubre" when it adds up several months
+function describeMonths({ from, to }: CarryOver) {
+  const first = formatMonthName(fromPeriod(from))
+  return from === to ? `en ${first}` : `de ${first} a ${formatMonthName(fromPeriod(to))}`
 }

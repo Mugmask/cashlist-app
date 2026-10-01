@@ -4,6 +4,7 @@ import {
   type ExchangeRateKind,
   type Expense,
   type FixedExpense,
+  type Income,
   type PaymentMethod,
   type Profile,
   type ShoppingItem,
@@ -71,6 +72,42 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
       exchangeRateKind: row.exchange_rate_kind ?? 'blue',
     }),
     ...(row.installments !== null && { installments: row.installments }),
+    updatedAt: row.updated_at,
+    deleted: row.deleted,
+    pending: 0,
+  }),
+}
+
+interface IncomeRow {
+  id: string
+  amount: number | string // numeric can come back as a string
+  received_at: string
+  name: string | null
+  note: string | null
+  updated_at: string
+  deleted: boolean
+  synced_at: string
+}
+
+export const incomesTable: SyncedTable<Income, IncomeRow> = {
+  name: 'incomes',
+  local: db.incomes,
+  columns: 'id, amount, received_at, name, note, updated_at, deleted, synced_at',
+  toRow: (i) => ({
+    id: i.id,
+    amount: i.amount,
+    received_at: i.receivedAt,
+    name: i.name ?? null,
+    note: i.note ?? null,
+    updated_at: i.updatedAt,
+    deleted: i.deleted,
+  }),
+  fromRow: (row) => ({
+    id: row.id,
+    amount: Number(row.amount),
+    receivedAt: row.received_at,
+    name: row.name ?? undefined,
+    note: row.note ?? undefined,
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,
@@ -213,6 +250,7 @@ export const profileTable: SyncedTable<Profile, ProfileRow> = {
 // Every synced table; each one syncs independently of the others
 export const SYNCED_TABLES = [
   toSyncTask(expensesTable),
+  toSyncTask(incomesTable),
   toSyncTask(shoppingItemsTable),
   toSyncTask(fixedExpensesTable),
   toSyncTask(cardStatementsTable),

@@ -51,6 +51,11 @@ export async function getMonthExpenses(month: Date): Promise<MonthExpense[]> {
   return candidates.flatMap((e) => forMonth(e, period) ?? [])
 }
 
+// Non-deleted expenses before a date, newest first: every month already gone. For live queries.
+export function getExpensesBefore(date: Date) {
+  return expensesRepo.between(new Date(0), date)
+}
+
 // Non-deleted expenses since a date, newest first. For live queries in other features.
 export function getExpensesSince(date: Date) {
   return expensesRepo.since(date)

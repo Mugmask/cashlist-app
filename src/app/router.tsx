@@ -3,6 +3,7 @@ import { AnalysisPage } from '@/features/analysis'
 import { ExpensesPage } from '@/features/expenses'
 import { FixedPage } from '@/features/fixed'
 import { HomePage } from '@/features/home'
+import { IncomesPage } from '@/features/incomes'
 import { ShoppingPage } from '@/features/shopping'
 import { Crash } from './errors/Crash'
 import { NotFoundPage } from './errors/NotFoundPage'
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
           { index: true, element: <HomePage />, handle: titled('Inicio') },
           { path: 'expenses', element: <ExpensesPage />, handle: titled('Gastos') },
           { path: 'fixed', element: <FixedPage />, handle: titled('Gastos fijos') },
+          { path: 'incomes', element: <IncomesPage />, handle: titled('Ingresos') },
           { path: 'shopping', element: <ShoppingPage />, handle: titled('Compras') },
           {
             path: 'analysis',

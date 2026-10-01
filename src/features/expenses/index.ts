@@ -10,6 +10,7 @@ export { ExpenseForm } from './components/ExpenseForm'
 export { ExpenseRow } from './components/ExpenseRow'
 export {
   addExpense,
+  getExpensesBefore,
   getExpensesSince,
   getPaymentsOf,
   getFixedPayments,
@@ -21,6 +22,7 @@ export { ExpensesPage } from './ExpensesPage'
 export {
   chargedAfter,
   chargeOn,
+  forMonth,
   INSTALLMENT_OPTIONS,
   installmentsOf,
   MAX_INSTALLMENTS,

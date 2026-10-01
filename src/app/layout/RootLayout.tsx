@@ -19,7 +19,7 @@ import { useBackTarget } from './useBackTarget'
 import { useFocusHeadingOnNavigate, usePageTitle } from './usePageNavigation'
 
 // Screens that show one month, and so the month switcher in the header
-const MONTHLY_SCREENS = new Set(['/', '/expenses', '/fixed', '/analysis'])
+const MONTHLY_SCREENS = new Set(['/', '/expenses', '/fixed', '/incomes', '/analysis'])
 
 // Home screen shortcut (manifest) that opens the app straight into adding an expense
 const ADD_EXPENSE_ACTION = 'add-expense'

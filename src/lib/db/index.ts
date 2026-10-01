@@ -37,6 +37,15 @@ export interface Expense extends Syncable {
   installments?: number
 }
 
+// Money that comes in apart from the profile's monthly income (a transfer back, a sale...):
+// it adds to what its month has to spend. In pesos.
+export interface Income extends Syncable {
+  amount: number
+  receivedAt: string // ISO
+  name?: string // "Martina", "Venta de la bici"
+  note?: string
+}
+
 // The user's profile, a single row ('me'). Monthly income is in pesos.
 export interface Profile extends Syncable {
   name?: string
@@ -80,6 +89,7 @@ interface SyncState {
 
 export const db = new Dexie('cashlist') as Dexie & {
   expenses: EntityTable<Expense, 'id'>
+  incomes: EntityTable<Income, 'id'>
   shoppingItems: EntityTable<ShoppingItem, 'id'>
   fixedExpenses: EntityTable<FixedExpense, 'id'>
   cardStatements: EntityTable<CardStatement, 'id'>
@@ -246,6 +256,11 @@ db.version(11).upgrade(async (tx) => {
       e.name = e.note
       delete e.note
     })
+})
+
+// v12: incomes apart from the monthly income
+db.version(12).stores({
+  incomes: 'id, receivedAt, pending',
 })
 
 // Asks the browser not to evict IndexedDB when storage runs low
