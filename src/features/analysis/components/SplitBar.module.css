@@ -1,0 +1,53 @@
+.split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* One bar, the segments sized by their amounts; 2px of surface between them, 4px rounded
+   ends on the outside only */
+.bar {
+  display: flex;
+  gap: 2px;
+  height: 16px;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.segment {
+  flex-basis: 0;
+  min-width: 4px; /* a tiny part still shows */
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.swatch {
+  align-self: center;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.label {
+  color: var(--color-text);
+}
+
+.share {
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}

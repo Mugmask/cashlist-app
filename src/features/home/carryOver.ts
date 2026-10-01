@@ -1,4 +1,4 @@
-import { forMonth, isFixed } from '@/features/expenses'
+import { firstTrackedPeriod, forMonth } from '@/features/expenses'
 import type { Expense, Income } from '@/lib/db'
 import { fromPeriod, monthsBetween, shiftMonth, toPeriod } from '@/utils/dates'
 
@@ -6,9 +6,9 @@ import { fromPeriod, monthsBetween, shiftMonth, toPeriod } from '@/utils/dates'
 // income plus the other incomes received in it, minus what it counted (installments in their own month, as everywhere). Computed from the
 // expenses, never stored, so fixing an old expense fixes every month after it.
 //
-// It starts on the first month with a fixed expense paid: the first one kept whole in the app.
-// Earlier months only hold card purchases loaded for their installments, and would count as
-// a whole income left over.
+// It starts on the first month kept whole in the app (see firstTrackedPeriod): earlier months
+// only hold card purchases loaded for their installments, and would count as a whole income
+// left over.
 export interface CarryOver {
   amount: number // positive: left over; negative: overspent
   from: string // first month it includes ("2026-09")
@@ -22,9 +22,8 @@ export function carryOver(
   incomes: readonly Income[] = [],
 ): CarryOver | null {
   const before = expenses.filter((e) => monthsBetween(toPeriod(new Date(e.spentAt)), period) > 0)
-  const tracked = before.filter(isFixed).map((e) => toPeriod(new Date(e.spentAt)))
-  if (tracked.length === 0) return null
-  const from = tracked.reduce((first, p) => (p < first ? p : first))
+  const from = firstTrackedPeriod(before)
+  if (from === undefined) return null
 
   let cents = 0
   for (let i = 0; i < monthsBetween(from, period); i++) {

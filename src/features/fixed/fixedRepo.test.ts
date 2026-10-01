@@ -9,6 +9,29 @@ beforeEach(async () => {
 })
 
 describe('fixedRepo', () => {
+  it('pay records it on the day it was paid, when given', async () => {
+    const id = await fixedRepo.create({
+      name: 'Monotributo',
+      category: 'utilities',
+      amount: 125000,
+      paymentMethod: 'cash',
+    })
+    const paidAt = '2026-09-08T12:00:00.000Z'
+
+    const expenseId = await fixedRepo.pay(
+      (await db.fixedExpenses.get(id))!,
+      125000,
+      '2026-09',
+      undefined,
+      paidAt,
+    )
+
+    expect(await db.expenses.get(expenseId)).toMatchObject({
+      spentAt: paidAt,
+      fixedPeriod: '2026-09',
+    })
+  })
+
   it('pay records an expense linked to the fixed expense and the month', async () => {
     const id = await fixedRepo.create({
       name: 'Internet',

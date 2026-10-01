@@ -7,12 +7,20 @@ export interface ProgressBarProps {
   max: number
   // 'limit': amber near the max and red past it (caps). 'accent': always accent (shares).
   tone?: 'limit' | 'accent'
+  color?: string // with tone 'accent': a hue of its own (a category's) instead of the accent
   className?: string
 }
 
 const WARNING_RATIO = 0.8
 
-export function ProgressBar({ label, value, max, tone = 'limit', className }: ProgressBarProps) {
+export function ProgressBar({
+  label,
+  value,
+  max,
+  tone = 'limit',
+  color: hue,
+  className,
+}: ProgressBarProps) {
   const ratio = max > 0 ? value / max : 0
   const color =
     tone === 'accent' || ratio < WARNING_RATIO ? 'accent' : ratio >= 1 ? 'danger' : 'warning'
@@ -29,8 +37,11 @@ export function ProgressBar({ label, value, max, tone = 'limit', className }: Pr
       className={cx(styles.track, className)}
     >
       <div
-        className={cx(styles.fill, styles[color])}
-        style={{ transform: `scaleX(${Math.min(ratio, 1)})` }}
+        className={cx(styles.fill, !(tone === 'accent' && hue) && styles[color])}
+        style={{
+          transform: `scaleX(${Math.min(ratio, 1)})`,
+          ...(tone === 'accent' && hue && { background: hue }),
+        }}
       />
     </div>
   )

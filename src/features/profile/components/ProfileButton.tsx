@@ -1,5 +1,6 @@
 import { LogOut, UserRound } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { useLocation } from 'react-router'
 import type { Profile } from '@/lib/db'
 import { supabase } from '@/lib/supabase'
 import { runSync } from '@/lib/sync'
@@ -8,10 +9,16 @@ import { amountToInput, parseAmount } from '@/utils/currency'
 import { profileRepo, useProfile } from '../profileRepo'
 import styles from './ProfileButton.module.css'
 
-// The header's avatar: opens the profile (name, income) and signing out
+// The header's avatar: opens the profile (name, income) and signing out. Going to another
+// screen (Android's back, say) closes it: it belongs to the screen it was opened on.
 export function ProfileButton({ email }: { email?: string }) {
   const profile = useProfile()
-  const [isOpen, setIsOpen] = useState(false)
+  const { pathname } = useLocation()
+  const [openOn, setOpenOn] = useState<string | null>(null)
+  const isOpen = openOn === pathname
+  // Left for another screen: forgotten, so coming back doesn't open it again
+  if (openOn !== null && !isOpen) setOpenOn(null)
+  const setIsOpen = (open: boolean) => setOpenOn(open ? pathname : null)
 
   return (
     <>

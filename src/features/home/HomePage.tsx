@@ -16,7 +16,7 @@ import {
   useMonthExpenses,
 } from '@/features/expenses'
 import { FixedHomeCard, useFixedOverview } from '@/features/fixed'
-import { getIncomesBefore, IncomesHomeCard, useMonthIncomes } from '@/features/incomes'
+import { getIncomesBefore, useMonthIncomes } from '@/features/incomes'
 import { useMonth } from '@/features/month'
 import { useProfile } from '@/features/profile'
 import { ShoppingHomeCard } from '@/features/shopping'
@@ -72,10 +72,11 @@ export function HomePage() {
     monthlyIncome !== undefined || received > 0 ? (monthlyIncome ?? 0) + received : undefined
   // Fixed expenses not paid yet: money already spoken for this month
   const committed = isCurrent ? (fixed?.totals.remaining ?? 0) : 0
-  // What the months before left over or overspent comes along into this one
+  // What the months before left over or overspent comes along into this one. Only with a
+  // monthly income: without one, every month before would look overspent by all it spent.
   const carry =
-    income !== undefined && earlier
-      ? carryOver(earlier.expenses, monthlyIncome ?? 0, toPeriod(selected), earlier.incomes)
+    monthlyIncome !== undefined && earlier
+      ? carryOver(earlier.expenses, monthlyIncome, toPeriod(selected), earlier.incomes)
       : null
 
   return (
@@ -90,27 +91,36 @@ export function HomePage() {
         }
       />
 
-      {/* Everything on home leads somewhere: the month's total, to its expenses */}
-      <Link
-        to="/expenses"
-        className={styles.cardLink}
-        aria-label={`Ver los gastos de ${monthName}`}
-      >
-        <Card as="section" variant="hero" padding="lg">
-          <span className={styles.heroLabel}>
-            Gastaste en {monthName}
-            <ChevronRight aria-hidden />
-          </span>
-          <Amount value={total} size="xl" />
-          {income !== undefined && (
-            <IncomeBar spent={total} income={income} carry={carry} committed={committed} />
-          )}
-        </Card>
-      </Link>
+      {income === undefined ? (
+        // Without any income there's nothing to compare with: the month's total leads
+        <Link
+          to="/expenses"
+          className={styles.cardLink}
+          aria-label={`Ver los gastos de ${monthName}`}
+        >
+          <Card as="section" variant="hero" padding="lg">
+            <span className={styles.heroLabel}>
+              Gastaste en {monthName}
+              <ChevronRight aria-hidden />
+            </span>
+            <Amount value={total} size="xl" />
+          </Card>
+        </Link>
+      ) : (
+        <MonthBalance
+          monthName={monthName}
+          income={income}
+          carry={carry}
+          spent={total}
+          committed={committed}
+        />
+      )}
 
-      <IncomesHomeCard />
-      <FixedHomeCard />
-      <CardHomeCard />
+      {/* Side by side, small: what's left of the fixed ones and what's on the card */}
+      <div className={styles.tiles}>
+        <FixedHomeCard />
+        <CardHomeCard />
+      </div>
       {/* The shopping list is about now, not about the month being looked at */}
       {isCurrent && <ShoppingHomeCard />}
 
@@ -152,7 +162,7 @@ export function HomePage() {
                 <Card>
                   <ul className={styles.categories}>
                     {topCategories.map((c) => {
-                      const { label } = getCategory(c.category)
+                      const { label, color } = getCategory(c.category)
                       const share = c.total / variableTotal
                       return (
                         <li key={c.category} className={styles.category}>
@@ -170,6 +180,7 @@ export function HomePage() {
                               value={c.total}
                               max={variableTotal}
                               tone="accent"
+                              color={color}
                             />
                           </div>
                         </li>
@@ -225,69 +236,86 @@ function HomeSection({
   )
 }
 
-// How much of the month's income is spent, once the profile has it, counting what the months
-// before left over or overspent. With fixed expenses still to pay, what's really free once
-// they're paid.
-function IncomeBar({
-  spent,
+// The month's answer: what's left (or how much over), and how it adds up, each line leading
+// to where it comes from. What came in counts what the months before left over or overspent;
+// with fixed expenses still to pay, what's really free once they're paid.
+function MonthBalance({
+  monthName,
   income,
   carry,
+  spent,
   committed,
 }: {
-  spent: number
+  monthName: string
   income: number
   carry: CarryOver | null
+  spent: number
   committed: number
 }) {
   const available = income + (carry?.amount ?? 0)
   const left = available - spent
   const free = left - committed
+  const over = left < 0
+
   return (
-    <div className={styles.income}>
+    <Card as="section" variant="hero" padding="lg" aria-labelledby="balance-title">
+      <h2 id="balance-title" className={styles.heroLabel}>
+        {over ? 'Te pasaste' : 'Te quedan'} en {monthName}
+      </h2>
+      <Amount value={Math.abs(left)} size="xl" tone={over ? 'danger' : 'default'} />
       {/* Nothing available (the months before ate it all) is a full bar, already over */}
       <ProgressBar
-        label="Ingreso gastado"
+        label="Ingresos gastados"
         value={available > 0 ? spent : 1}
         max={available > 0 ? available : 1}
         tone="limit"
+        className={styles.balanceBar}
       />
-      <div className={styles.incomeLine}>
-        <span className={left < 0 ? styles.over : undefined}>
-          {left < 0 ? 'Te pasaste' : 'Te quedan'}{' '}
-          <Amount value={Math.abs(left)} size="sm" compactFrom={1_000_000} />
-        </span>
-        <span>
-          de <Amount value={income} size="sm" compactFrom={1_000_000} />
-        </span>
-      </div>
-      {carry && carry.amount !== 0 && (
-        <p className={styles.afterFixed}>
-          Incluye lo que te {carry.amount < 0 ? 'pasaste' : 'sobró'} {describeMonths(carry)}:{' '}
-          <Amount
-            value={Math.abs(carry.amount)}
-            size="sm"
-            tone={carry.amount < 0 ? 'danger' : 'default'}
-            compactFrom={1_000_000}
-          />
-        </p>
-      )}
-      {committed > 0 && left >= 0 && (
+      <ul className={styles.balance}>
+        <li>
+          <Link to="/incomes" className={styles.balanceLink}>
+            <span>Ingresos</span>
+            <Amount value={income} size="sm" compactFrom={10_000_000} />
+            <ChevronRight aria-hidden />
+          </Link>
+        </li>
+        {carry && carry.amount !== 0 && (
+          <li className={styles.balanceRow}>
+            <span>{describeMonths(carry)}</span>
+            <Amount
+              value={carry.amount}
+              size="sm"
+              tone={carry.amount < 0 ? 'danger' : 'accent'}
+              compactFrom={10_000_000}
+            />
+          </li>
+        )}
+        <li>
+          <Link to="/expenses" className={styles.balanceLink}>
+            <span>Gastaste</span>
+            <Amount value={spent} size="sm" compactFrom={10_000_000} />
+            <ChevronRight aria-hidden />
+          </Link>
+        </li>
+      </ul>
+      {committed > 0 && !over && (
         <p className={cx(styles.afterFixed, free < 0 && styles.over)}>
           Después de los fijos:{' '}
           <Amount
             value={free}
             size="sm"
             tone={free < 0 ? 'danger' : 'default'}
-            compactFrom={1_000_000}
+            compactFrom={10_000_000}
           />
         </p>
       )}
-    </div>
+    </Card>
   )
 }
 
-// "en septiembre", or "de agosto a octubre" when it adds up several months
+// "Septiembre", or "Agosto a octubre" when it adds up several months
 function describeMonths({ from, to }: CarryOver) {
   const first = formatMonthName(fromPeriod(from))
-  return from === to ? `en ${first}` : `de ${first} a ${formatMonthName(fromPeriod(to))}`
+  const label = from === to ? first : `${first} a ${formatMonthName(fromPeriod(to))}`
+  return label.charAt(0).toUpperCase() + label.slice(1)
 }

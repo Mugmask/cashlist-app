@@ -37,6 +37,20 @@
   --color-chart-muted: #646975;
   --color-chart-grid: rgb(255 255 255 / 0.06);
 
+  /* Categorical: one fixed hue per expense category. Each is as vivid as sRGB allows at the
+     top of the dark lightness band (OKLCH L 0.66), so they glow without blurring together;
+     validated as a set on the surface with the dataviz palette script (color blindness,
+     contrast). Charts always add a 2px gap and a label, so no color stands alone. */
+  --color-cat-1: #3692fe; /* blue */
+  --color-cat-2: #f45602; /* orange */
+  --color-cat-3: #03ac79; /* aqua */
+  --color-cat-4: #c58202; /* gold: a yellow can't be lighter and stay in the band */
+  --color-cat-5: #fe2c8a; /* magenta */
+  --color-cat-6: #02b102; /* green */
+  --color-cat-7: #8d7afe; /* violet */
+  --color-cat-8: #ff3f4d; /* red */
+  --color-chart-context: #9aa0ab; /* the month before in a line chart: gray, but in sight */
+
   /* Status */
   --color-danger: #ff6464;
   --color-danger-soft: rgb(255 100 100 / 0.12);

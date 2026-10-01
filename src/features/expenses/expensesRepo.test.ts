@@ -22,6 +22,14 @@ describe('expensesRepo', () => {
     })
   })
 
+  it('add can take the day it happened, loaded later', async () => {
+    const now = new Date('2026-09-15T12:00:00Z')
+    const spentAt = '2026-09-08T12:00:00.000Z'
+    const id = await expensesRepo.add({ amount: 1500, category: 'groceries', spentAt }, now)
+
+    expect(await db.expenses.get(id)).toMatchObject({ spentAt, updatedAt: now.toISOString() })
+  })
+
   it('update applies the changes, bumps updatedAt and marks it pending', async () => {
     const id = await expensesRepo.add(
       { amount: 800, category: 'delivery', note: 'Pizza' },
@@ -30,12 +38,12 @@ describe('expensesRepo', () => {
     await db.expenses.update(id, { pending: 0 })
 
     const later = new Date('2026-09-16T08:00:00Z')
-    await expensesRepo.update(id, { amount: 950, category: 'going_out', note: undefined }, later)
+    await expensesRepo.update(id, { amount: 950, category: 'personal', note: undefined }, later)
 
     const stored = await db.expenses.get(id)
     expect(stored).toMatchObject({
       amount: 950,
-      category: 'going_out',
+      category: 'personal',
       spentAt: '2026-09-15T12:00:00.000Z',
       updatedAt: later.toISOString(),
       pending: 1,

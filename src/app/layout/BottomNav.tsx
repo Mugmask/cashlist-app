@@ -29,6 +29,9 @@ const RIGHT_ITEMS: NavItem[] = [
   { to: '/shopping', label: 'Compras', icon: ShoppingBasket },
 ]
 
+// Screens the bar takes to directly: they need no way back, the bar is right there
+export const NAV_PATHS = new Set([...LEFT_ITEMS, ...RIGHT_ITEMS].map((item) => item.to))
+
 // The bar's current width, measured before paint and kept up to date (rotation, resizing)
 function useWidth() {
   const ref = useRef<HTMLDivElement>(null)

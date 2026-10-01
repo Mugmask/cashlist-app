@@ -114,8 +114,8 @@ const LEGACY_CATEGORIES: Record<string, string> = {
   Alquiler: 'rent',
   Servicios: 'utilities',
   Transporte: 'transport',
-  Salidas: 'going_out',
-  Salud: 'health',
+  Salidas: 'personal', // folded into Personales
+  Salud: 'personal',
   Otros: 'other',
 }
 

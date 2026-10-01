@@ -1,13 +1,14 @@
-import { CalendarCheck, ChevronRight, CircleCheck } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router'
 import { useMonth } from '@/features/month'
 import { Amount, Card } from '@/ui'
 import { useFixedOverview } from '../useFixedOverview'
 import styles from './FixedHomeCard.module.css'
 
-const PREVIEW_COUNT = 3
+const PREVIEW_COUNT = 2 // a small tile: the names have little room
 
-// This month's fixed expenses at a glance: what's left to pay and the most urgent one
+// This month's fixed expenses at a glance, a small tile on home: what's left to pay and which
+// ones; leads to the fixed expenses screen
 export function FixedHomeCard() {
   const { month } = useMonth()
   const overview = useFixedOverview(month)
@@ -15,64 +16,41 @@ export function FixedHomeCard() {
   if (!overview) return null
 
   const { pending, paid, totals } = overview
-
-  if (pending.length === 0 && paid.length === 0) {
-    return (
-      <Link to="/fixed" className={styles.link}>
-        <Card className={styles.card}>
-          <span className={styles.icon} aria-hidden>
-            <CalendarCheck />
-          </span>
-          <div className={styles.text}>
-            <strong>Cargá tus gastos fijos</strong>
-            <span className={styles.muted}>Alquiler, expensas, internet…</span>
-          </div>
-          <ChevronRight aria-hidden className={styles.chevron} />
-        </Card>
-      </Link>
-    )
-  }
-
-  if (pending.length === 0) {
-    return (
-      <Link to="/fixed" className={styles.link}>
-        <Card className={styles.card}>
-          <span className={styles.icon} aria-hidden>
-            <CircleCheck />
-          </span>
-          <div className={styles.text}>
-            <strong>Fijos del mes pagados</strong>
-            <span className={styles.muted}>
-              {paid.length === 1 ? '1 pago' : `${paid.length} pagos`} registrados
-            </span>
-          </div>
-          <ChevronRight aria-hidden className={styles.chevron} />
-        </Card>
-      </Link>
-    )
-  }
-
   // Which ones are left, like the shopping card: "Internet, Netflix y 2 más"
   const names = pending.slice(0, PREVIEW_COUNT).map((l) => l.fixed.name)
   const rest = pending.length - names.length
 
   return (
     <Link to="/fixed" className={styles.link}>
-      <Card>
-        <div className={styles.header}>
-          <span className={styles.title}>Gastos fijos</span>
+      <Card as="section" className={styles.tile} aria-labelledby="fixed-tile-title">
+        <header className={styles.header}>
+          <h2 id="fixed-tile-title" className={styles.title}>
+            Fijos
+          </h2>
           <ChevronRight aria-hidden className={styles.chevron} />
-        </div>
-        <div className={styles.amountLine}>
-          <span className={styles.muted}>
-            {pending.length === 1 ? 'Te falta 1 pago' : `Te faltan ${pending.length} pagos`}
-          </span>
-          <Amount value={totals.remaining} size="lg" />
-        </div>
-        <p className={styles.next}>
-          {names.join(', ')}
-          {rest > 0 && ` y ${rest} más`}
-        </p>
+        </header>
+        {pending.length === 0 && paid.length === 0 ? (
+          <>
+            <strong className={styles.state}>Cargalos</strong>
+            <span className={styles.muted}>Alquiler, internet…</span>
+          </>
+        ) : pending.length === 0 ? (
+          <>
+            <strong className={styles.state}>Todos pagados</strong>
+            <span className={styles.muted}>
+              {paid.length === 1 ? '1 pago' : `${paid.length} pagos`}
+            </span>
+          </>
+        ) : (
+          <>
+            <Amount value={totals.remaining} size="lg" />
+            <span className={styles.muted}>
+              {pending.length === 1 ? 'Falta ' : `Faltan ${pending.length}: `}
+              {names.join(', ')}
+              {rest > 0 && ` y ${rest} más`}
+            </span>
+          </>
+        )}
       </Card>
     </Link>
   )

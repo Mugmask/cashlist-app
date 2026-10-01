@@ -35,6 +35,7 @@ export interface NewExpense {
   // Only for the payment of a fixed expense
   fixedExpenseId?: string
   fixedPeriod?: string
+  spentAt?: string // ISO; now when missing (loaded the moment it happened)
 }
 
 // A month's expenses, newest first: the ones made in it, plus the installments of earlier
@@ -95,7 +96,7 @@ export const expensesRepo = {
     const expense: Expense = {
       ...data,
       id,
-      spentAt: iso,
+      spentAt: data.spentAt ?? iso,
       updatedAt: iso,
       deleted: false,
       pending: 1,

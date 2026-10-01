@@ -1,0 +1,176 @@
+.pace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* The legend, with each series' latest value: it reads without touching the chart */
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.legend li {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.name {
+  color: var(--color-text-muted);
+}
+
+.legend strong {
+  font-weight: var(--weight-semibold);
+}
+
+/* A short line in each series' style */
+.swatch {
+  display: inline-block;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.swatch[data-series='current'] {
+  background: var(--color-accent);
+}
+
+.swatch[data-series='previous'] {
+  background: var(--color-chart-context);
+}
+
+.swatch[data-series='income'] {
+  height: 0;
+  border-top: 2px dashed var(--color-text);
+  border-radius: 0;
+}
+
+.plot {
+  position: relative;
+  height: 140px;
+  touch-action: pan-y; /* a horizontal drag reads days; vertical still scrolls the page */
+  cursor: crosshair;
+  border-radius: var(--radius-sm);
+}
+
+.plot:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+.plot svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.plot path,
+.plot line {
+  vector-effect: non-scaling-stroke;
+}
+
+.grid {
+  stroke: var(--color-chart-grid);
+  stroke-width: 1;
+}
+
+.current {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.previous {
+  fill: none;
+  stroke: var(--color-chart-context);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.income {
+  stroke: var(--color-text);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  opacity: 0.8;
+}
+
+/* Where the month is now (or the day being looked at): an 8px dot ringed in the surface */
+.dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-accent);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.endLabel {
+  position: absolute;
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 10px));
+  pointer-events: none;
+}
+
+.crosshair {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-border-strong, rgb(255 255 255 / 0.25));
+  pointer-events: none;
+}
+
+.tooltip {
+  position: absolute;
+  top: 4px; /* inside the plot, over the lines: never on the legend above */
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 96px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.4);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.tooltip > span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tooltipDay {
+  color: var(--color-text-muted);
+  font-weight: var(--weight-medium);
+}
+
+.axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: calc(var(--space-2) * -1);
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+}

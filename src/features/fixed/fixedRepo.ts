@@ -47,13 +47,15 @@ export const fixedRepo = {
     return (await db.fixedExpenses.toArray()).filter((f) => !f.deleted)
   },
 
-  // Records this month's payment as an expense. A different amount (prices went up) becomes
-  // the one suggested from now on. A dollar one is paid in dollars, converted at `rate`.
+  // Records this month's payment as an expense, made at `paidAt` (now by default). A different
+  // amount (prices went up) becomes the one suggested from now on. A dollar one is paid in
+  // dollars, converted at `rate`.
   async pay(
     fixed: FixedExpense,
     amount: number,
     period: string,
     rate?: ConversionRate,
+    paidAt?: string,
     now = new Date(),
   ) {
     if (fixed.currency === 'USD' && !rate) throw new Error('A dollar payment needs a rate')
@@ -74,6 +76,7 @@ export const fixedRepo = {
       fixedExpenseId: fixed.id,
       fixedPeriod: period,
       paymentMethod: fixed.paymentMethod ?? 'cash',
+      spentAt: paidAt,
     })
     if (amount !== fixed.amount) {
       await db.fixedExpenses.update(fixed.id, {

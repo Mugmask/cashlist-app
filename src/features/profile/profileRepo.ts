@@ -23,6 +23,12 @@ export const profileRepo = {
   get() {
     return db.profile.get(ID)
   },
+
+  // Changes only the monthly income, keeping the rest of the profile
+  async saveMonthlyIncome(monthlyIncome: number, now = new Date()) {
+    const current = await profileRepo.get()
+    await profileRepo.save({ name: current?.name, monthlyIncome }, now)
+  },
 }
 
 // undefined while loading, null without a profile yet

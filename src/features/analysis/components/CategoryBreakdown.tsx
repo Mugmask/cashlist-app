@@ -28,7 +28,7 @@ export function CategoryBreakdown({ expenses, changes, onOpenExpense }: Category
   return (
     <ul className={styles.list}>
       {totalsByCategory(variable).map((c) => {
-        const { label } = getCategory(c.category)
+        const { label, color } = getCategory(c.category)
         const share = Math.round((c.total / total) * 100)
         const isOpen = open === c.category
         const listId = `category-${c.category}`
@@ -52,6 +52,7 @@ export function CategoryBreakdown({ expenses, changes, onOpenExpense }: Category
                   value={c.total}
                   max={total}
                   tone="accent"
+                  color={color}
                 />
                 <span className={styles.meta}>
                   <span>

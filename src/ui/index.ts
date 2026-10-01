@@ -7,6 +7,7 @@ export { buttonClassName, type ButtonStyleOptions } from './Button/buttonClassNa
 export { Card, type CardProps } from './Card/Card'
 export { ChipGroup, type ChipGroupProps, type ChipOption } from './ChipGroup/ChipGroup'
 export { cx } from './cx'
+export { DayField, type DayFieldProps } from './DayField/DayField'
 export { EmptyState, type EmptyStateProps } from './EmptyState/EmptyState'
 export { IconButton, type IconButtonProps } from './IconButton/IconButton'
 export { PageHeader, type PageHeaderProps } from './PageHeader/PageHeader'

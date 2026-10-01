@@ -21,6 +21,13 @@ describe('profileRepo', () => {
     })
   })
 
+  it('saveMonthlyIncome changes the income and keeps the name', async () => {
+    await profileRepo.save({ name: 'Fran', monthlyIncome: 1_200_000 })
+    await profileRepo.saveMonthlyIncome(2_000_000)
+
+    expect(await profileRepo.get()).toMatchObject({ name: 'Fran', monthlyIncome: 2_000_000 })
+  })
+
   it('save replaces it: a field left out is cleared', async () => {
     await profileRepo.save({ name: 'Fran', monthlyIncome: 1_200_000 })
     await profileRepo.save({ name: 'Fran' })

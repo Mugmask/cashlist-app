@@ -22,7 +22,7 @@ describe('changeByCategory', () => {
   const september = [
     expense(100, 'groceries', new Date(2026, 8, 2)),
     expense(900, 'groceries', new Date(2026, 8, 20)), // after the 5th: not comparable yet
-    expense(200, 'going_out', new Date(2026, 8, 1)),
+    expense(200, 'personal', new Date(2026, 8, 1)),
     expense(5000, 'rent', new Date(2026, 8, 1), true), // fixed: never compared
   ]
 

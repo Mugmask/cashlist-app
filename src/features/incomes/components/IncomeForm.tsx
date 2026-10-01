@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import type { Income } from '@/lib/db'
 import { runSync } from '@/lib/sync'
-import { AmountField, Button, Stack, TextField } from '@/ui'
+import { AmountField, Button, DayField, Stack, TextField } from '@/ui'
 import { amountToInput, parseAmount } from '@/utils/currency'
-import { toDayKey, withDayKey } from '@/utils/dates'
+import { nowOnDay, toDayKey, withDayKey } from '@/utils/dates'
 import { incomesRepo } from '../incomesRepo'
 
 export interface IncomeFormProps {
@@ -11,17 +11,17 @@ export interface IncomeFormProps {
   onSaved?: () => void
 }
 
-// New income, or corrections to one already loaded (then the day can change too), like the
-// expense form. The monthly income isn't loaded here: it's in the profile.
+// New income, or corrections to one already loaded; the day is today unless picked otherwise,
+// like the expense form. The monthly income isn't loaded here: it's in the profile.
 export function IncomeForm({ income, onSaved }: IncomeFormProps) {
   const [amount, setAmount] = useState(income ? amountToInput(income.amount) : '')
   const [name, setName] = useState(income?.name ?? '')
   const [note, setNote] = useState(income?.note ?? '')
-  const [day, setDay] = useState(income ? toDayKey(new Date(income.receivedAt)) : '')
   const [today] = useState(() => toDayKey(new Date())) // read once: the form is short-lived
+  const [day, setDay] = useState(income ? toDayKey(new Date(income.receivedAt)) : today)
 
   const value = parseAmount(amount)
-  const isValid = value !== null && (!income || (day !== '' && day <= today))
+  const isValid = value !== null && day !== '' && day <= today
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -37,7 +37,10 @@ export function IncomeForm({ income, onSaved }: IncomeFormProps) {
         receivedAt: withDayKey(income.receivedAt, day),
       })
     } else {
-      await incomesRepo.add(fields)
+      await incomesRepo.add({
+        ...fields,
+        ...(day !== today && { receivedAt: nowOnDay(day) }),
+      })
       setAmount('')
       setName('')
       setNote('')
@@ -63,16 +66,7 @@ export function IncomeForm({ income, onSaved }: IncomeFormProps) {
           autoFocus={!income}
           required
         />
-        {income && (
-          <TextField
-            label="Día"
-            type="date"
-            value={day}
-            max={today}
-            onChange={(e) => setDay(e.target.value)}
-            required
-          />
-        )}
+        <DayField label="Día del ingreso" value={day} max={today} onChange={setDay} />
         <TextField
           label="Nota"
           hideLabel

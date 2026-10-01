@@ -6,6 +6,7 @@ export interface NewIncome {
   amount: number
   name?: string
   note?: string
+  receivedAt?: string // ISO; now when missing
 }
 
 // What can be corrected on an income already loaded. `name: undefined` / `note: undefined`
@@ -20,7 +21,7 @@ export const incomesRepo = {
     await db.incomes.add({
       ...data,
       id,
-      receivedAt: iso,
+      receivedAt: data.receivedAt ?? iso,
       updatedAt: iso,
       deleted: false,
       pending: 1,

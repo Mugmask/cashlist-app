@@ -2,8 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { ConversionNote, ManualRateField } from '@/features/expenses'
 import { runSync } from '@/lib/sync'
 import { useConversionRate } from '@/lib/useDollarRate'
-import { AmountField, Button, Stack, useToast } from '@/ui'
+import { AmountField, Button, DayField, Stack, useToast } from '@/ui'
 import { amountToInput, parseAmount } from '@/utils/currency'
+import { nowOnDay, toDayKey } from '@/utils/dates'
 import { fixedRepo } from '../fixedRepo'
 import type { FixedLine } from '../overview'
 import styles from './PayFixedForm.module.css'
@@ -22,19 +23,22 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
   const [amount, setAmount] = useState(amountToInput(fixed.amount))
   const toast = useToast()
   const [saving, setSaving] = useState(false) // guards against a double tap paying twice
+  const [today] = useState(() => toDayKey(new Date())) // read once: the form is short-lived
+  const [day, setDay] = useState(today) // paid days ago, it's loaded on the day it was
   const conversion = useConversionRate({
     enabled: dollars,
     method: fixed.paymentMethod ?? 'cash',
   })
   const parsed = parseAmount(amount)
   const changed = parsed !== null && parsed !== fixed.amount
-  const isValid = parsed !== null && (!dollars || conversion.rate !== null)
+  const isValid = parsed !== null && (!dollars || conversion.rate !== null) && day <= today
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!isValid || parsed === null || saving) return
     setSaving(true)
-    await fixedRepo.pay(fixed, parsed, period, conversion.rate ?? undefined)
+    const paidAt = day === today ? undefined : nowOnDay(day)
+    await fixedRepo.pay(fixed, parsed, period, conversion.rate ?? undefined, paidAt)
     toast(`Pago de ${fixed.name} registrado`)
     runSync().catch(() => {}) // on failure it stays pending and retries on its own
     onDone()
@@ -60,6 +64,7 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
             <ConversionNote dollars={parsed} rate={conversion.rate} loading={conversion.loading} />
           )}
         </div>
+        <DayField label="Día del pago" value={day} max={today} onChange={setDay} />
         {conversion.needsManual && (
           <ManualRateField value={conversion.manual} onChange={conversion.setManual} />
         )}

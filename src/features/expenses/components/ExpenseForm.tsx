@@ -3,9 +3,9 @@ import type { Expense } from '@/lib/db'
 import { convertAmount, toPesos } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { useConversionRate } from '@/lib/useDollarRate'
-import { AmountField, Button, ChipGroup, Stack, TextField } from '@/ui'
+import { AmountField, Button, ChipGroup, DayField, Stack, TextField } from '@/ui'
 import { amountToInput, formatCurrencyShort, parseAmount, type Currency } from '@/utils/currency'
-import { toDayKey, withDayKey } from '@/utils/dates'
+import { nowOnDay, toDayKey, withDayKey } from '@/utils/dates'
 import { EXPENSE_CATEGORIES, getCategory, type ExpenseCategoryId } from '../categories'
 import { CURRENCY_OPTIONS } from '../currencies'
 import { INSTALLMENT_OPTIONS, splitInstallments } from '../installments'
@@ -38,7 +38,7 @@ export interface ExpenseFormProps {
   onSaved?: () => void
 }
 
-// New expense, or corrections to one already loaded (then the day can change too).
+// New expense, or corrections to one already loaded. The day is today unless picked otherwise.
 // In dollars, it's converted to pesos with today's rate for how it was paid.
 export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: ExpenseFormProps) {
   const wasDollars = expense?.currency === 'USD'
@@ -58,8 +58,8 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
     const current = String(expense?.installments ?? 1)
     return INSTALLMENT_OPTIONS.find((n) => n === current) ?? '1'
   })
-  const [day, setDay] = useState(expense ? toDayKey(new Date(expense.spentAt)) : '')
   const [today] = useState(() => toDayKey(new Date())) // read once: the form is short-lived
+  const [day, setDay] = useState(expense ? toDayKey(new Date(expense.spentAt)) : today)
 
   // An edited dollar expense keeps the rate it was loaded with, unless how it was paid changes
   const keepsRate =
@@ -90,9 +90,7 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
     if (converted) setAmount((current) => (current === typed ? amountToInput(converted) : current))
   }
   const isValid =
-    value !== null &&
-    (currency === 'ARS' || rate !== null) &&
-    (!expense || (day !== '' && day <= today))
+    value !== null && (currency === 'ARS' || rate !== null) && day !== '' && day <= today
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -127,7 +125,11 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
         spentAt: withDayKey(expense.spentAt, day),
       })
     } else {
-      await expensesRepo.add(fields)
+      // Another day keeps the time it's loaded at, like moving an expense to another day
+      await expensesRepo.add({
+        ...fields,
+        ...(day !== today && { spentAt: nowOnDay(day) }),
+      })
       rememberPaymentMethod(paymentMethod)
       setAmount('')
       setName('')
@@ -200,16 +202,7 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
             )}
           </div>
         )}
-        {expense && (
-          <TextField
-            label="Día"
-            type="date"
-            value={day}
-            max={today}
-            onChange={(e) => setDay(e.target.value)}
-            required
-          />
-        )}
+        <DayField label="Día del gasto" value={day} max={today} onChange={setDay} />
         <TextField
           label="Nota"
           hideLabel

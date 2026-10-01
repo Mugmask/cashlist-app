@@ -82,6 +82,17 @@ export function withDayKey(iso: string, dayKey: string) {
   return date.toISOString()
 }
 
+// Now's time of day on another local calendar day ("2026-09-28"): for something loaded today
+// that happened that day
+export function nowOnDay(dayKey: string, now = new Date()) {
+  return withDayKey(now.toISOString(), dayKey)
+}
+
+// A local calendar day ("2026-09-28") as "Hoy", "Ayer" or "Lunes, 28 sept"
+export function formatDayKey(dayKey: string, now = new Date()) {
+  return formatDayHeading(nowOnDay(dayKey, now), now)
+}
+
 // "2026-09" → the first day of that month
 export function fromPeriod(period: string) {
   const [year, month] = period.split('-').map(Number)

@@ -1,5 +1,6 @@
 import type { Expense } from '@/lib/db'
-import { toDayKey } from '@/utils/dates'
+import { toDayKey, toPeriod } from '@/utils/dates'
+import { getCategory } from './categories'
 
 export interface DayGroup<T extends Expense = Expense> {
   key: string
@@ -22,6 +23,19 @@ export interface MonthSummary {
 
 export function isFixed(expense: Expense) {
   return expense.fixedExpenseId !== undefined
+}
+
+// The first month kept whole in the app ("2026-09"): the first with a fixed expense paid.
+// Earlier months only hold card purchases loaded for their installments. Undefined without
+// any fixed payment.
+export function firstTrackedPeriod(expenses: readonly Expense[]): string | undefined {
+  return expenses
+    .filter(isFixed)
+    .map((e) => toPeriod(new Date(e.spentAt)))
+    .reduce<string | undefined>(
+      (first, p) => (first === undefined || p < first ? p : first),
+      undefined,
+    )
 }
 
 export function summarizeMonth(expenses: readonly Expense[]): MonthSummary {
@@ -57,7 +71,10 @@ export function groupByDay<T extends Expense>(expenses: readonly T[]): DayGroup<
 // Total per category, biggest first
 export function totalsByCategory(expenses: readonly Expense[]): CategoryTotal[] {
   const byCategory = new Map<string, CategoryTotal>()
-  for (const { category, amount } of expenses) {
+  for (const e of expenses) {
+    // By the category it shows as: one folded into another adds to it
+    const category = getCategory(e.category).id
+    const { amount } = e
     const entry = byCategory.get(category) ?? { category, total: 0, count: 0 }
     entry.total += amount
     entry.count += 1

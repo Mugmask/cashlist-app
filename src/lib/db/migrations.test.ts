@@ -77,7 +77,7 @@ describe('db migrations', () => {
       {
         id: 'b',
         amount: 900,
-        category: 'going_out',
+        category: 'personal',
         spentAt: '2026-09-11T10:00:00.000Z',
         note: undefined,
         updatedAt: '2026-09-12T10:00:00.000Z',

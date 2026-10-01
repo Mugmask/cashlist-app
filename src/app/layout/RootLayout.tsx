@@ -11,7 +11,7 @@ import { Alert, PrimaryActionProvider, ToastProvider } from '@/ui'
 import { UpdatePrompt } from '../UpdatePrompt'
 import { AuthShell } from './AuthShell'
 import { BackLink } from './BackLink'
-import { BottomNav } from './BottomNav'
+import { BottomNav, NAV_PATHS } from './BottomNav'
 import { OfflineBadge } from './OfflineBadge'
 import styles from './RootLayout.module.css'
 import { SplashScreen } from './SplashScreen'
@@ -89,8 +89,8 @@ function AppShell({ email }: { email?: string }) {
             </header>
             <main ref={mainRef} className={styles.main}>
               {syncError && <Alert tone="danger">{syncError}</Alert>}
-              {/* Every screen but Inicio can go back to the one it was opened from */}
-              {back && <BackLink target={back} />}
+              {/* Screens off the bottom nav go back to the one they were opened from */}
+              {back && !NAV_PATHS.has(pathname) && <BackLink target={back} />}
               <Outlet />
             </main>
             <BottomNav />
