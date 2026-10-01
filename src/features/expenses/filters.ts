@@ -7,7 +7,7 @@ import { isFixed } from './selectors'
 // What the expense list can be narrowed to. Kept in the URL ("?q=pedidos&pago=tarjeta"), so
 // back, reload and links (the home's card) all land on the same list.
 export interface ExpenseFilters {
-  query: string // text in the note or the category's name
+  query: string // text in the name, the note or the category's name
   category?: string
   method?: PaymentMethod
   kind?: 'fixed' | 'variable'
@@ -61,7 +61,9 @@ export function applyFilters<T extends MonthExpense>(
   return expenses.filter(
     (e) =>
       (!query ||
-        normalizeName(`${e.note ?? ''} ${getCategory(e.category).label}`).includes(query)) &&
+        normalizeName(`${e.name ?? ''} ${e.note ?? ''} ${getCategory(e.category).label}`).includes(
+          query,
+        )) &&
       (!filters.category || e.category === filters.category) &&
       (!filters.method || (e.paymentMethod ?? 'cash') === filters.method) &&
       (!filters.kind || (filters.kind === 'fixed') === isFixed(e)) &&

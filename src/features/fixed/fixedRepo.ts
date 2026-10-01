@@ -70,7 +70,7 @@ export const fixedRepo = {
     const expenseId = await addExpense({
       ...money,
       category: fixed.category,
-      note: fixed.name,
+      name: fixed.name,
       fixedExpenseId: fixed.id,
       fixedPeriod: period,
       paymentMethod: fixed.paymentMethod ?? 'cash',

@@ -20,7 +20,8 @@ export interface Expense extends Syncable {
   amount: number
   category: string
   spentAt: string // ISO
-  note?: string
+  name?: string // "Pizzaluna", "Alquiler": what the lists show; the category when missing
+  note?: string // a free comment, only in the detail
   // Set when this expense is the payment of a fixed expense for a given month
   fixedExpenseId?: string
   fixedPeriod?: string // "2026-09": the month it pays, which may differ from spentAt's month
@@ -231,6 +232,20 @@ db.version(9).stores({
 // v10: the profile (dollar expenses need no migration: missing currency means pesos)
 db.version(10).stores({
   profile: 'id, pending',
+})
+
+// v11: expenses get a name apart from the note. Every note so far was really a name (a
+// merchant, a fixed expense's name, "Compra de 4 productos"), so it moves there. The server
+// moves its copy the same way (migration 13); rows stay as they are sync-wise.
+db.version(11).upgrade(async (tx) => {
+  await tx
+    .table('expenses')
+    .toCollection()
+    .modify((e: Expense) => {
+      if (e.note === undefined || e.name !== undefined) return
+      e.name = e.note
+      delete e.note
+    })
 })
 
 // Asks the browser not to evict IndexedDB when storage runs low

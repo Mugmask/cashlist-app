@@ -14,9 +14,9 @@ export interface ExpenseRowProps {
 
 // Just what tells expenses apart at a glance; payment method and the rest are in the detail
 export function ExpenseRow({ expense, showDate = true, onOpen }: ExpenseRowProps) {
-  // Its name when it has one ("PedidosYa · Pizzaluna", "Alquiler"), so a list of the same
-  // category still tells apart; else the category. The icon always says the category.
-  const title = expense.note || getCategory(expense.category).label
+  // Its name when it has one ("Pizzaluna", "Alquiler"), so a list of the same category still
+  // tells apart; else the category. The icon always says the category.
+  const title = expense.name || getCategory(expense.category).label
 
   const { installment } = expense
   const meta = [

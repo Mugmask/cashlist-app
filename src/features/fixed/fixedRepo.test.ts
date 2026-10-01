@@ -23,7 +23,7 @@ describe('fixedRepo', () => {
     expect(await db.expenses.get(expenseId)).toMatchObject({
       amount: 20000,
       category: 'utilities',
-      note: 'Internet',
+      name: 'Internet',
       fixedExpenseId: id,
       fixedPeriod: '2026-09',
       pending: 1,

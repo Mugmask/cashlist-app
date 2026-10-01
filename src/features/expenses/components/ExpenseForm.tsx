@@ -46,6 +46,7 @@ export function ExpenseForm({ expense, onSaved }: ExpenseFormProps) {
   const [category, setCategory] = useState<ExpenseCategoryId>(
     expense ? getCategory(expense.category).id : EXPENSE_CATEGORIES[0].id,
   )
+  const [name, setName] = useState(expense?.name ?? '')
   const [note, setNote] = useState(expense?.note ?? '')
   const [paymentMethod, setPaymentMethod] = useState(
     expense ? (expense.paymentMethod ?? 'cash') : readLastPaymentMethod,
@@ -109,6 +110,7 @@ export function ExpenseForm({ expense, onSaved }: ExpenseFormProps) {
       paymentMethod,
       // Only card purchases go in installments; undefined clears them
       installments: inInstallments ? Number(installments) : undefined,
+      name: name.trim() || undefined,
       note: note.trim() || undefined,
     }
     if (expense) {
@@ -125,6 +127,7 @@ export function ExpenseForm({ expense, onSaved }: ExpenseFormProps) {
       await expensesRepo.add(fields)
       rememberPaymentMethod(paymentMethod)
       setAmount('')
+      setName('')
       setNote('')
     }
     runSync().catch(() => {}) // on failure it stays pending and retries on its own
@@ -134,6 +137,14 @@ export function ExpenseForm({ expense, onSaved }: ExpenseFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       <Stack gap={4}>
+        {/* Like the fixed expenses' form: the name on top, here optional */}
+        <TextField
+          label="Nombre (opcional)"
+          placeholder="Pizzaluna, nafta, cine…"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoComplete="off"
+        />
         <div>
           <AmountField
             label={currency === 'USD' ? 'Monto en dólares' : 'Monto'}

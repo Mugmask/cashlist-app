@@ -53,7 +53,7 @@ describe('db migrations', () => {
 
     await db.open()
 
-    expect(db.verno).toBe(10)
+    expect(db.verno).toBe(11)
     expect(db.tables.map((t) => t.name).sort()).toEqual([
       'cardStatements',
       'expenses',
@@ -68,7 +68,7 @@ describe('db migrations', () => {
         amount: 1500,
         category: 'groceries',
         spentAt: '2026-09-10T10:00:00.000Z',
-        note: 'feria',
+        name: 'feria', // v11: notes so far were names
         updatedAt: '2026-09-10T10:00:00.000Z',
         deleted: false,
         pending: 1,

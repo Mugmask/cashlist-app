@@ -16,6 +16,7 @@ interface ExpenseRow {
   amount: number | string // numeric can come back as a string
   category: string
   spent_at: string
+  name: string | null
   note: string | null
   fixed_expense_id: string | null
   fixed_period: string | null
@@ -34,12 +35,13 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
   name: 'expenses',
   local: db.expenses,
   columns:
-    'id, amount, category, spent_at, note, fixed_expense_id, fixed_period, payment_method, currency, foreign_amount, exchange_rate, exchange_rate_kind, installments, updated_at, deleted, synced_at',
+    'id, amount, category, spent_at, name, note, fixed_expense_id, fixed_period, payment_method, currency, foreign_amount, exchange_rate, exchange_rate_kind, installments, updated_at, deleted, synced_at',
   toRow: (e) => ({
     id: e.id,
     amount: e.amount,
     category: e.category,
     spent_at: e.spentAt,
+    name: e.name ?? null,
     note: e.note ?? null,
     fixed_expense_id: e.fixedExpenseId ?? null,
     fixed_period: e.fixedPeriod ?? null,
@@ -57,6 +59,7 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
     amount: Number(row.amount),
     category: row.category,
     spentAt: row.spent_at,
+    name: row.name ?? undefined,
     note: row.note ?? undefined,
     fixedExpenseId: row.fixed_expense_id ?? undefined,
     fixedPeriod: row.fixed_period ?? undefined,

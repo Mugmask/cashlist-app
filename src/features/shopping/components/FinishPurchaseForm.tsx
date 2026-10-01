@@ -24,7 +24,7 @@ export function FinishPurchaseForm({ itemCount, onDone }: FinishPurchaseFormProp
     setSaving(true)
     const value = parseAmount(amount)
     if (withExpense && value !== null) {
-      await addExpense({ amount: value, category: 'groceries', note: `Compra de ${products}` })
+      await addExpense({ amount: value, category: 'groceries', name: `Compra de ${products}` })
     }
     await shoppingRepo.finishPurchase()
     toast(withExpense ? 'Compra terminada y gasto cargado' : 'Compra terminada')

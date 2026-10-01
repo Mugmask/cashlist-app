@@ -2,12 +2,13 @@ import { db, type ExchangeRateKind, type Expense, type PaymentMethod } from '@/l
 import { shiftMonth, toPeriod } from '@/utils/dates'
 import { forMonth, MAX_INSTALLMENTS, type MonthExpense } from './installments'
 
-// What can be corrected on an existing expense. `note: undefined` clears it.
+// What can be corrected on an existing expense. `name: undefined` / `note: undefined` clear them.
 export type ExpenseChanges = Partial<
   Pick<
     Expense,
     | 'amount'
     | 'category'
+    | 'name'
     | 'note'
     | 'paymentMethod'
     | 'spentAt'
@@ -22,6 +23,7 @@ export type ExpenseChanges = Partial<
 export interface NewExpense {
   amount: number
   category: string // an ExpenseCategoryId; unknown ids show as "Otros"
+  name?: string // "Pizzaluna", "Alquiler"
   note?: string
   paymentMethod?: PaymentMethod // cash when missing
   // Only for an expense in dollars (then `amount` is the pesos it came to)

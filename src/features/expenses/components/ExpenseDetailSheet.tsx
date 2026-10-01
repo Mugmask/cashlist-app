@@ -66,8 +66,8 @@ function ExpenseDetail({
   const fixed = isFixed(expense)
   const dollars = expense.currency === 'USD'
   const category = getCategory(expense.category).label
-  // A fixed payment is named after the fixed expense ("Alquiler"), like in the lists
-  const title = fixed && expense.note ? expense.note : category
+  // Its name ("Pizzaluna", "Alquiler"), like in the lists; the category when it has none
+  const title = expense.name || category
   const method = PAYMENT_METHOD_OPTIONS.find((o) => o.value === (expense.paymentMethod ?? 'cash'))!
 
   async function handleDelete() {
@@ -114,7 +114,7 @@ function ExpenseDetail({
             {title}, mes de {formatMonthName(fromPeriod(expense.fixedPeriod))}
           </Fact>
         )}
-        {!fixed && expense.note && <Fact label="Nota">{expense.note}</Fact>}
+        {expense.note && <Fact label="Nota">{expense.note}</Fact>}
         {expense.pending === 1 && (
           <Fact label="Sincronización">
             <span className={styles.pending}>
