@@ -84,12 +84,6 @@ export interface FixedExpense extends Syncable {
   currency?: 'USD' // missing means pesos
 }
 
-// A card statement marked as paid. The id is the month of the purchases ("2026-09").
-// Paying it isn't an expense: the purchases were counted when they were made.
-export interface CardStatement extends Syncable {
-  paidAt: string // ISO
-}
-
 export type ShoppingItemStatus = 'in_stock' | 'to_buy' | 'in_cart'
 
 // A product in the pantry. One row per product, cycling in_stock → to_buy → in_cart → in_stock:
@@ -114,7 +108,6 @@ export const db = new Dexie('cashlist') as Dexie & {
   recipes: EntityTable<Recipe, 'id'>
   shoppingItems: EntityTable<ShoppingItem, 'id'>
   fixedExpenses: EntityTable<FixedExpense, 'id'>
-  cardStatements: EntityTable<CardStatement, 'id'>
   profile: EntityTable<Profile, 'id'>
   syncState: EntityTable<SyncState, 'key'>
 }
@@ -306,6 +299,12 @@ db.version(15).upgrade(async (tx) => {
   if (keys.some((key) => key.endsWith('-cursor-v2'))) {
     await tx.table('syncState').put({ key: SYNCED_ONCE_KEY, value: new Date().toISOString() })
   }
+})
+
+// v16: card statements marked as paid were never shown anywhere. The local copy goes; the
+// Supabase table and its rows are kept, like budgets', in case the feature comes back.
+db.version(16).stores({
+  cardStatements: null,
 })
 
 // A local change (pending) always gets an updatedAt later than the version it changes, even

@@ -1,6 +1,5 @@
 import {
   db,
-  type CardStatement,
   type CustomCategory,
   type ExchangeRateKind,
   type Expense,
@@ -261,29 +260,6 @@ export const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
   }),
 }
 
-interface CardStatementRow {
-  id: string
-  paid_at: string
-  updated_at: string
-  deleted: boolean
-  synced_at: string
-}
-
-export const cardStatementsTable: SyncedTable<CardStatement, CardStatementRow> = {
-  name: 'card_statements',
-  local: db.cardStatements,
-  columns: 'id, paid_at, updated_at, deleted, synced_at',
-  onConflict: 'user_id,id', // composite primary key; user_id comes from auth.uid()
-  toRow: (c) => ({ id: c.id, paid_at: c.paidAt, updated_at: c.updatedAt, deleted: c.deleted }),
-  fromRow: (row) => ({
-    id: row.id,
-    paidAt: row.paid_at,
-    updatedAt: row.updated_at,
-    deleted: row.deleted,
-    pending: 0,
-  }),
-}
-
 interface ProfileRow {
   id: string
   name: string | null
@@ -323,6 +299,5 @@ export const SYNCED_TABLES = [
   toSyncTask(shoppingItemsTable),
   toSyncTask(recipesTable),
   toSyncTask(fixedExpensesTable),
-  toSyncTask(cardStatementsTable),
   toSyncTask(profileTable),
 ]

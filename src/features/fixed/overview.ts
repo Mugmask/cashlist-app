@@ -22,6 +22,21 @@ export interface FixedOverview {
 
 const collator = new Intl.Collator('es', { sensitivity: 'base' })
 
+// Which fixed expenses a month shows. This month (and later): the ones there now. A month
+// gone: every one paid in it, even if deleted since, and the ones already in use by then
+// (`inUse`: paid that month or before) and not deleted, as still to pay. One created later
+// doesn't show up as owed in a month before it existed.
+export function fixedForPeriod(
+  all: readonly FixedExpense[],
+  payments: readonly Expense[],
+  inUse: ReadonlySet<string>,
+  gone: boolean,
+): FixedExpense[] {
+  if (!gone) return all.filter((f) => !f.deleted)
+  const paid = new Set(payments.map((p) => p.fixedExpenseId))
+  return all.filter((f) => paid.has(f.id) || (!f.deleted && inUse.has(f.id)))
+}
+
 // Where each fixed expense stands this month: paid or not. `payments` are this month's fixed
 // payments.
 export function buildFixedOverview(

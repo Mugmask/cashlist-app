@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '@/lib/db'
-import { expensesRepo, getMonthExpenses } from './expensesRepo'
+import { expensesRepo, getFixedInUseBy, getMonthExpenses } from './expensesRepo'
 
 beforeEach(async () => {
   await db.expenses.clear()
@@ -123,5 +123,18 @@ describe('expensesRepo', () => {
       [100000, 3], // the July purchase's 3rd installment
     ])
     expect(await getMonthExpenses(new Date(2026, 9, 1))).toEqual([]) // all paid by October
+  })
+})
+
+describe('getFixedInUseBy', () => {
+  it('the fixed expenses with a payment for that month or an earlier one', async () => {
+    const pay = (fixedExpenseId: string, fixedPeriod: string) =>
+      expensesRepo.add({ amount: 100, category: 'rent', fixedExpenseId, fixedPeriod })
+    await pay('rent', '2026-08')
+    await pay('netflix', '2026-10')
+    const gone = await pay('gym', '2026-09')
+    await expensesRepo.remove(gone) // an undone payment doesn't count
+
+    expect([...(await getFixedInUseBy('2026-09'))]).toEqual(['rent'])
   })
 })

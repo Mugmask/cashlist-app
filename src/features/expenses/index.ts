@@ -14,6 +14,7 @@ export {
   getExpensesBefore,
   getExpensesSince,
   getPaymentsOf,
+  getFixedInUseBy,
   getFixedPayments,
   getMonthExpenses,
   removeExpense,

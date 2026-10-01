@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Expense, FixedExpense } from '@/lib/db'
-import { buildFixedOverview } from './overview'
+import { buildFixedOverview, fixedForPeriod } from './overview'
 
 const ISO = '2026-09-01T10:00:00.000Z'
 
@@ -105,5 +105,25 @@ describe('buildFixedOverview in dollars', () => {
     expect(paid[0].amount).toBe(24000)
     expect(paid[0].shown).toEqual({ value: 12, currency: 'USD' })
     expect(totals).toEqual({ expected: 24000, paid: 24000, remaining: 0 })
+  })
+})
+
+describe('fixedForPeriod', () => {
+  const rent = fixed('rent', 300)
+  const netflix = fixed('netflix', 10) // created in October: no payment before it
+  const gym = { ...fixed('gym', 50), deleted: true } // paid in September, deleted since
+  const all = [rent, netflix, gym]
+  const septemberPayments = [payment('gym', 50, '2026-09-05T10:00:00.000Z')]
+
+  it('shows the ones there now for the month going on', () => {
+    expect(fixedForPeriod(all, [], new Set(), false).map((f) => f.id)).toEqual(['rent', 'netflix'])
+  })
+
+  it('shows a month gone as it was: what was paid, deleted or not, and what was in use', () => {
+    const inUse = new Set(['rent', 'gym']) // paid in September or before
+    expect(fixedForPeriod(all, septemberPayments, inUse, true).map((f) => f.id)).toEqual([
+      'rent',
+      'gym',
+    ])
   })
 })

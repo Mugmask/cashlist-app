@@ -1,20 +1,26 @@
-import { getFixedPayments } from '@/features/expenses'
+import { getFixedInUseBy, getFixedPayments } from '@/features/expenses'
 import { useDollarRate } from '@/lib/useDollarRate'
 import { useKeyedLiveQuery } from '@/lib/useKeyedLiveQuery'
 import { toPeriod } from '@/utils/dates'
 import { fixedRepo } from './fixedRepo'
-import { buildFixedOverview } from './overview'
+import { buildFixedOverview, fixedForPeriod } from './overview'
 
 export type FixedOverview = NonNullable<ReturnType<typeof useFixedOverview>>
 
 // A month's fixed expenses; undefined while loading. Fixed expenses and that month's payments
-// come from one live query, so paying (or undoing) updates everything at once. Today's dollar
+// come from one live query, so paying (or undoing) updates everything at once. A month gone
+// shows the fixed expenses of then, not today's (see fixedForPeriod). Today's dollar
 // rates are fetched only when there are dollar fixed expenses, to estimate them in pesos.
 export function useFixedOverview(month: Date) {
   const period = toPeriod(month)
   const data = useKeyedLiveQuery(async () => {
-    const [fixed, payments] = await Promise.all([fixedRepo.active(), getFixedPayments(period)])
-    return { fixed, payments }
+    const [all, payments, inUse] = await Promise.all([
+      fixedRepo.all(),
+      getFixedPayments(period),
+      getFixedInUseBy(period),
+    ])
+    const gone = period < toPeriod(new Date())
+    return { fixed: fixedForPeriod(all, payments, inUse, gone), payments }
   }, period)
 
   const dollars = data?.fixed.filter((f) => f.currency === 'USD') ?? []

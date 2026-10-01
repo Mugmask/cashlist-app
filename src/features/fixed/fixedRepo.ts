@@ -47,6 +47,11 @@ export const fixedRepo = {
     return (await db.fixedExpenses.toArray()).filter((f) => !f.deleted)
   },
 
+  // Deleted ones too: a month gone still shows what was paid then
+  all() {
+    return db.fixedExpenses.toArray()
+  },
+
   // Records this month's payment as an expense, made at `paidAt` (now by default). A different
   // amount (prices went up) becomes the one suggested from now on. A dollar one is paid in
   // dollars, converted at `rate`.
