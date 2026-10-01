@@ -1,32 +1,41 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { IconButton } from '@/ui'
 import { formatMonthName, formatShortMonth, shiftMonth } from '@/utils/dates'
 import { capitalize } from '@/utils/text'
 import { useMonth } from './month'
 import styles from './MonthSwitcher.module.css'
 
-// ‹ Septiembre › in the header: moves every screen to another month. Another year's months show
-// short with the year ("Dic 2025"); tapping the month (when looking at another) comes back to
-// this month. On this month the › keeps its room, so the name never shifts.
+// ‹ Ago  Septiembre  Oct › in the header: moves every screen to another month. The arrows go
+// with the month they lead to, small and muted, so they don't read as the screen's way back
+// ("← Inicio"). Another year's months show short with the year ("Dic 2025"); tapping the
+// month (when looking at another) comes back to this month. On this month the › keeps its
+// room, so the name never shifts.
 export function MonthSwitcher() {
   const { month, current, isCurrent, select } = useMonth()
-  const name = (date: Date) =>
-    date.getFullYear() === current.getFullYear()
-      ? capitalize(formatMonthName(date))
-      : formatShortMonth(date, current.getFullYear())
+  const thisYear = current.getFullYear()
+  const name =
+    month.getFullYear() === thisYear
+      ? capitalize(formatMonthName(month))
+      : formatShortMonth(month, thisYear)
   const previous = shiftMonth(month, -1)
   const next = shiftMonth(month, 1)
+  // The neighbors without the year: the month in the middle already says which one
+  const neighbor = (date: Date) => formatShortMonth(date, date.getFullYear())
+  const longName = (date: Date) => `${formatMonthName(date)} ${date.getFullYear()}`
 
   return (
     <div className={styles.switcher}>
-      <IconButton
-        label={`Ver ${name(previous).toLowerCase()}`}
-        icon={<ChevronLeft />}
+      <button
+        type="button"
+        className={styles.previous}
+        aria-label={`Ver ${longName(previous)}`}
         onClick={() => select(previous)}
-      />
+      >
+        <ChevronLeft aria-hidden />
+        {neighbor(previous)}
+      </button>
       {isCurrent ? (
         <span className={styles.label} aria-live="polite">
-          {name(month)}
+          {name}
         </span>
       ) : (
         <button
@@ -36,15 +45,19 @@ export function MonthSwitcher() {
           aria-live="polite"
           title="Volver a este mes"
         >
-          {name(month)}
+          {name}
         </button>
       )}
-      <IconButton
-        label={`Ver ${name(next).toLowerCase()}`}
-        icon={<ChevronRight />}
+      <button
+        type="button"
+        className={styles.next}
+        aria-label={`Ver ${longName(next)}`}
         onClick={() => select(next)}
         disabled={isCurrent}
-      />
+      >
+        {neighbor(next)}
+        <ChevronRight aria-hidden />
+      </button>
     </div>
   )
 }

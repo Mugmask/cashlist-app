@@ -4,7 +4,7 @@
   justify-content: center;
 }
 
-/* Fixed width: the arrows stay put whether it says "Mayo" or "Septiembre" */
+/* Fixed widths: nothing moves whether it says "Mayo" or "Septiembre", "Ene" or "Sept" */
 .label {
   width: 7.5rem;
   white-space: nowrap;
@@ -23,6 +23,49 @@ button.label {
   cursor: pointer;
 }
 
-.switcher button:disabled {
+/* The neighbor months: small and muted, the arrow on the outer side */
+.previous,
+.next {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  width: 3.75rem;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-subtle);
+  font: inherit;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.previous {
+  justify-content: flex-end;
+}
+
+.next {
+  justify-content: flex-start;
+}
+
+.previous svg,
+.next svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+/* Only with a mouse: on a phone a tapped one would stay highlighted */
+@media (hover: hover) {
+  .previous:hover,
+  .next:hover {
+    color: var(--color-text);
+  }
+}
+
+.next:disabled {
   visibility: hidden; /* keeps its room, so the name stays centered */
 }
