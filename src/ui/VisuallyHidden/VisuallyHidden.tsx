@@ -5,6 +5,6 @@ import styles from './VisuallyHidden.module.css'
 export function VisuallyHidden({
   as: Tag = 'span',
   ...rest
-}: HTMLAttributes<HTMLElement> & { as?: 'span' | 'label' | 'h1' } & { htmlFor?: string }) {
+}: HTMLAttributes<HTMLElement> & { as?: 'span' | 'div' | 'label' | 'h1' } & { htmlFor?: string }) {
   return <Tag className={styles.visuallyHidden} {...rest} />
 }

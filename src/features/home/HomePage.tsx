@@ -1,7 +1,14 @@
 import { ChevronRight, Plus, Sparkles } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { Change, changeByCategory, describeChange, variableChange } from '@/features/analysis'
+import {
+  carryOver,
+  type CarryOver,
+  Change,
+  changeByCategory,
+  describeChange,
+  variableChange,
+} from '@/features/analysis'
 import { CardHomeCard, useCardSummary } from '@/features/card'
 import {
   CategoryIcon,
@@ -33,7 +40,6 @@ import {
   Stack,
 } from '@/ui'
 import { formatMonthName, fromPeriod, shiftMonth, toPeriod } from '@/utils/dates'
-import { carryOver, type CarryOver } from './carryOver'
 import styles from './HomePage.module.css'
 
 const TOP_CATEGORIES = 3 // a glance; the whole breakdown is one tap away

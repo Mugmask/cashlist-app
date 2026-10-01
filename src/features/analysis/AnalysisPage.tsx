@@ -4,24 +4,28 @@ import {
   ExpenseDetailSheet,
   ExpenseRow,
   getCategory,
+  getExpensesBefore,
   isFixed,
   totalsByCategory,
   useCategories,
   useMonthExpenses,
   type MonthExpense,
 } from '@/features/expenses'
-import { useMonthIncomes } from '@/features/incomes'
+import { useFixedOverview } from '@/features/fixed'
+import { getIncomesBefore, useMonthIncomes } from '@/features/incomes'
 import { useMonth } from '@/features/month'
 import { useProfile } from '@/features/profile'
+import { useKeyedLiveQuery } from '@/lib/useKeyedLiveQuery'
 import { Amount, Card, EmptyState, PageHeader, PageLoader, Stack } from '@/ui'
-import { daysInMonth, formatMonthName, shiftMonth } from '@/utils/dates'
+import { daysInMonth, formatMonthName, shiftMonth, toPeriod } from '@/utils/dates'
+import { carryOver } from './carryOver'
 import { changeByCategory, variableChange } from './comparison'
 import { CategoryBreakdown } from './components/CategoryBreakdown'
-import { PaceChart } from './components/PaceChart'
+import { PerDayCard } from './components/PerDayCard'
 import { SplitBar, type SplitPart } from './components/SplitBar'
 import { describeChange } from './insight'
 import styles from './AnalysisPage.module.css'
-import { cumulativeByDay } from './pace'
+import { perDay, weeksOf } from './perDay'
 
 const TOP_COUNT = 5
 const SPLIT_CATEGORIES = 5 // the bar stays readable; the rest goes together, in gray
@@ -34,11 +38,22 @@ export function AnalysisPage() {
   const previous = useMonthExpenses(shiftMonth(selected, -1))
   const profile = useProfile()
   const incomes = useMonthIncomes(selected)
+  // What the months before carried and the fixed ones still to pay: the same balance as home
+  const earlier = useKeyedLiveQuery(
+    async () => ({
+      expenses: await getExpensesBefore(selected),
+      incomes: await getIncomesBefore(selected),
+    }),
+    selected.getTime(),
+  )
+  const fixed = useFixedOverview(selected)
   const [openId, setOpenId] = useState<string | null>(null)
   const [now] = useState(() => new Date()) // read once: only the day of the month matters
 
   // Everything at once: numbers that fill in one by one look like they're changing
-  if (!month || !previous || !incomes || profile === undefined) return <PageLoader />
+  if (!month || !previous || !incomes || !earlier || !fixed || profile === undefined) {
+    return <PageLoader />
+  }
 
   const { expenses, total, fixedTotal, variableTotal } = month
   const monthName = formatMonthName(selected)
@@ -55,11 +70,25 @@ export function AnalysisPage() {
     .filter((e) => e.paymentMethod === 'card')
     .reduce((sum, e) => sum + e.amount, 0)
   const biggest = topVariable(expenses)
-  // Day by day: this month up to today (or whole, if it's gone), the one before whole
-  const days = daysInMonth(selected)
-  const spentByDay = cumulativeByDay(expenses, selected).slice(0, isCurrent ? now.getDate() : days)
-  const previousByDay = cumulativeByDay(before, shiftMonth(selected, -1))
-  const income = profile?.monthlyIncome === undefined ? undefined : profile.monthlyIncome + received
+  // Per day, against what the month has: like home, the monthly income plus whatever else came
+  // in, plus what the months before carried (only with a monthly income to measure them by)
+  const monthlyIncome = profile?.monthlyIncome
+  const income =
+    monthlyIncome !== undefined || received > 0 ? (monthlyIncome ?? 0) + received : undefined
+  const carried =
+    monthlyIncome !== undefined
+      ? (carryOver(earlier.expenses, monthlyIncome, toPeriod(selected), earlier.incomes)?.amount ??
+        0)
+      : 0
+  const today = isCurrent ? now.getDate() : null
+  const pace = perDay({
+    expenses,
+    month: selected,
+    today,
+    available: income === undefined ? undefined : income + carried,
+    spent: total,
+    committed: isCurrent ? fixed.totals.remaining : 0,
+  })
 
   return (
     <Stack gap={6}>
@@ -75,16 +104,13 @@ export function AnalysisPage() {
             {insight && <p className={styles.insight}>{insight}</p>}
           </Card>
 
-          <Section title="Cómo viene el mes">
+          <Section title={isCurrent ? 'Cómo viene el mes' : 'Cómo fue el mes'}>
             <Card>
-              <PaceChart
-                current={spentByDay}
-                previous={previousByDay}
-                days={days}
-                income={income}
+              <PerDayCard
+                perDay={pace}
+                weeks={weeksOf(expenses, selected, today)}
                 monthName={monthName}
-                previousName={previousName}
-                ongoing={isCurrent}
+                lastDay={daysInMonth(selected)}
               />
             </Card>
           </Section>

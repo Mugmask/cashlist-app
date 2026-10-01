@@ -1,0 +1,131 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.label {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* "$ 18.400 por día": the number leads, the unit in smaller ink beside it */
+.headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: var(--space-1) 0;
+}
+
+.unit {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-3) 0 0;
+  border-top: 1px solid var(--color-border);
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.facts strong {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+.facts strong.good {
+  color: var(--color-accent);
+}
+
+.facts strong.bad {
+  color: var(--color-danger);
+}
+
+.note {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* Weekly bars */
+.weeks {
+  margin: 0;
+}
+
+.bars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+}
+
+.week {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.value {
+  min-height: 1.2em;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.track {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  max-width: 44px;
+  height: 88px;
+}
+
+/* 4px rounded top, anchored to the baseline; grows up when it appears */
+.bar {
+  width: 100%;
+  height: calc(var(--share) * 100%);
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--color-accent);
+  transform-origin: bottom;
+  animation: grow var(--duration-enter) var(--ease-out) 160ms both;
+}
+
+.past .bar {
+  background: color-mix(in srgb, var(--color-accent) 55%, var(--color-surface));
+}
+
+/* Not here yet: an empty outline the full height, no number */
+.future .bar {
+  border: 1px dashed var(--color-border-strong);
+  border-bottom: 0;
+  background: transparent;
+  animation: none;
+}
+
+.range {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.current .range {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+@keyframes grow {
+  from {
+    transform: scaleY(0);
+  }
+}
