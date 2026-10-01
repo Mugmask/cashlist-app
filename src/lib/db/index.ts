@@ -263,6 +263,32 @@ db.version(12).stores({
   incomes: 'id, receivedAt, pending',
 })
 
+// The local database holds one user's data at a time. The owner is kept next to the sync
+// cursors, so clearing everything also forgets who it belonged to.
+const OWNER_KEY = 'owner'
+
+export async function clearLocalData() {
+  await db.transaction('rw', db.tables, () => Promise.all(db.tables.map((t) => t.clear())))
+}
+
+// Changes not uploaded yet: signing out now would lose them
+export async function countPendingChanges() {
+  const tables = db.tables.filter((t) => t.schema.idxByName.pending)
+  const counts = await Promise.all(tables.map((t) => t.where('pending').equals(1).count()))
+  return counts.reduce((a, b) => a + b, 0)
+}
+
+// Marks the local data as this user's. If it belonged to someone else (a session that
+// expired without signing out, say) it's cleared first, so it never syncs into this account.
+export async function claimLocalData(userId: string) {
+  await db.transaction('rw', db.tables, async () => {
+    const owner = await db.syncState.get(OWNER_KEY)
+    if (owner?.value === userId) return
+    if (owner) await Promise.all(db.tables.map((t) => t.clear()))
+    await db.syncState.put({ key: OWNER_KEY, value: userId })
+  })
+}
+
 // Asks the browser not to evict IndexedDB when storage runs low
 export async function requestPersistentStorage() {
   if (navigator.storage?.persist) await navigator.storage.persist()

@@ -1,3 +1,4 @@
+import { claimLocalData } from '@/lib/db'
 import { supabase } from '@/lib/supabase'
 import { SYNCED_TABLES } from './tables'
 
@@ -25,6 +26,7 @@ async function syncAll() {
   if (!supabase || !navigator.onLine) return
   const { data } = await supabase.auth.getSession()
   if (!data.session) return
+  await claimLocalData(data.session.user.id)
 
   // A failing table doesn't stop the others; the first error is reported after all ran
   const errors: unknown[] = []

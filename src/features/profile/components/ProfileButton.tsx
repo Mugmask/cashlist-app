@@ -1,10 +1,10 @@
 import { LogOut, UserRound } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useLocation } from 'react-router'
+import { signOut, unsyncedBeforeSignOut } from '@/features/auth'
 import type { Profile } from '@/lib/db'
-import { supabase } from '@/lib/supabase'
 import { runSync } from '@/lib/sync'
-import { AmountField, Button, Sheet, Stack, TextField, useToast } from '@/ui'
+import { Alert, AmountField, Button, Sheet, Stack, TextField, useToast } from '@/ui'
 import { amountToInput, parseAmount } from '@/utils/currency'
 import { profileRepo, useProfile } from '../profileRepo'
 import styles from './ProfileButton.module.css'
@@ -92,14 +92,45 @@ function ProfileForm({
           </Button>
         </Stack>
       </form>
+      <SignOutButton />
+    </Stack>
+  )
+}
+
+// Signing out clears this device's data. If some change couldn't be uploaded, it warns
+// first and only a second tap signs out anyway.
+function SignOutButton() {
+  const [unsynced, setUnsynced] = useState(0)
+  const [busy, setBusy] = useState(false)
+
+  async function handleClick() {
+    setBusy(true)
+    const pending = unsynced > 0 ? 0 : await unsyncedBeforeSignOut()
+    if (pending > 0) {
+      setUnsynced(pending)
+      setBusy(false)
+      return
+    }
+    await signOut()
+  }
+
+  return (
+    <Stack gap={3}>
+      {unsynced > 0 && (
+        <Alert tone="danger">
+          {unsynced === 1 ? 'Hay 1 cambio' : `Hay ${unsynced} cambios`} sin sincronizar. Si cerrás
+          sesión ahora, se pierden.
+        </Alert>
+      )}
       <Button
         variant="ghost"
         size="lg"
         fullWidth
         icon={<LogOut aria-hidden />}
-        onClick={() => supabase?.auth.signOut()}
+        loading={busy}
+        onClick={handleClick}
       >
-        Cerrar sesión
+        {unsynced > 0 ? 'Cerrar sesión igual' : 'Cerrar sesión'}
       </Button>
     </Stack>
   )
