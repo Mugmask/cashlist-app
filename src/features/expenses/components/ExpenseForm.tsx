@@ -213,7 +213,11 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
             ))}
           </div>
         )}
-        <CategoryPicker value={category} onChange={setCategory} />
+        <CategoryPicker
+          value={category}
+          onChange={setCategory}
+          pickFirst={!expense && !defaults?.category}
+        />
         <ChipGroup
           label="Cómo lo pagaste"
           showLabel

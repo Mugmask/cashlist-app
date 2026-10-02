@@ -85,7 +85,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
           value={currency}
           onChange={changeCurrency}
         />
-        <CategoryPicker value={category} onChange={setCategory} />
+        <CategoryPicker value={category} onChange={setCategory} pickFirst={!fixed} />
         <ChipGroup
           label="Cómo lo pagás"
           showLabel
