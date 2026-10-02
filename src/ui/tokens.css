@@ -33,8 +33,9 @@
       transparent 70%
     ),
     var(--color-bg);
-  /* The second glow of a hero card (Card), answering the accent from the other corner */
-  --color-glow-2: #5a78ff;
+  /* The second glow of a hero card (Card) and the page: the accent, a shade deeper, so every
+     glow is the user's color and none fights it */
+  --color-glow-2: oklch(from var(--color-accent) calc(l * 0.6) c h);
 
   /* Text */
   --color-text: #f4f5f7;
@@ -113,8 +114,8 @@
   --shadow-raised: 0 8px 32px rgb(0 0 0 / 0.45);
   --shadow-glass: 0 4px 16px rgb(0 0 0 / 0.3); /* small glass pieces floating on the page */
   --nav-shadow-color: rgb(0 0 0 / 0.55); /* the bottom bar's, drawn along its notched shape */
-  /* Glass: sheets frost what's under them, over soft blobs of color behind the page. Dimmer
-     than the light theme's, so the dark stays dark */
+  /* Glass: sheets frost what's under them, over soft blobs of the accent behind the page.
+     Dimmer than the light theme's, so the dark stays dark */
   --color-sheet: rgb(20 21 25 / 0.86);
   --sheet-blur: blur(24px) saturate(140%);
   /* The selected tab of a segmented control: a hairline and a drop, to stand off the track */
@@ -125,8 +126,16 @@
       color-mix(in srgb, var(--color-accent) 24%, transparent),
       transparent 70%
     ),
-    radial-gradient(60% 45% at 100% 50%, rgb(90 120 255 / 0.26), transparent 70%),
-    radial-gradient(55% 40% at 10% 80%, rgb(255 110 90 / 0.18), transparent 70%);
+    radial-gradient(
+      60% 45% at 100% 50%,
+      color-mix(in srgb, var(--color-glow-2) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      55% 40% at 10% 80%,
+      color-mix(in srgb, var(--color-accent) 10%, transparent),
+      transparent 70%
+    );
   --color-shimmer: rgb(255 255 255 / 0.05); /* skeletons' passing light */
   --glow-accent: 0 0 24px color-mix(in srgb, var(--color-accent) 35%, transparent);
 
@@ -177,7 +186,7 @@
 
 /*
  * Light theme (glass), picked in the profile (Tema) and set on <html> before the first paint
- * (index.html). A cool gray page with soft blobs of color behind (--page-glow), and white
+ * (index.html). A cool gray page with soft blobs of the accent behind (--page-glow), and white
  * surfaces see-through enough to let them show. Only what floats over real content blurs
  * (the bottom bar, sheets, the sign-in card): over a soft glow a blur shows nothing, and on
  * every card it would cost scrolling. Floating bits (toasts, inputs) stay opaque, to read.
@@ -198,7 +207,8 @@
   --color-nav-edge: rgb(20 30 50 / 0.08);
   --color-nav-scrim: rgb(233 237 243 / 0.85); /* black would look grimy: the page's gray */
   --color-sheet: rgb(246 248 251 / 0.82);
-  --color-glow-2: #7aa0ff;
+  /* Lighter, not deeper: a dark shade on the light page reads as a stain */
+  --color-glow-2: oklch(from var(--color-accent) 0.78 c h);
   --sheet-blur: blur(24px) saturate(160%);
   /* The selected tab of a segmented control: white on see-through white needs a lift */
   --shadow-selected: 0 1px 2px rgb(20 30 50 / 0.12), 0 2px 8px rgb(20 30 50 / 0.08);
@@ -208,8 +218,16 @@
       color-mix(in srgb, var(--color-accent) 30%, transparent),
       transparent 70%
     ),
-    radial-gradient(60% 45% at 100% 55%, rgb(120 160 255 / 0.3), transparent 70%),
-    radial-gradient(60% 40% at 20% 100%, rgb(255 170 110 / 0.26), transparent 70%);
+    radial-gradient(
+      60% 45% at 100% 55%,
+      color-mix(in srgb, var(--color-glow-2) 32%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      60% 40% at 20% 100%,
+      color-mix(in srgb, var(--color-accent) 14%, transparent),
+      transparent 70%
+    );
 
   --color-text: #10141c;
   --color-text-muted: #4a515f;
