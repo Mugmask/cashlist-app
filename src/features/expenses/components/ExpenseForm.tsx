@@ -12,11 +12,7 @@ import { INSTALLMENT_OPTIONS, splitInstallments } from '../installments'
 import { expensesRepo } from '../expensesRepo'
 import { matchSuggestions, type NameSuggestion } from '../suggestions'
 import { useNameSuggestions } from '../useNameSuggestions'
-import {
-  PAYMENT_METHOD_OPTIONS,
-  readLastPaymentMethod,
-  rememberPaymentMethod,
-} from '../paymentMethods'
+import { PAYMENT_METHOD_OPTIONS } from '../paymentMethods'
 import { CategoryIcon } from './CategoryIcon'
 import { CategoryPicker } from './CategoryPicker'
 import { ConversionNote, ManualRateField } from './DollarConversion'
@@ -49,9 +45,7 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
   )
   const [name, setName] = useState(expense?.name ?? defaults?.name ?? '')
   const [note, setNote] = useState(expense?.note ?? defaults?.note ?? '')
-  const [paymentMethod, setPaymentMethod] = useState(
-    expense ? (expense.paymentMethod ?? 'cash') : readLastPaymentMethod,
-  )
+  const [paymentMethod, setPaymentMethod] = useState(expense?.paymentMethod ?? 'cash')
   const [installments, setInstallments] = useState<(typeof INSTALLMENT_OPTIONS)[number]>(() => {
     const current = String(expense?.installments ?? 1)
     return INSTALLMENT_OPTIONS.find((n) => n === current) ?? '1'
@@ -146,7 +140,6 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
         ...fields,
         ...(day !== today && { spentAt: nowOnDay(day) }),
       })
-      rememberPaymentMethod(paymentMethod)
       setAmount('')
       setName('')
       setNote('')

@@ -1,5 +1,5 @@
 import { Settings2 } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChipGroup } from '@/ui'
 import { getCategory, OTHER_ID, useCategories } from '../categories'
 import { rankByUse, useRecentExpenses } from '../categoryUsage'
@@ -20,9 +20,14 @@ export function CategoryPicker({ value, onChange, pickFirst }: CategoryPickerPro
   const { list } = useCategories()
   const [editing, setEditing] = useState(false)
   const recent = useRecentExpenses()
-  // Ranked once, when the expenses load: chips don't move around while picking
+  // Ranked once, when the expenses load: chips don't move around while picking. One already
+  // picked (editing, say) goes first, so it's in sight.
   const [ranked, setRanked] = useState<readonly string[] | null>(null)
-  if (ranked === null && recent !== undefined) setRanked(rankByUse(list, recent).map((c) => c.id))
+  if (ranked === null && recent !== undefined) {
+    const ids = rankByUse(list, recent).map((c) => c.id)
+    const current = getCategory(value).id
+    setRanked(pickFirst ? ids : [current, ...ids.filter((id) => id !== current)])
+  }
   // One made after that (just now, from here) goes first; deleted ones drop out
   const ordered = ranked
     ? [
@@ -39,18 +44,6 @@ export function CategoryPicker({ value, onChange, pickFirst }: CategoryPickerPro
   }, [ranked, onChange])
   const picked = getCategory(value).id // unknown or deleted ones show (and save) as Otros
 
-  // The picked one in sight once ranked: it may sit past the first columns. Not when the
-  // first is about to be picked: that one is already in sight.
-  const scroller = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => {
-    if (!settled.current) return
-    const row = scroller.current
-    const chip = row?.querySelector<HTMLElement>('[aria-checked="true"]')
-    if (!row || !chip) return
-    const left = chip.offsetLeft - row.offsetLeft
-    if (left + chip.offsetWidth > row.clientWidth) row.scrollLeft = left - row.clientWidth / 3
-  }, [ranked])
-
   const options = ordered.map(({ id, label, icon: Icon }) => ({
     value: id,
     label,
@@ -62,7 +55,7 @@ export function CategoryPicker({ value, onChange, pickFirst }: CategoryPickerPro
       <span className={styles.label} aria-hidden>
         Categoría
       </span>
-      <div ref={scroller} className={styles.scroller}>
+      <div className={styles.scroller}>
         <ChipGroup
           label="Categoría"
           rows={2}
