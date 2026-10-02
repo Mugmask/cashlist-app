@@ -11,7 +11,7 @@
   transform-origin: left;
   transition: transform var(--duration-slow) var(--ease-out);
   /* Fills up from empty when it appears; later changes slide (the transition) */
-  animation: fill var(--duration-enter) var(--ease-out) 120ms both;
+  animation: fill var(--duration-enter) var(--ease-out) var(--enter-delay) both;
 }
 
 @keyframes fill {

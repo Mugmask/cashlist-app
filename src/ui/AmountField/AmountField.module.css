@@ -92,3 +92,8 @@ button.switch:active {
 .input:focus {
   outline: none;
 }
+
+/* Focus from the keyboard: a line under the number (the caret alone is easy to lose) */
+.sizer:has(.input:focus-visible) {
+  box-shadow: inset 0 -2px var(--color-accent);
+}

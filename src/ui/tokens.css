@@ -11,6 +11,9 @@
   --color-surface-raised: #1d1f25;
   --color-border: rgb(255 255 255 / 0.08);
   --color-border-strong: rgb(255 255 255 / 0.16);
+  /* What says "a field is here" (inputs, checkboxes): >= 3:1 on cards and sheets (WCAG 1.4.11);
+     the two above are decoration, separators */
+  --color-border-control: rgb(255 255 255 / 0.34);
   --color-overlay: rgb(0 0 0 / 0.6);
   --color-surface-glass: rgb(20 21 25 / 0.78); /* needs backdrop-filter behind it */
   /* The bottom bar's: more opaque and a step lighter than the cards it floats over, and a
@@ -39,8 +42,9 @@
 
   /* Text */
   --color-text: #f4f5f7;
-  --color-text-muted: #8f94a0;
-  --color-text-subtle: #868b96; /* placeholders: 4.8:1 on raised surfaces, just above AA */
+  /* Both >= 4.5:1 on the worst spot: a card under its accent glow (WCAG AA) */
+  --color-text-muted: #a3a8b3;
+  --color-text-subtle: #999ea9; /* placeholders */
 
   /* Accent: the only saturated color in the UI. The user can swap it in the profile (the
      [data-accent] themes below): every other accent token derives from these two */
@@ -51,7 +55,7 @@
 
   /* Charts: the accent marks what matters, this gray the context around it
      (>= 3:1 on the surface, validated with the dataviz palette script) */
-  --color-chart-muted: #6e737f;
+  --color-chart-muted: #868b96;
   --color-chart-grid: rgb(255 255 255 / 0.06);
 
   /* Categorical: one fixed hue per expense category. Each is as vivid as sRGB allows at the
@@ -67,12 +71,10 @@
   --color-cat-7: #8d7afe; /* violet */
   --color-cat-8: #ff3f4d; /* red */
   --color-chart-context: #9aa0ab; /* the month before in a line chart: gray, but in sight */
-  /* How much of a category's exact color (picked by the user) shows; black is the rest */
-  --custom-color-strength: 100%;
 
   /* Status */
-  --color-danger: #ff6464;
-  --color-danger-soft: rgb(255 100 100 / 0.12);
+  --color-danger: #ff7a7a;
+  --color-danger-soft: rgb(255 122 122 / 0.12);
   --color-warning: #ffc94d;
   --color-warning-soft: rgb(255 201 77 / 0.12);
 
@@ -114,8 +116,7 @@
   --shadow-raised: 0 8px 32px rgb(0 0 0 / 0.45);
   --shadow-glass: 0 4px 16px rgb(0 0 0 / 0.3); /* small glass pieces floating on the page */
   --nav-shadow-color: rgb(0 0 0 / 0.55); /* the bottom bar's, drawn along its notched shape */
-  /* Glass: sheets frost what's under them, over soft blobs of the accent behind the page.
-     Dimmer than the light theme's, so the dark stays dark */
+  /* Glass: sheets frost what's under them, over soft blobs of the accent behind the page */
   --color-sheet: rgb(20 21 25 / 0.86);
   --sheet-blur: blur(24px) saturate(140%);
   /* The selected tab of a segmented control: a hairline and a drop, to stand off the track */
@@ -123,7 +124,7 @@
   --page-glow:
     radial-gradient(
       70% 45% at 0% 0%,
-      color-mix(in srgb, var(--color-accent) 24%, transparent),
+      color-mix(in srgb, var(--color-accent) 16%, transparent),
       transparent 70%
     ),
     radial-gradient(
@@ -137,6 +138,9 @@
       transparent 70%
     );
   --color-shimmer: rgb(255 255 255 / 0.05); /* skeletons' passing light */
+  /* Cards as glass lit from above (Card): a wash down from the top and a bright top edge */
+  --card-sheen: rgb(255 255 255 / 0.06);
+  --card-edge: rgb(255 255 255 / 0.24);
   --glow-accent: 0 0 24px color-mix(in srgb, var(--color-accent) 35%, transparent);
 
   /* Motion */
@@ -146,6 +150,7 @@
   --duration-slow: 320ms;
   --duration-enter: 300ms; /* what appears: screens, their sections, numbers */
   --stagger: 30ms; /* between sections appearing one after the other */
+  --enter-delay: 120ms; /* bars and charts start filling once their card is in */
   --tap-scale: 0.97;
 
   /* Layout */
@@ -184,121 +189,6 @@
   --color-on-accent: #241003;
 }
 
-/*
- * Light theme (glass), picked in the profile (Tema) and set on <html> before the first paint
- * (index.html). A cool gray page with soft blobs of the accent behind (--page-glow), and white
- * surfaces see-through enough to let them show. Only what floats over real content blurs
- * (the bottom bar, sheets, the sign-in card): over a soft glow a blur shows nothing, and on
- * every card it would cost scrolling. Floating bits (toasts, inputs) stay opaque, to read.
- * Text >= 4.5:1 on the bare page, the worst case; the chart grays >= 3:1 on cards.
- */
-:root[data-theme='light'] {
-  color-scheme: light;
-
-  --color-bg: #e9edf3;
-  --color-surface: rgb(255 255 255 / 0.55);
-  --color-surface-raised: #ffffff;
-  --color-border: rgb(20 30 50 / 0.11);
-  --color-border-strong: rgb(20 30 50 / 0.2);
-  --color-overlay: rgb(20 30 50 / 0.25);
-  --color-surface-glass: rgb(255 255 255 / 0.6);
-  --color-nav-glass: rgb(255 255 255 / 0.72);
-  --nav-blur: blur(28px) saturate(180%);
-  --color-nav-edge: rgb(20 30 50 / 0.08);
-  --color-nav-scrim: rgb(233 237 243 / 0.85); /* black would look grimy: the page's gray */
-  --color-sheet: rgb(246 248 251 / 0.82);
-  /* Lighter, not deeper: a dark shade on the light page reads as a stain */
-  --color-glow-2: oklch(from var(--color-accent) 0.78 c h);
-  --sheet-blur: blur(24px) saturate(160%);
-  /* The selected tab of a segmented control: white on see-through white needs a lift */
-  --shadow-selected: 0 1px 2px rgb(20 30 50 / 0.12), 0 2px 8px rgb(20 30 50 / 0.08);
-  --page-glow:
-    radial-gradient(
-      70% 45% at 0% 0%,
-      color-mix(in srgb, var(--color-accent) 30%, transparent),
-      transparent 70%
-    ),
-    radial-gradient(
-      60% 45% at 100% 55%,
-      color-mix(in srgb, var(--color-glow-2) 32%, transparent),
-      transparent 70%
-    ),
-    radial-gradient(
-      60% 40% at 20% 100%,
-      color-mix(in srgb, var(--color-accent) 14%, transparent),
-      transparent 70%
-    );
-
-  --color-text: #10141c;
-  --color-text-muted: #4a515f;
-  --color-text-subtle: #535a68;
-
-  /* Hover darkens instead: lightening a mid color on a light page washes it out */
-  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
-
-  --color-chart-muted: #767c88;
-  --color-chart-grid: rgb(20 30 50 / 0.07);
-  --color-chart-context: #6a7180;
-
-  /* The categorical hues a step darker, to hold >= 3:1 on light cards as on the dark */
-  --color-cat-1: #1f7ae0;
-  --color-cat-2: #d94a00;
-  --color-cat-3: #00936a;
-  --color-cat-4: #a86e00;
-  --color-cat-5: #e0186f;
-  --color-cat-6: #028f02;
-  --color-cat-7: #6f5ae8;
-  --color-cat-8: #e0283a;
-  --custom-color-strength: 82%; /* a step darker, like the hues above */
-
-  --color-danger: #b82723;
-  --color-danger-soft: rgb(184 39 35 / 0.1);
-  --color-warning: #855800;
-  --color-warning-soft: rgb(133 88 0 / 0.12);
-
-  --shadow-raised: 0 8px 32px rgb(20 30 50 / 0.1);
-  --shadow-glass: 0 4px 16px rgb(20 30 50 / 0.08);
-  --nav-shadow-color: rgb(20 30 50 / 0.12);
-  --color-shimmer: rgb(255 255 255 / 0.7);
-}
-
-/*
- * The accents for the light theme: darker, to read as text on the light page (>= 4.5:1 on every
- * surface), with white text on them. Selectors carry the theme so they outweigh the dark
- * presets above; the first block is also the default, with no accent picked.
- */
-:root[data-theme='light'],
-:root[data-theme='light'][data-accent='green'],
-:root[data-theme='light'] [data-accent='green'] {
-  --color-accent: #00733f;
-  --color-on-accent: #ffffff;
-}
-:root[data-theme='light'][data-accent='cyan'],
-:root[data-theme='light'] [data-accent='cyan'] {
-  --color-accent: #006a99;
-  --color-on-accent: #ffffff;
-}
-:root[data-theme='light'][data-accent='blue'],
-:root[data-theme='light'] [data-accent='blue'] {
-  --color-accent: #2a5bd0;
-  --color-on-accent: #ffffff;
-}
-:root[data-theme='light'][data-accent='violet'],
-:root[data-theme='light'] [data-accent='violet'] {
-  --color-accent: #6d45d1;
-  --color-on-accent: #ffffff;
-}
-:root[data-theme='light'][data-accent='pink'],
-:root[data-theme='light'] [data-accent='pink'] {
-  --color-accent: #b5267a;
-  --color-on-accent: #ffffff;
-}
-:root[data-theme='light'][data-accent='orange'],
-:root[data-theme='light'] [data-accent='orange'] {
-  --color-accent: #a84800;
-  --color-on-accent: #ffffff;
-}
-
 @media (prefers-reduced-motion: reduce) {
   :root {
     --duration-fast: 0ms;
@@ -306,6 +196,7 @@
     --duration-slow: 0ms;
     --duration-enter: 0ms;
     --stagger: 0ms;
+    --enter-delay: 0ms;
     --tap-scale: 1;
   }
 }

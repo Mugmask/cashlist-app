@@ -99,9 +99,10 @@
 
 .item span {
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* With bigger text it wraps rather than cutting the word ("Compras" at 200%) */
+  line-height: 1.1;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .item:hover {

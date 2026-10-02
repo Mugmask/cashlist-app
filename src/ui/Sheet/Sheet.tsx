@@ -15,6 +15,16 @@ export interface SheetProps {
 // plus a margin
 const FALLBACK_MARGIN_MS = 100
 
+// The dialog hands focus back to what opened it; when that's gone (the expense just deleted
+// from its own detail, say) focus would fall to the page's start: the screen's title takes it
+function refocus(opener: Element | null) {
+  if (opener?.isConnected) return
+  const heading = document.querySelector<HTMLElement>('main h1')
+  if (!heading) return
+  heading.setAttribute('tabindex', '-1')
+  heading.focus({ preventScroll: true })
+}
+
 function animationMs(el: Element) {
   return parseFloat(getComputedStyle(el).animationDuration) * 1000 || 0
 }
@@ -29,12 +39,14 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
   const [mounted, setMounted] = useState(open)
   if (open && !mounted) setMounted(true)
   const closing = !open && mounted
+  const opener = useRef<Element | null>(null)
 
   useEffect(() => {
     const dialog = ref.current
     if (!dialog) return
     if (open) {
       if (!dialog.open) {
+        opener.current = document.activeElement
         dialog.showModal()
         // React's autoFocus runs while the dialog is still closed, where nothing can take
         // focus; opening then hands it to the first button (Cerrar). The field asking for it
@@ -50,6 +62,7 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
       if (done) return
       done = true
       dialog.close()
+      refocus(opener.current)
       setMounted(false)
     }
     const onEnd = (e: AnimationEvent) => e.target === dialog && finish()

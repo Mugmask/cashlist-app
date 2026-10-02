@@ -21,6 +21,16 @@ export function contrast(a: string, b: string) {
   return (light + 0.05) / (dark + 0.05)
 }
 
+// The color mixed with white: 0 as is, 1 white
+export function mixWithWhite(hex: string, amount: number) {
+  const mixed = channels(hex).map((c) =>
+    Math.round((c + (1 - c) * amount) * 255)
+      .toString(16)
+      .padStart(2, '0'),
+  )
+  return `#${mixed.join('')}`
+}
+
 // OKLab: a space where distance follows how different two colors look to the eye
 function toOklab(hex: string) {
   const [r, g, b] = channels(hex).map(toLinear)

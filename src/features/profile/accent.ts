@@ -1,5 +1,4 @@
-import { contrast, HEX_COLOR } from '@/utils/color'
-import { BACKGROUNDS, type Theme } from './theme'
+import { contrast, HEX_COLOR, mixWithWhite } from '@/utils/color'
 
 // The app's accent color, picked in the profile: one of the presets (their colors live in
 // tokens.css, [data-accent] themes) or any color the user chooses. Kept per device, like the
@@ -26,22 +25,34 @@ const DEFAULT_ACCENT: Preset = 'green'
 const STORAGE_KEY = 'cashlist:accent'
 const CUSTOM_KEY = 'cashlist:accent-custom' // the last custom color, kept while on a preset
 
-const ON_DARK = BACKGROUNDS.dark
+const ON_DARK = '#0a0b0d' // tokens.css --color-bg: the app is dark-only
 const ON_LIGHT = '#ffffff'
-// Below this against the background, the accent as text is hard to read (WCAG AA)
-export const MIN_CONTRAST = 4.5
+// What every accent holds against the background, like the presets: enough to stay >= 4.5:1
+// (WCAG AA) on the cards, which its own glow makes lighter than the background
+const ACCENT_CONTRAST = 7
+const LIGHTEN_STEP = 0.05
 
 function isAccent(value: unknown): value is Accent {
   return value === 'custom' || ACCENTS.some((accent) => accent.value === value)
 }
 
-export function customAccent(color: string): CustomAccent {
-  return { color, on: contrast(color, ON_DARK) >= contrast(color, ON_LIGHT) ? ON_DARK : ON_LIGHT }
+// Whether the color, as picked, is too dark to read on the background: it gets lightened
+export function needsLightening(color: string) {
+  return contrast(color, ON_DARK) < ACCENT_CONTRAST
 }
 
-// Whether the color reads well as text on the background of the theme on screen
-export function readsOnBackground(color: string, theme: Theme) {
-  return contrast(color, BACKGROUNDS[theme]) >= MIN_CONTRAST
+// The picked color, lightened toward white just enough to read like the presets
+export function readableAccent(color: string) {
+  let shown = color
+  for (let amount = LIGHTEN_STEP; needsLightening(shown) && amount <= 1; amount += LIGHTEN_STEP) {
+    shown = mixWithWhite(color, amount)
+  }
+  return shown
+}
+
+export function customAccent(picked: string): CustomAccent {
+  const color = readableAccent(picked)
+  return { color, on: contrast(color, ON_DARK) >= contrast(color, ON_LIGHT) ? ON_DARK : ON_LIGHT }
 }
 
 export function readAccent(): Accent {
@@ -65,7 +76,7 @@ export function readCustomAccent(): CustomAccent | null {
 }
 
 // Repaints the app now and remembers it. Without storage (private mode) it still applies,
-// just until the app reloads. A custom color goes inline on <html>, over any theme.
+// just until the app reloads. A custom color goes inline on <html>, over the presets.
 export function applyAccent(accent: Preset): void
 export function applyAccent(accent: 'custom', custom: CustomAccent): void
 export function applyAccent(accent: Accent, custom?: CustomAccent) {

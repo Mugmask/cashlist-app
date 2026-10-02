@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { useSyncExternalStore } from 'react'
 import { db, type CustomCategory } from '@/lib/db'
-import { CATEGORY_ICONS, categoryColor, customCategoryColor } from './categoryIcons'
+import { CATEGORY_ICONS, categoryColor } from './categoryIcons'
 
 export interface Category {
   id: string
@@ -58,7 +58,7 @@ interface Categories {
 
 // The exact color the user picked, or the palette's
 function colorOf(row: CustomCategory) {
-  return row.customColor ? customCategoryColor(row.customColor) : categoryColor(row.color)
+  return row.customColor || categoryColor(row.color)
 }
 
 // The user's name and color for each built-in they changed. Two devices changing the same

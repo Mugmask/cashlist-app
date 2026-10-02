@@ -21,7 +21,7 @@
 
 /* The bar draws itself from the left when it appears */
 .bar {
-  animation: draw var(--duration-enter) var(--ease-out) 120ms both;
+  animation: draw var(--duration-enter) var(--ease-out) var(--enter-delay) both;
 }
 
 @keyframes draw {

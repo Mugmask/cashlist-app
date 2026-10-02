@@ -100,9 +100,7 @@ describe('exact colors', () => {
       custom('r1', 'Súper', { builtIn: 'groceries', customColor: '#ff00aa' }),
     ])
 
-    expect(getCategory('c1').color).toBe(
-      'color-mix(in srgb, #12ab34 var(--custom-color-strength), black)',
-    )
+    expect(getCategory('c1').color).toBe('#12ab34')
     expect(getCategory('groceries').color).toContain('#ff00aa')
   })
 })

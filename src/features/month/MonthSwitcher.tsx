@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatMonthName, formatShortMonth, shiftMonth } from '@/utils/dates'
 import { capitalize } from '@/utils/text'
+import { VisuallyHidden } from '@/ui'
 import { useMonth } from './month'
 import styles from './MonthSwitcher.module.css'
 
@@ -28,22 +29,20 @@ export function MonthSwitcher() {
       <button
         type="button"
         className={styles.previous}
-        aria-label={`Ver ${longName(previous)}`}
+        // Starts with what it shows ("Ago"), so voice control finds it by the word on screen
+        aria-label={`${neighbor(previous)}: ver ${longName(previous)}`}
         onClick={() => select(previous)}
       >
         <ChevronLeft aria-hidden />
         {neighbor(previous)}
       </button>
       {isCurrent ? (
-        <span className={styles.label} aria-live="polite">
-          {name}
-        </span>
+        <span className={styles.label}>{name}</span>
       ) : (
         <button
           type="button"
           className={styles.label}
           onClick={() => select(current)}
-          aria-live="polite"
           title="Volver a este mes"
         >
           {name}
@@ -52,13 +51,15 @@ export function MonthSwitcher() {
       <button
         type="button"
         className={styles.next}
-        aria-label={`Ver ${longName(next)}`}
+        aria-label={`${neighbor(next)}: ver ${longName(next)}`}
         onClick={() => select(next)}
         disabled={isCurrent}
       >
         {neighbor(next)}
         <ChevronRight aria-hidden />
       </button>
+      {/* Always mounted, unlike the label (a span or a button), so the change is announced */}
+      <VisuallyHidden aria-live="polite">{longName(month)}</VisuallyHidden>
     </div>
   )
 }

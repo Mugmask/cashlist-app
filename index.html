@@ -21,19 +21,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="format-detection" content="telephone=no" />
     <title>Cashlist</title>
-    <!--
-      The theme and accent picked in the profile, set before anything paints
-      (features/profile/theme.ts, accent.ts). Each on its own: a broken one leaves the other.
-    -->
+    <!-- The accent picked in the profile, set before anything paints (features/profile/accent.ts) -->
     <script>
       const root = document.documentElement
-      try {
-        if (localStorage.getItem('cashlist:theme') === 'light') {
-          root.dataset.theme = 'light'
-          document.querySelector('meta[name="theme-color"]').content = '#e9edf3'
-          document.querySelector('meta[name="color-scheme"]').content = 'light'
-        }
-      } catch {}
       try {
         const accent = localStorage.getItem('cashlist:accent')
         if (accent) root.dataset.accent = accent

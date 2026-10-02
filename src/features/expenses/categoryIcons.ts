@@ -93,24 +93,6 @@ export function categoryColor(index: number) {
   return `var(--color-cat-${index})`
 }
 
-// An exact color the user picked. Shown as is on the dark theme; a step darker on the light
-// one (--custom-color-strength), the way the palette's hues are, so it isn't washed out there
-export function customCategoryColor(hex: string) {
-  return `color-mix(in srgb, ${hex} var(--custom-color-strength), black)`
-}
-
-const CUSTOM_COLOR_STRENGTH_LIGHT = 0.82 // tokens.css --custom-color-strength, light theme
-
-// What a custom color looks like on the theme on screen: the same mix, done here
-export function shownCustomColor(hex: string, theme: 'dark' | 'light') {
-  if (theme === 'dark') return hex
-  const channel = (i: number) =>
-    Math.round(parseInt(hex.slice(i, i + 2), 16) * CUSTOM_COLOR_STRENGTH_LIGHT)
-      .toString(16)
-      .padStart(2, '0')
-  return `#${channel(1)}${channel(3)}${channel(5)}`
-}
-
 // The palette index back from a color categoryColor made: the built-ins are stored that way
 export function colorIndexOf(color: string) {
   return Number(/--color-cat-(\d+)/.exec(color)?.[1] ?? 1)

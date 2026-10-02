@@ -98,7 +98,7 @@
   border-radius: 4px 4px 0 0;
   background: var(--color-accent);
   transform-origin: bottom;
-  animation: grow var(--duration-enter) var(--ease-out) 160ms both;
+  animation: grow var(--duration-enter) var(--ease-out) calc(var(--enter-delay) * 4 / 3) both;
 }
 
 .past .bar {

@@ -6,10 +6,9 @@ import {
   customAccent,
   readAccent,
   readCustomAccent,
-  readsOnBackground,
+  needsLightening,
   type Accent,
 } from '../accent'
-import { useCurrentTheme } from '../theme'
 import styles from './ProfileButton.module.css'
 
 const FIRST_CUSTOM = '#2cff8f' // where the custom picker starts the first time: the default
@@ -17,7 +16,6 @@ const FIRST_CUSTOM = '#2cff8f' // where the custom picker starts the first time:
 // The app's color: applied on tap, no saving needed, so the whole screen is the preview.
 // Besides the presets, any color: picking "Personalizado" shows the device's color picker.
 export function AccentPicker() {
-  const theme = useCurrentTheme()
   const [accent, setAccent] = useState(readAccent)
   const [custom, setCustom] = useState(() => readCustomAccent()?.color ?? FIRST_CUSTOM)
 
@@ -58,12 +56,8 @@ export function AccentPicker() {
       {accent === 'custom' && (
         <>
           <ColorField value={custom} onChange={handleCustom} />
-          {!readsOnBackground(custom, theme) && (
-            <Alert>
-              {theme === 'dark'
-                ? 'Ese color se lee poco sobre el fondo oscuro: probá uno más claro.'
-                : 'Ese color se lee poco sobre el fondo claro: probá uno más oscuro.'}
-            </Alert>
+          {needsLightening(custom) && (
+            <Alert>Ese color se leía poco sobre el fondo oscuro: lo aclaramos un poco.</Alert>
           )}
         </>
       )}

@@ -31,7 +31,7 @@ body {
   isolation: isolate;
 }
 
-/* The light theme's glow behind everything (none on the dark). A fixed layer of its own:
+/* The accent's glow behind everything. A fixed layer of its own:
    iOS ignores background-attachment: fixed, and the glow must not scroll away */
 body::before {
   content: '';
@@ -66,7 +66,7 @@ select {
 }
 
 /* Headings get focus programmatically after navigating (tabindex=-1): announce, don't ring */
-[tabindex='-1']:focus {
+:is(h1, h2, h3)[tabindex='-1']:focus {
   outline: none;
 }
 

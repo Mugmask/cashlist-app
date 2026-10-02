@@ -9,7 +9,6 @@ import { amountInputChange, amountToInput, parseAmount } from '@/utils/currency'
 import { profileRepo, useProfile } from '../profileRepo'
 import { AccentPicker } from './AccentPicker'
 import { ChangePassword } from './ChangePassword'
-import { ThemePicker } from './ThemePicker'
 import styles from './ProfileButton.module.css'
 
 // The header's avatar: opens the profile and signing out. Going to another screen
@@ -60,10 +59,7 @@ function ProfileContent({ profile, email }: { profile: Profile | null; email?: s
         <DataForm profile={profile} />
       </Section>
       <Section title="Apariencia">
-        <Stack gap={5}>
-          <ThemePicker />
-          <AccentPicker />
-        </Stack>
+        <AccentPicker />
       </Section>
       <Section title="Cuenta">
         <div className={styles.list}>

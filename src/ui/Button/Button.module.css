@@ -31,8 +31,7 @@
 .primary:disabled {
   opacity: 1;
   background: color-mix(in srgb, var(--color-accent) 45%, var(--color-surface-raised));
-  /* The text color, softened: it reads on the faded accent in both themes (white on the
-     light one's pale green wouldn't) */
+  /* The text color, softened: it reads on the faded accent */
   color: color-mix(in srgb, var(--color-text) 60%, transparent);
 }
 

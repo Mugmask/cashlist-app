@@ -1,7 +1,6 @@
 import { RotateCcw } from 'lucide-react'
 import { useState, type CSSProperties, type FormEvent } from 'react'
 import { runSync } from '@/lib/sync'
-import { useCurrentTheme, type Theme } from '@/features/profile'
 import {
   Alert,
   Button,
@@ -20,11 +19,9 @@ import {
   CATEGORY_ICONS,
   categoryColor,
   colorIndexOf,
-  customCategoryColor,
   DEFAULT_ICON,
   iconKeyOf,
   PICKABLE_COLORS,
-  shownCustomColor,
 } from '../categoryIcons'
 import styles from './CategoryForm.module.css'
 
@@ -32,17 +29,17 @@ import styles from './CategoryForm.module.css'
 const TOO_ALIKE = 0.06
 // Below this against the background, an icon or a chart bar is hard to see (WCAG non-text)
 const MIN_GRAPHIC_CONTRAST = 3
-const BACKGROUND: Record<Theme, string> = { dark: '#141519', light: '#f5f7f9' } // the cards'
+const BACKGROUND = '#141519' // the cards'
 
-// A palette color as the theme on screen draws it
+// A palette color as tokens.css draws it
 function paletteHex(index: number) {
   return getComputedStyle(document.documentElement).getPropertyValue(`--color-cat-${index}`).trim()
 }
 
 // What a category looks like right now, as #rrggbb: its exact color, or its palette one
-function shownColor(category: Category, theme: Theme) {
+function shownColor(category: Category) {
   const exact = (category.own ?? category.custom)?.customColor
-  return exact ? shownCustomColor(exact, theme) : paletteHex(colorIndexOf(category.color))
+  return exact ?? paletteHex(colorIndexOf(category.color))
 }
 
 export interface CategoryFormProps {
@@ -61,7 +58,6 @@ export function CategoryForm({ category, onSaved }: CategoryFormProps) {
   const [name, setName] = useState(own?.name ?? builtIn?.label ?? '')
   // A built-in one opens on the icon it shows: the app's, or the one the user gave it
   const [icon, setIcon] = useState(own?.icon ?? (builtIn ? iconKeyOf(builtIn.icon) : DEFAULT_ICON))
-  const theme = useCurrentTheme()
   const [color, setColor] = useState(() =>
     own ? own.color : builtIn ? colorIndexOf(builtIn.color) : nextColor(list),
   )
@@ -69,16 +65,15 @@ export function CategoryForm({ category, onSaved }: CategoryFormProps) {
   const saved = (own ?? builtIn?.custom)?.customColor
   const [exact, setExact] = useState(saved !== undefined)
   const [hex, setHex] = useState(() => saved ?? paletteHex(color))
-  const shownHex = shownCustomColor(hex, theme)
   // The category that looks the most like the exact color, if too much
   const lookalike = exact
     ? list
         .filter((c) => c.id !== category?.id)
-        .map((c) => ({ category: c, distance: colorDistance(shownHex, shownColor(c, theme)) }))
+        .map((c) => ({ category: c, distance: colorDistance(hex, shownColor(c)) }))
         .sort((a, b) => a.distance - b.distance)
         .find((c) => c.distance < TOO_ALIKE)?.category
     : undefined
-  const faint = exact && contrast(shownHex, BACKGROUND[theme]) < MIN_GRAPHIC_CONTRAST
+  const faint = exact && contrast(hex, BACKGROUND) < MIN_GRAPHIC_CONTRAST
 
   function pickColor(next: number | 'custom') {
     if (next === 'custom') {
@@ -127,7 +122,7 @@ export function CategoryForm({ category, onSaved }: CategoryFormProps) {
     : [...PICKABLE_COLORS, color].sort((a, b) => a - b)
 
   const tint = {
-    '--option-color': exact ? customCategoryColor(hex) : categoryColor(color),
+    '--option-color': exact ? hex : categoryColor(color),
   } as CSSProperties
 
   return (

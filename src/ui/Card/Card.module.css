@@ -1,20 +1,53 @@
-/* A size container, so big amounts inside can fit its width (see Amount) */
+/* Glass lit from above: a wash fading down from the top edge, over a faint light of the accent
+   from the top-right corner, so no card is plain gray. A size container, so big amounts inside
+   can fit its width (see Amount) */
 .card {
+  --card-glow: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  position: relative;
   container-type: inline-size;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background:
+    linear-gradient(180deg, var(--card-sheen), transparent 45%),
+    radial-gradient(100% 120% at 100% 0%, var(--card-glow), transparent 65%), var(--color-surface);
+  /* The border is drawn by ::after; this one keeps the size and lets the surface show */
+  border: 1px solid transparent;
+  background-clip: padding-box;
   border-radius: var(--radius-lg);
+  box-shadow:
+    inset 0 1px 0 var(--card-edge),
+    var(--shadow-glass);
+}
+
+/* The border catching the light: bright on the top edge, fading out down the sides */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--card-edge), var(--color-border) 40%, transparent);
+  /* Only the 1px ring: the padding box punched out of the whole */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 /* The main glow from the top-right corner and a softer one answering it from the bottom-left,
-   so the card is lit from both sides rather than stained in one */
+   so the card is lit from both sides rather than stained in one. Soft enough that the muted
+   text and the red over it keep 4.5:1 */
 .hero {
   --hero-glow: var(--color-accent);
   --hero-glow-2: var(--color-glow-2);
   background:
+    linear-gradient(180deg, var(--card-sheen), transparent 45%),
     radial-gradient(
       120% 90% at 100% 0%,
-      color-mix(in srgb, var(--hero-glow) 22%, transparent),
+      color-mix(in srgb, var(--hero-glow) 14%, transparent),
       transparent 55%
     ),
     radial-gradient(
@@ -23,6 +56,7 @@
       transparent 60%
     ),
     var(--color-surface);
+  background-clip: padding-box;
 }
 
 /* Over budget: red up top and amber below, in tune with the red number */
