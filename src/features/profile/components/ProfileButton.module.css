@@ -1,35 +1,32 @@
-/* 44px touch target around a 36px circle */
+/* A glass circle, the same height and glass as the month switcher beside it, so the header
+   reads as one set */
 .avatar {
   display: inline-grid;
   place-items: center;
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.avatar > * {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  background: var(--color-accent-soft);
+  background: var(--color-surface-glass);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: var(--shadow-glass);
   font-family: var(--font-display);
   font-weight: var(--weight-semibold);
-  color: var(--color-accent);
+  color: var(--color-text);
+  cursor: pointer;
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-/* The icon (no name yet) draws inside the same circle */
+/* The icon, when there's no name yet */
 .avatar > svg {
-  padding: 8px;
+  width: 20px;
+  height: 20px;
 }
 
-.avatar:active > * {
+.avatar:active {
   transform: scale(var(--tap-scale));
 }
 

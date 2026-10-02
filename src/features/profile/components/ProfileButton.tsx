@@ -6,7 +6,6 @@ import type { Profile } from '@/lib/db'
 import { runSync } from '@/lib/sync'
 import { Alert, Button, cx, Sheet, Spinner, Stack, TextField, useToast } from '@/ui'
 import { amountInputChange, amountToInput, parseAmount } from '@/utils/currency'
-import { capitalize } from '@/utils/text'
 import { profileRepo, useProfile } from '../profileRepo'
 import { AccentPicker } from './AccentPicker'
 import { ChangePassword } from './ChangePassword'
@@ -33,18 +32,13 @@ export function ProfileButton({ email }: { email?: string }) {
         title="Perfil"
         onClick={() => setIsOpen(true)}
       >
-        <Initial name={profile?.name} />
+        <UserRound aria-hidden />
       </button>
       <Sheet open={isOpen} onClose={() => setIsOpen(false)} title="Perfil">
         {profile !== undefined && <ProfileContent profile={profile} email={email} />}
       </Sheet>
     </>
   )
-}
-
-function Initial({ name }: { name?: string }) {
-  const initial = name?.trim().charAt(0).toUpperCase()
-  return initial ? <span aria-hidden>{initial}</span> : <UserRound aria-hidden />
 }
 
 // Who's signed in, then one section per kind of thing: what the app knows about you, how it
@@ -55,7 +49,7 @@ function ProfileContent({ profile, email }: { profile: Profile | null; email?: s
     <Stack gap={7}>
       <div className={styles.identity}>
         <span className={styles.identityAvatar}>
-          <Initial name={profile?.name} />
+          <UserRound aria-hidden />
         </span>
         <div className={styles.identityText}>
           <span className={styles.identityName}>{profile?.name || 'Sin nombre'}</span>
@@ -98,7 +92,8 @@ function DataForm({ profile }: { profile: Profile | null }) {
   )
   // Income is optional: empty is fine, something unreadable isn't
   const parsedIncome = income === '' ? undefined : parseAmount(income)
-  const cleanName = capitalize(name.trim()) || undefined
+  // As typed: lowercase stays lowercase if that's how they want it
+  const cleanName = name.trim() || undefined
   // Against what's saved: right after saving, the profile catches up and this goes false
   const changed =
     cleanName !== (profile?.name || undefined) || parsedIncome !== profile?.monthlyIncome
@@ -116,7 +111,7 @@ function DataForm({ profile }: { profile: Profile | null }) {
       <Stack gap={4}>
         <TextField
           label="Nombre"
-          autoCapitalize="sentences"
+          autoCapitalize="none" // no capital forced by the keyboard either
           placeholder="Cómo te llamás"
           value={name}
           onChange={(e) => setName(e.target.value)}

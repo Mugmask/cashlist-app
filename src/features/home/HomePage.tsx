@@ -64,7 +64,7 @@ export function HomePage() {
   const { expenses, total, variableTotal } = month
   const monthName = formatMonthName(selected)
   const before = previous.expenses
-  // "Hola, Juan": the first name only, and just "Hola" until the profile has one
+  // "Hola, Juan": the first name only; until the profile has one (a new user), "Hola, wachin"
   const firstName = profile?.name?.trim().split(/\s+/)[0]
   // How the month goes, in one sentence under the greeting
   const insight =
@@ -85,7 +85,7 @@ export function HomePage() {
   return (
     <Stack gap={6}>
       <PageHeader
-        title={firstName ? `Hola, ${firstName}` : 'Hola'}
+        title={`Hola, ${firstName || 'wachin'}`}
         subtitle={
           <Link to="/analysis" className={styles.insight}>
             {insight}
