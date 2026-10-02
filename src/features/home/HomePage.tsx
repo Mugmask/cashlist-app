@@ -35,6 +35,7 @@ import {
   PageLoader,
   ProgressBar,
   Stack,
+  VisuallyHidden,
 } from '@/ui'
 import { formatMonthName, fromPeriod, shiftMonth } from '@/utils/dates'
 import styles from './HomePage.module.css'
@@ -239,9 +240,10 @@ function HomeSection({
   )
 }
 
-// The month's answer: what's left (or how much over), and how it adds up, each line leading
-// to where it comes from. What came in counts what the months before left over or overspent;
-// with fixed expenses still to pay, what's really free once they're paid.
+// The month's answer: what's left (or how much over) and, right under it, what's really free
+// once the fixed expenses still to pay are paid. A bar splits what came in into spent, fixed
+// and free; the lines below add it up, signed, each leading to where it comes from. What came
+// in counts what the months before left over or overspent.
 function MonthBalance({
   monthName,
   income,
@@ -272,13 +274,25 @@ function MonthBalance({
         {over ? 'Te pasaste' : 'Te quedan'} en {monthName}
       </h2>
       <Amount value={Math.abs(left)} size="xl" tone={over ? 'danger' : 'default'} />
-      {/* Nothing available (the months before ate it all) is a full bar, already over */}
-      <ProgressBar
-        label="Ingresos gastados"
-        value={available > 0 ? spent : 1}
-        max={available > 0 ? available : 1}
-        tone="limit"
-        className={styles.balanceBar}
+      {committed > 0 && !over && (
+        <p className={styles.afterFixed}>
+          {free < 0 ? (
+            <>
+              Te faltan <Amount value={-free} size="sm" tone="danger" compactFrom={10_000_000} />{' '}
+              para los fijos
+            </>
+          ) : (
+            <>
+              <Amount value={free} size="sm" tone="accent" compactFrom={10_000_000} /> libres
+              después de los fijos
+            </>
+          )}
+        </p>
+      )}
+      <BalanceBar
+        available={available}
+        spent={spent}
+        fixed={over ? 0 : Math.min(committed, left)}
       />
       <ul className={styles.balance}>
         <li>
@@ -290,41 +304,80 @@ function MonthBalance({
         </li>
         {carry && carry.amount !== 0 && (
           <li className={styles.balanceRow}>
-            <span>{describeMonths(carry)}</span>
-            <Amount
-              value={carry.amount}
-              size="sm"
-              tone={carry.amount < 0 ? 'danger' : 'accent'}
-              compactFrom={10_000_000}
-            />
+            <span>
+              {carry.amount < 0 ? 'Te faltó' : 'Te sobró'} en {describeMonths(carry)}
+            </span>
+            <Signed value={carry.amount} tone={carry.amount < 0 ? 'danger' : 'default'} />
           </li>
         )}
         <li>
           <Link to="/expenses" className={styles.balanceLink}>
             <span>Gastaste</span>
-            <Amount value={spent} size="sm" compactFrom={10_000_000} />
+            <Signed value={-spent} />
             <ChevronRight aria-hidden />
           </Link>
         </li>
       </ul>
-      {committed > 0 && !over && (
-        <p className={cx(styles.afterFixed, free < 0 && styles.over)}>
-          Después de los fijos:{' '}
-          <Amount
-            value={free}
-            size="sm"
-            tone={free < 0 ? 'danger' : 'default'}
-            compactFrom={10_000_000}
-          />
-        </p>
-      )}
     </Card>
   )
 }
 
-// "Septiembre", or "Agosto a octubre" when it adds up several months
+// One line of the sum, with its sign: + what adds, − what takes away
+function Signed({ value, tone = 'default' }: { value: number; tone?: 'default' | 'danger' }) {
+  return (
+    <span className={cx(styles.signed, tone === 'danger' && styles.over)}>
+      <span aria-hidden>{value < 0 ? '−' : '+'}</span>
+      <VisuallyHidden>{value < 0 ? 'menos' : 'más'}</VisuallyHidden>
+      <Amount value={Math.abs(value)} size="sm" tone={tone} compactFrom={10_000_000} />
+    </span>
+  )
+}
+
+// What came in, split: spent (the accent, red once over), the fixed ones still to pay
+// (striped) and what's free (the track). The legend under it says the same in words.
+function BalanceBar({
+  available,
+  spent,
+  fixed,
+}: {
+  available: number
+  spent: number
+  fixed: number
+}) {
+  // Nothing available (the months before ate it all) is a full bar, already over
+  const over = available <= 0 || spent > available
+  const percent = (amount: number) => (available > 0 ? Math.round((amount / available) * 100) : 100)
+  const width = (amount: number) => `${Math.min(100, Math.max(0, percent(amount)))}%`
+
+  return (
+    <div className={styles.balanceBar}>
+      <div className={styles.barTrack} aria-hidden>
+        <span
+          className={cx(styles.barSpent, over && styles.barOver)}
+          style={{ width: over ? '100%' : width(spent) }}
+        />
+        {fixed > 0 && <span className={styles.barFixed} style={{ width: width(fixed) }} />}
+      </div>
+      <p className={styles.barLegend}>
+        {over ? (
+          available > 0 ? (
+            `Gastaste ${percent(spent)}% de lo que entró`
+          ) : (
+            'Los meses anteriores se llevaron lo que entró'
+          )
+        ) : (
+          <>
+            <span className={styles.legendSpent}>{percent(spent)}% gastado</span>
+            {fixed > 0 && <span className={styles.legendFixed}>{percent(fixed)}% en fijos</span>}
+          </>
+        )}
+      </p>
+    </div>
+  )
+}
+
+// "septiembre", or "agosto a octubre" when it adds up several months: mid-sentence
 function describeMonths({ from, to }: CarryOver) {
   const first = formatMonthName(fromPeriod(from))
-  const label = from === to ? first : `${first} a ${formatMonthName(fromPeriod(to))}`
-  return label.charAt(0).toUpperCase() + label.slice(1)
+  return from === to ? first : `${first} a ${formatMonthName(fromPeriod(to))}`
 }

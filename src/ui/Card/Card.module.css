@@ -59,10 +59,10 @@
   background-clip: padding-box;
 }
 
-/* Over budget: red up top and amber below, in tune with the red number */
+/* Over budget: red from both corners, in tune with the red number (amber below turned muddy) */
 .danger {
   --hero-glow: var(--color-danger);
-  --hero-glow-2: var(--color-warning);
+  --hero-glow-2: var(--color-danger);
 }
 
 .padding-none {

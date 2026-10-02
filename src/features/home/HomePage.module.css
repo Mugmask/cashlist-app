@@ -142,10 +142,93 @@ h2.heroLabel {
   color: var(--color-danger);
 }
 
+/* What's free once the fixed ones are paid: right under the big number, the amount in the
+   accent */
 .afterFixed {
-  margin: var(--space-2) 0 0;
-  font-size: var(--text-sm);
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-md);
   color: var(--color-text-muted);
+}
+
+/* Spent | fixed still to pay | free, with a 3px gap between the parts */
+.barTrack {
+  display: flex;
+  gap: 3px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 0.08);
+}
+
+.barTrack > span {
+  border-radius: var(--radius-pill);
+  transform-origin: left;
+  animation: grow var(--duration-enter) var(--ease-out) var(--enter-delay) both;
+}
+
+.barSpent {
+  background: var(--color-accent);
+}
+
+.barOver {
+  background: var(--color-danger);
+}
+
+/* Striped: set aside, not spent yet */
+.barFixed {
+  background: repeating-linear-gradient(
+    135deg,
+    rgb(255 255 255 / 0.42) 0 3px,
+    rgb(255 255 255 / 0.2) 3px 6px
+  );
+}
+
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.barLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+}
+
+.legendSpent,
+.legendFixed {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendSpent::before,
+.legendFixed::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+.legendFixed::before {
+  background: rgb(255 255 255 / 0.42);
+}
+
+/* A line of the sum: its sign, then the amount */
+.signed {
+  display: inline-flex;
+  gap: 0.3em;
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+/* What the months before overspent: the sign goes red with its amount */
+.signed.over {
+  color: var(--color-danger);
 }
 
 .categoryAmount {
