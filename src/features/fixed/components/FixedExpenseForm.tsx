@@ -70,7 +70,6 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
           placeholder="Alquiler, expensas, internet…"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          autoFocus={!fixed}
           required
         />
         <AmountField

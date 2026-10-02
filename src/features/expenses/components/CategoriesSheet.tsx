@@ -38,6 +38,12 @@ export function CategoriesSheet({
     onClose()
   }
 
+  // Closing a form opened from the list goes back to the list, not out of the sheet
+  function handleClose() {
+    if (shown.kind === 'form' && startWith === 'list') setView({ kind: 'list' })
+    else close()
+  }
+
   function handleSaved(id: string, created: boolean) {
     if (created) onCreated?.(id)
     // Opened just to make one: done. From the list: back to it.
@@ -49,7 +55,7 @@ export function CategoriesSheet({
     shown.kind === 'list' ? 'Categorías' : shown.category ? 'Editar categoría' : 'Nueva categoría'
 
   return createPortal(
-    <Sheet open={open} onClose={close} title={title}>
+    <Sheet open={open} onClose={handleClose} title={title}>
       {shown.kind === 'list' ? (
         <CategoryList
           onCreate={() => setView({ kind: 'form' })}

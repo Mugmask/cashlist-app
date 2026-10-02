@@ -142,7 +142,6 @@ export function CategoryForm({ category, onSaved }: CategoryFormProps) {
           maxLength={MAX_CATEGORY_NAME}
           error={taken ? 'Ya hay una categoría con ese nombre' : null}
           autoComplete="off"
-          autoFocus={!category}
           required
         />
         <OptionGrid
