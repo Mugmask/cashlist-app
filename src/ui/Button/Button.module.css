@@ -52,6 +52,12 @@
   width: 100%;
 }
 
+/* A form's main button (Guardar, Agregar…): set apart from the fields above it, so it reads
+   as the step after them, not one more field. What follows it (Borrar) stays close */
+.lg.fullWidth[type='submit'] {
+  margin-top: var(--space-4);
+}
+
 .primary {
   background: var(--color-accent-fill);
   color: var(--color-on-accent);

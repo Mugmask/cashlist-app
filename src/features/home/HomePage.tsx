@@ -305,7 +305,7 @@ function MonthBalance({
         {carry && carry.amount !== 0 && (
           <li className={styles.balanceRow}>
             <span>
-              {carry.amount < 0 ? 'Te faltó' : 'Te sobró'} en {describeMonths(carry)}
+              {carry.amount < 0 ? 'Te pasaste' : 'Te sobró'} en {describeMonths(carry)}
             </span>
             <Signed value={carry.amount} tone={carry.amount < 0 ? 'danger' : 'default'} />
           </li>

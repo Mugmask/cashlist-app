@@ -65,7 +65,6 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
             symbol={dollars ? 'US$' : '$'}
             value={amount}
             onValueChange={setAmount}
-            autoFocus
             required
           />
           {dollars && (
