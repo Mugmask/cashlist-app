@@ -4,11 +4,12 @@ import { capitalize } from '@/utils/text'
 import { useMonth } from './month'
 import styles from './MonthSwitcher.module.css'
 
-// ‹ Ago  Septiembre  Oct › in the header: moves every screen to another month. The arrows go
-// with the month they lead to, small and muted, so they don't read as the screen's way back
-// ("← Inicio"). Another year's months show short with the year ("Dic 2025"); tapping the
-// month (when looking at another) comes back to this month. On this month the › keeps its
-// room, so the name never shifts.
+// ‹ Ago [Septiembre] Oct › in the header: moves every screen to another month. A glass track
+// with the month shown on a raised thumb, like the segmented controls, so it reads as a
+// control to slide along rather than a title. The arrows go with the month they lead to,
+// small and muted. Another year's months show short with the year ("Dic 2025"); tapping the
+// month (when looking at another) comes back to this month. On this month the next one stays,
+// faded: the track keeps its shape and says there's nothing ahead yet.
 export function MonthSwitcher() {
   const { month, current, isCurrent, select } = useMonth()
   const thisYear = current.getFullYear()
@@ -23,7 +24,7 @@ export function MonthSwitcher() {
   const longName = (date: Date) => `${formatMonthName(date)} ${date.getFullYear()}`
 
   return (
-    <div className={styles.switcher}>
+    <div className={styles.switcher} role="group" aria-label="Mes">
       <button
         type="button"
         className={styles.previous}

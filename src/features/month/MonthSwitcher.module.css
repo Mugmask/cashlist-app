@@ -1,20 +1,32 @@
+/* Glass, like the bottom bar: the page's glow shows through, blurred */
 .switcher {
   display: flex;
   align-items: center;
-  justify-content: center;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-glass);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: var(--shadow-glass);
 }
 
-/* Fixed widths: nothing moves whether it says "Mayo" or "Septiembre", "Ene" or "Sept" */
+/* The thumb: the month shown. Fixed widths, so nothing moves whether it says "Mayo" or
+   "Septiembre", "Ene" or "Sept" */
 .label {
+  display: grid;
+  place-items: center;
   width: 7.5rem;
-  white-space: nowrap;
+  min-height: 36px;
   padding: 0;
   border: 0;
-  background: transparent;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-selected);
   font: inherit;
   font-weight: var(--weight-semibold);
   color: var(--color-text);
-  text-align: center;
+  white-space: nowrap;
 }
 
 /* Another month: the name is the way back, in the accent color */
@@ -23,32 +35,33 @@ button.label {
   cursor: pointer;
 }
 
-/* The neighbor months: small and muted, the arrow on the outer side */
+/* The neighbor months: small and muted, the arrow on the outer side. The track's 4px padding
+   plus 36px of height make the 44px touch target */
 .previous,
 .next {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   width: 3.75rem;
-  min-height: 44px;
+  min-height: 36px;
   padding: 0;
   border: 0;
   border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   font: inherit;
   font-size: var(--text-sm);
   white-space: nowrap;
   cursor: pointer;
-  transition: color var(--duration-fast) var(--ease-out);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
-.previous {
-  justify-content: flex-end;
-}
-
-.next {
-  justify-content: flex-start;
+.previous:active:not(:disabled),
+.next:active:not(:disabled) {
+  transform: scale(var(--tap-scale));
 }
 
 .previous svg,
@@ -61,11 +74,13 @@ button.label {
 /* Only with a mouse: on a phone a tapped one would stay highlighted */
 @media (hover: hover) {
   .previous:hover,
-  .next:hover {
+  .next:hover:not(:disabled) {
     color: var(--color-text);
   }
 }
 
+/* This month: nothing ahead yet */
 .next:disabled {
-  visibility: hidden; /* keeps its room, so the name stays centered */
+  opacity: 0.35;
+  cursor: default;
 }
