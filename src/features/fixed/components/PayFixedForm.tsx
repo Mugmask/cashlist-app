@@ -77,7 +77,7 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
             </p>
           )}
         </div>
-        <DayField label="Día del pago" value={day} max={today} onChange={setDay} />
+        <DayField label="Cuándo lo pagaste" value={day} max={today} onChange={setDay} />
         {conversion.needsManual && (
           <ManualRateField value={conversion.manual} onChange={conversion.setManual} />
         )}

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { Income } from '@/lib/db'
 import { runSync } from '@/lib/sync'
-import { AmountField, Button, DayField, Stack, TextField } from '@/ui'
+import { AmountField, Button, DayField, NoteField, Stack, StickyActions, TextField } from '@/ui'
 import { amountToInput, parseAmount } from '@/utils/currency'
 import { nowOnDay, toDayKey, withDayKey } from '@/utils/dates'
 import { capitalize } from '@/utils/text'
@@ -53,14 +53,7 @@ export function IncomeForm({ income, onSaved }: IncomeFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       <Stack gap={4}>
-        <TextField
-          label="De qué es (opcional)"
-          autoCapitalize="sentences"
-          placeholder="Trabajo extra, una venta, un regalo…"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          autoComplete="off"
-        />
+        {/* The amount first, like the expense form */}
         <AmountField
           label="Monto"
           value={amount}
@@ -68,18 +61,22 @@ export function IncomeForm({ income, onSaved }: IncomeFormProps) {
           autoFocus={!income}
           required
         />
-        <DayField label="Día del ingreso" value={day} max={today} onChange={setDay} />
         <TextField
-          label="Nota"
+          label="De qué es (opcional)"
+          hideLabel // the examples say what it is, like the expense form's name
           autoCapitalize="sentences"
-          hideLabel
-          placeholder="Nota (opcional)"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
+          placeholder="Trabajo extra, una venta, un regalo…"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoComplete="off"
         />
-        <Button type="submit" size="lg" fullWidth disabled={!isValid}>
-          {income ? 'Guardar cambios' : 'Guardar ingreso'}
-        </Button>
+        <DayField label="Cuándo entró" value={day} max={today} onChange={setDay} />
+        <NoteField value={note} onChange={setNote} />
+        <StickyActions>
+          <Button type="submit" size="lg" fullWidth disabled={!isValid}>
+            {income ? 'Guardar cambios' : 'Guardar ingreso'}
+          </Button>
+        </StickyActions>
       </Stack>
     </form>
   )

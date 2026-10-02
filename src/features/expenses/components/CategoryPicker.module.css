@@ -4,31 +4,68 @@
   gap: var(--space-2);
 }
 
-.actions {
+.label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+}
+
+/* Bleeds to the sheet's edges, so the rows scroll edge to edge and the cut chip at the right
+   says there's more */
+.scroller {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
+  gap: var(--space-2);
+  margin: 0 calc(var(--space-5) * -1);
+  padding: 0 var(--space-5);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-padding: 0 var(--space-5);
+  scrollbar-width: none;
+}
+
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
+/* The chips in two rows, filling column by column */
+.chips > [role='radiogroup'] {
+  display: grid;
+  grid-template-rows: repeat(2, auto);
+  grid-auto-columns: max-content;
+  grid-auto-flow: column;
+}
+
+/* New and edit, as a last column of chips: outlined, in the accent */
+.actions {
+  display: grid;
+  grid-template-rows: repeat(2, auto);
+  gap: var(--space-2);
+  padding-right: var(--space-5); /* room after the last one, past the bleed */
 }
 
 .action {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  min-height: 36px;
-  padding: 0;
-  border: 0;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 1px dashed color-mix(in srgb, var(--color-accent) 55%, transparent);
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--color-accent);
+  font: inherit;
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
+  white-space: nowrap;
   cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.action:active {
+  transform: scale(var(--tap-scale));
 }
 
 .action svg {
   width: 16px;
   height: 16px;
-}
-
-.action:hover {
-  color: var(--color-accent-hover);
 }

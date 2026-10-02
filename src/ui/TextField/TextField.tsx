@@ -57,6 +57,7 @@ export function TextField({
           )}
           aria-invalid={error ? true : undefined}
           aria-describedby={error || hint ? hintId : undefined}
+          data-autofocus={rest.autoFocus || undefined} // see Sheet
           {...rest}
         />
         {trailing && <span className={styles.trailing}>{trailing}</span>}

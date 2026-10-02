@@ -34,7 +34,13 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
     const dialog = ref.current
     if (!dialog) return
     if (open) {
-      if (!dialog.open) dialog.showModal()
+      if (!dialog.open) {
+        dialog.showModal()
+        // React's autoFocus runs while the dialog is still closed, where nothing can take
+        // focus; opening then hands it to the first button (Cerrar). The field asking for it
+        // gets it back.
+        dialog.querySelector<HTMLElement>('[data-autofocus]')?.focus()
+      }
       return
     }
     if (!dialog.open) return

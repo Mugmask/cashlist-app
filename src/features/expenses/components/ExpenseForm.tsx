@@ -3,12 +3,20 @@ import type { Expense } from '@/lib/db'
 import { convertAmount, fitsInPesos, toPesos } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { useConversionRate } from '@/lib/useDollarRate'
-import { AmountField, Button, ChipGroup, DayField, Stack, TextField } from '@/ui'
+import {
+  AmountField,
+  Button,
+  ChipGroup,
+  DayField,
+  NoteField,
+  Stack,
+  StickyActions,
+  TextField,
+} from '@/ui'
 import { amountToInput, formatCurrencyShort, parseAmount, type Currency } from '@/utils/currency'
 import { nowOnDay, toDayKey, withDayKey } from '@/utils/dates'
 import { capitalize } from '@/utils/text'
 import { BUILT_IN_CATEGORIES, getCategory } from '../categories'
-import { CURRENCY_OPTIONS } from '../currencies'
 import { INSTALLMENT_OPTIONS, splitInstallments } from '../installments'
 import { expensesRepo } from '../expensesRepo'
 import { matchSuggestions, type NameSuggestion } from '../suggestions'
@@ -159,9 +167,37 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
   return (
     <form onSubmit={handleSubmit}>
       <Stack gap={4}>
-        {/* Like the fixed expenses' form: the name on top, here optional */}
+        {/* The amount first: the one thing every expense needs */}
+        <div>
+          <AmountField
+            label={currency === 'USD' ? 'Monto en dólares' : 'Monto'}
+            symbol={currency === 'USD' ? 'US$' : '$'}
+            value={amount}
+            onValueChange={setAmount}
+            // The currency rides on the symbol: one tap, $ ⇄ US$
+            switchCurrency={{
+              label: currency === 'USD' ? 'Cambiar a pesos' : 'Cambiar a dólares',
+              onSwitch: () => changeCurrency(currency === 'USD' ? 'ARS' : 'USD'),
+            }}
+            autoFocus={!expense}
+            required
+          />
+          {currency === 'USD' && (
+            <ConversionNote dollars={value} rate={rate} loading={conversion.loading} />
+          )}
+          {tooBig && (
+            <p className={styles.tooBig} role="alert">
+              En pesos es más de lo que se puede cargar. ¿Sobra un cero?
+            </p>
+          )}
+        </div>
+        {conversion.needsManual && (
+          <ManualRateField value={conversion.manual} onChange={conversion.setManual} />
+        )}
+        {/* What it was, optional: names used before fill the rest in one tap */}
         <TextField
           label="Nombre (opcional)"
+          hideLabel // the examples say what it is: one row less
           autoCapitalize="sentences"
           placeholder="Nafta, cine, supermercado…"
           value={name}
@@ -187,33 +223,6 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
             ))}
           </div>
         )}
-        <div>
-          <AmountField
-            label={currency === 'USD' ? 'Monto en dólares' : 'Monto'}
-            symbol={currency === 'USD' ? 'US$' : '$'}
-            value={amount}
-            onValueChange={setAmount}
-            autoFocus={!expense}
-            required
-          />
-          {currency === 'USD' && (
-            <ConversionNote dollars={value} rate={rate} loading={conversion.loading} />
-          )}
-          {tooBig && (
-            <p className={styles.tooBig} role="alert">
-              En pesos es más de lo que se puede cargar. ¿Sobra un cero?
-            </p>
-          )}
-        </div>
-        <ChipGroup
-          label="Moneda"
-          options={CURRENCY_OPTIONS}
-          value={currency}
-          onChange={changeCurrency}
-        />
-        {conversion.needsManual && (
-          <ManualRateField value={conversion.manual} onChange={conversion.setManual} />
-        )}
         <CategoryPicker value={category} onChange={setCategory} />
         <ChipGroup
           label="Cómo lo pagaste"
@@ -238,18 +247,13 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
             )}
           </div>
         )}
-        <DayField label="Día del gasto" value={day} max={today} onChange={setDay} />
-        <TextField
-          label="Nota"
-          autoCapitalize="sentences"
-          hideLabel
-          placeholder="Nota (opcional)"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
-        <Button type="submit" size="lg" fullWidth disabled={!isValid}>
-          {submitLabel ?? (expense ? 'Guardar cambios' : 'Guardar gasto')}
-        </Button>
+        <DayField label="Cuándo fue" value={day} max={today} onChange={setDay} />
+        <NoteField value={note} onChange={setNote} />
+        <StickyActions>
+          <Button type="submit" size="lg" fullWidth disabled={!isValid}>
+            {submitLabel ?? (expense ? 'Guardar cambios' : 'Guardar gasto')}
+          </Button>
+        </StickyActions>
       </Stack>
     </form>
   )
