@@ -16,6 +16,19 @@
   gap: var(--space-2);
 }
 
+/* rows: rows of their own that don't wrap, so a chip is as wide as its text, not as a column */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: max-content;
+}
+
+.row {
+  display: flex;
+  gap: var(--space-2);
+}
+
 .chip {
   display: inline-flex;
   align-items: center;

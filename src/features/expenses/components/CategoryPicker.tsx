@@ -54,7 +54,7 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
       <div ref={scroller} className={styles.scroller}>
         <ChipGroup
           label="Categoría"
-          className={styles.chips}
+          rows={2}
           options={options}
           value={picked}
           onChange={onChange}

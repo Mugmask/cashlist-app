@@ -18,6 +18,10 @@ export interface ChipGroupProps<T extends string> {
   className?: string
   // After the chips, in their same flow: a button that isn't an option (Editar, say)
   after?: ReactNode
+  // Lays the chips out in this many rows that don't wrap, each chip as wide as its text,
+  // dealt in turn (1st, 3rd... on the first; 2nd, 4th... on the second), so the first ones
+  // stay first. For a strip that scrolls sideways.
+  rows?: number
 }
 
 const KEY_STEPS: Partial<Record<string, 1 | -1>> = {
@@ -36,6 +40,7 @@ export function ChipGroup<T extends string>({
   showLabel = false,
   className,
   after,
+  rows,
 }: ChipGroupProps<T>) {
   const labelId = useId()
   const refs = useRef<Array<HTMLButtonElement | null>>([])
@@ -49,6 +54,30 @@ export function ChipGroup<T extends string>({
     refs.current[next]?.focus()
   }
 
+  const chips = options.map((option, index) => {
+    const checked = option.value === value
+    // Tab lands on the picked chip; with none picked (a value no option has), the first
+    const focusable = checked || (index === 0 && !options.some((o) => o.value === value))
+    return (
+      <button
+        key={option.value}
+        ref={(el) => {
+          refs.current[index] = el
+        }}
+        type="button"
+        role="radio"
+        aria-checked={checked}
+        tabIndex={focusable ? 0 : -1}
+        className={cx(styles.chip, checked && styles.checked)}
+        onClick={() => onChange(option.value)}
+        onKeyDown={(e) => handleKeyDown(e, index)}
+      >
+        {option.icon}
+        {option.label}
+      </button>
+    )
+  })
+
   return (
     <div className={cx(styles.wrapper, className)}>
       {showLabel && (
@@ -60,32 +89,22 @@ export function ChipGroup<T extends string>({
         role="radiogroup"
         aria-label={showLabel ? undefined : label}
         aria-labelledby={showLabel ? labelId : undefined}
-        className={styles.group}
+        className={rows ? styles.rows : styles.group}
       >
-        {options.map((option, index) => {
-          const checked = option.value === value
-          // Tab lands on the picked chip; with none picked (a value no option has), the first
-          const focusable = checked || (index === 0 && !options.some((o) => o.value === value))
-          return (
-            <button
-              key={option.value}
-              ref={(el) => {
-                refs.current[index] = el
-              }}
-              type="button"
-              role="radio"
-              aria-checked={checked}
-              tabIndex={focusable ? 0 : -1}
-              className={cx(styles.chip, checked && styles.checked)}
-              onClick={() => onChange(option.value)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-            >
-              {option.icon}
-              {option.label}
-            </button>
-          )
-        })}
-        {after}
+        {rows ? (
+          Array.from({ length: rows }, (_, row) => (
+            <div key={row} className={styles.row}>
+              {chips.filter((_, index) => index % rows === row)}
+              {/* In the row the next chip would have gone to */}
+              {row === options.length % rows && after}
+            </div>
+          ))
+        ) : (
+          <>
+            {chips}
+            {after}
+          </>
+        )}
       </div>
     </div>
   )
