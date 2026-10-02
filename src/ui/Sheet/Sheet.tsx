@@ -83,14 +83,17 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
         // Sliding down it still shows, but takes no taps: a second tap on "Guardar" would
         // save twice
         <div className={styles.content} inert={closing}>
-          <div className={styles.handle} aria-hidden />
-          <header className={styles.header}>
-            <h2 id={titleId} className={styles.title}>
-              {title}
-            </h2>
-            <IconButton label="Cerrar" icon={<X />} onClick={onClose} />
-          </header>
-          {children}
+          {/* Stays put: only the body below scrolls */}
+          <div className={styles.top}>
+            <div className={styles.handle} aria-hidden />
+            <header className={styles.header}>
+              <h2 id={titleId} className={styles.title}>
+                {title}
+              </h2>
+              <IconButton label="Cerrar" icon={<X />} onClick={onClose} />
+            </header>
+          </div>
+          <div className={styles.body}>{children}</div>
         </div>
       )}
     </dialog>

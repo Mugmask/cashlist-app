@@ -4,7 +4,7 @@
   max-height: 92dvh;
   margin: auto auto 0;
   padding: 0;
-  overflow-y: auto;
+  overflow: hidden; /* the body inside scrolls, not the sheet */
   border: 1px solid var(--color-border);
   border-bottom: 0;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -38,9 +38,40 @@
   animation: fade-out var(--duration-base) ease-in forwards;
 }
 
+/* The handle and title on top, fixed; the body takes the rest and scrolls */
 .content {
+  display: flex;
+  flex-direction: column;
+  max-height: 92dvh;
+}
+
+.top {
+  flex-shrink: 0;
+  padding: var(--space-3) var(--space-5) 0;
+}
+
+/* Scrolling content fades out over its first and last 16px instead of running into the
+   sheet's edges; the padding keeps what's at rest clear of the fade */
+.body {
   container-type: inline-size;
-  padding: var(--space-3) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-4) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black var(--space-4),
+    black calc(100% - var(--space-4)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black var(--space-4),
+    black calc(100% - var(--space-4)),
+    transparent
+  );
 }
 
 .handle {
@@ -55,7 +86,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-2);
 }
 
 .title {

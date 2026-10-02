@@ -41,7 +41,7 @@ export function AddExpenseProvider({
   }, [pathname])
   const close = () => setOpenOn(null)
   const changeKind = (next: Kind) => {
-    if (kind === 'expense' && body.current) setMinHeight(body.current.offsetHeight)
+    if (kind === 'expense' && body.current) setMinHeight(heightOnScreen(body.current))
     setKind(next)
   }
   const saved = (message: string) => {
@@ -71,4 +71,15 @@ export function AddExpenseProvider({
       </Sheet>
     </AddExpenseContext>
   )
+}
+
+// How tall the expense form shows: all of it, or only what the sheet's scrolling body fits
+// when it's taller than the screen. Keeping the whole height would leave the shorter income
+// form with empty room to scroll into.
+function heightOnScreen(form: HTMLElement) {
+  const scroller = form.parentElement
+  if (!scroller) return form.offsetHeight
+  const { paddingTop, paddingBottom } = getComputedStyle(scroller)
+  const visible = scroller.clientHeight - parseFloat(paddingTop) - parseFloat(paddingBottom)
+  return Math.min(form.offsetHeight, visible)
 }
