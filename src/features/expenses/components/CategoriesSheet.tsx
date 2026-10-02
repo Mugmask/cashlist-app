@@ -1,9 +1,9 @@
-import { Pencil, Plus, Tags, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { runSync } from '@/lib/sync'
-import { Button, EmptyState, IconButton, Sheet, Stack, useToast } from '@/ui'
-import { useCategories, type Category } from '../categories'
+import { Button, IconButton, Sheet, Stack, useToast } from '@/ui'
+import { getCategory, OTHER_ID, useCategories, type Category } from '../categories'
 import { categoriesRepo } from '../categoriesRepo'
 import { CategoryForm } from './CategoryForm'
 import { CategoryIcon } from './CategoryIcon'
@@ -20,8 +20,9 @@ export interface CategoriesSheetProps {
   onDeleted?: (id: string) => void
 }
 
-// The user's categories: make new ones, edit or delete them. Rendered on <body>: it opens from
-// inside other forms, and a form can't be inside another.
+// The categories: make new ones, edit or delete the user's, rename or recolor the built-in
+// ones. Rendered on <body>: it opens from inside other forms, and a form can't be inside
+// another.
 export function CategoriesSheet({
   open,
   startWith,
@@ -45,11 +46,7 @@ export function CategoriesSheet({
   }
 
   const title =
-    shown.kind === 'list'
-      ? 'Tus categorías'
-      : shown.category
-        ? 'Editar categoría'
-        : 'Nueva categoría'
+    shown.kind === 'list' ? 'Categorías' : shown.category ? 'Editar categoría' : 'Nueva categoría'
 
   return createPortal(
     <Sheet open={open} onClose={close} title={title}>
@@ -80,7 +77,9 @@ function CategoryList({
   onDeleted?: (id: string) => void
 }) {
   const toast = useToast()
-  const own = useCategories().list.filter((c) => c.own)
+  const { list } = useCategories()
+  const builtIn = list.filter((c) => !c.own)
+  const own = list.filter((c) => c.own)
   // Deleting asks first, on the row itself
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
@@ -93,58 +92,74 @@ function CategoryList({
   }
 
   return (
-    <Stack gap={4}>
-      {own.length === 0 ? (
-        <EmptyState
-          icon={<Tags />}
-          title="Todavía no creaste categorías"
-          description="Las que vienen de base siguen estando. Sumá las tuyas: nafta, cine, facultad…"
-        />
-      ) : (
+    <Stack gap={6}>
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Las tuyas</h3>
+        {own.length === 0 ? (
+          <p className={styles.empty}>Todavía no creaste ninguna: nafta, cine, facultad…</p>
+        ) : (
+          <ul className={styles.list}>
+            {own.map((category) =>
+              confirmingId === category.id ? (
+                <li key={category.id} className={styles.confirm}>
+                  <p className={styles.question}>
+                    ¿Eliminar {category.label}? Sus gastos pasan a {getCategory(OTHER_ID).label}.
+                  </p>
+                  <div className={styles.confirmActions}>
+                    <Button variant="ghost" onClick={() => setConfirmingId(null)}>
+                      Cancelar
+                    </Button>
+                    <Button variant="danger" onClick={() => handleDelete(category)}>
+                      Eliminar
+                    </Button>
+                  </div>
+                </li>
+              ) : (
+                <li key={category.id} className={styles.row}>
+                  <CategoryIcon category={category.id} />
+                  <span className={styles.name}>{category.label}</span>
+                  <IconButton
+                    label={`Editar ${category.label}`}
+                    icon={<Pencil />}
+                    onClick={() => onEdit(category)}
+                  />
+                  <IconButton
+                    label={`Eliminar ${category.label}`}
+                    icon={<Trash2 />}
+                    onClick={() => setConfirmingId(category.id)}
+                  />
+                </li>
+              ),
+            )}
+          </ul>
+        )}
+        <Button
+          variant="secondary"
+          size="lg"
+          fullWidth
+          icon={<Plus aria-hidden />}
+          onClick={onCreate}
+        >
+          Nueva categoría
+        </Button>
+      </section>
+      {/* The app's own: they can't go (expenses rely on them), but their name and color can */}
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Las que vienen con la app</h3>
         <ul className={styles.list}>
-          {own.map((category) =>
-            confirmingId === category.id ? (
-              <li key={category.id} className={styles.confirm}>
-                <p className={styles.question}>
-                  ¿Eliminar {category.label}? Sus gastos pasan a Otros.
-                </p>
-                <div className={styles.confirmActions}>
-                  <Button variant="ghost" onClick={() => setConfirmingId(null)}>
-                    Cancelar
-                  </Button>
-                  <Button variant="danger" onClick={() => handleDelete(category)}>
-                    Eliminar
-                  </Button>
-                </div>
-              </li>
-            ) : (
-              <li key={category.id} className={styles.row}>
-                <CategoryIcon category={category.id} />
-                <span className={styles.name}>{category.label}</span>
-                <IconButton
-                  label={`Editar ${category.label}`}
-                  icon={<Pencil />}
-                  onClick={() => onEdit(category)}
-                />
-                <IconButton
-                  label={`Eliminar ${category.label}`}
-                  icon={<Trash2 />}
-                  onClick={() => setConfirmingId(category.id)}
-                />
-              </li>
-            ),
-          )}
+          {builtIn.map((category) => (
+            <li key={category.id} className={styles.row}>
+              <CategoryIcon category={category.id} />
+              <span className={styles.name}>{category.label}</span>
+              <IconButton
+                label={`Editar ${category.label}`}
+                icon={<Pencil />}
+                onClick={() => onEdit(category)}
+              />
+            </li>
+          ))}
         </ul>
-      )}
-      <Button
-        variant="secondary"
-        size="lg"
-        fullWidth
-        icon={<Plus aria-hidden />}
-        onClick={onCreate}
-      >
-        Nueva categoría
-      </Button>
+      </section>
     </Stack>
   )
 }

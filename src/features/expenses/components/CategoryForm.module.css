@@ -9,3 +9,10 @@
   height: 24px;
   border-radius: var(--radius-pill);
 }
+
+/* The colors and "Personalizado" in one row, however many there are */
+.colors [role='radiogroup'] {
+  grid-template-columns: none;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+}

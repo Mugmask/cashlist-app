@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import type { CustomCategory } from '@/lib/db'
 import { BUILT_IN_CATEGORIES, getCategory, OTHER_ID, setCustomCategories } from './categories'
+import { CATEGORY_ICONS } from './categoryIcons'
 
 const custom = (
   id: string,
@@ -45,5 +46,63 @@ describe('getCategory', () => {
     setCustomCategories([custom('c1', 'Nafta', { deleted: true })])
 
     expect(getCategory('c1').id).toBe(OTHER_ID)
+  })
+})
+
+describe('built-in categories the user changed', () => {
+  it('take the name and color of their row, keep their icon, and are not their own', () => {
+    setCustomCategories([
+      custom('r1', 'Supermercado', { builtIn: 'groceries', icon: '', color: 5 }),
+    ])
+
+    const groceries = getCategory('groceries')
+    expect(groceries).toMatchObject({ label: 'Supermercado', color: 'var(--color-cat-5)' })
+    expect(groceries.icon).toBe(BUILT_IN_CATEGORIES[0].icon)
+    expect(groceries.own).toBeUndefined()
+    expect(groceries.custom?.id).toBe('r1')
+    // The row is no category of its own
+    expect(getCategory('r1').id).toBe(OTHER_ID)
+  })
+
+  it('take the icon the user gave them', () => {
+    setCustomCategories([custom('r1', 'Súper', { builtIn: 'groceries', icon: 'utensils' })])
+
+    expect(getCategory('groceries').icon).toBe(CATEGORY_ICONS.utensils.icon)
+  })
+
+  it('take the latest row when two devices changed the same one', () => {
+    setCustomCategories([
+      custom('r1', 'Viejo', { builtIn: 'groceries', updatedAt: '2026-10-01T12:00:00Z' }),
+      custom('r2', 'Nuevo', { builtIn: 'groceries', updatedAt: '2026-10-02T12:00:00Z' }),
+    ])
+
+    expect(getCategory('groceries').label).toBe('Nuevo')
+  })
+
+  it('go back to the original when their row is deleted', () => {
+    setCustomCategories([custom('r1', 'Supermercado', { builtIn: 'groceries', deleted: true })])
+
+    expect(getCategory('groceries').label).toBe('Súper')
+    expect(getCategory('groceries').custom).toBeUndefined()
+  })
+
+  it('rename the fallback too, when it is Otros', () => {
+    setCustomCategories([custom('r1', 'Varios', { builtIn: OTHER_ID })])
+
+    expect(getCategory('crypto').label).toBe('Varios')
+  })
+})
+
+describe('exact colors', () => {
+  it("paint the user's own and the built-in ones over the palette's", () => {
+    setCustomCategories([
+      custom('c1', 'Nafta', { customColor: '#12ab34' }),
+      custom('r1', 'Súper', { builtIn: 'groceries', customColor: '#ff00aa' }),
+    ])
+
+    expect(getCategory('c1').color).toBe(
+      'color-mix(in srgb, #12ab34 var(--custom-color-strength), black)',
+    )
+    expect(getCategory('groceries').color).toContain('#ff00aa')
   })
 })

@@ -1,13 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { contrast, customAccent, readsOnBackground } from './accent'
-
-describe('contrast', () => {
-  it('goes from 1 (same color) to 21 (black on white)', () => {
-    expect(contrast('#777777', '#777777')).toBe(1)
-    expect(contrast('#000000', '#ffffff')).toBeCloseTo(21)
-    expect(contrast('#ffffff', '#000000')).toBeCloseTo(21)
-  })
-})
+import { customAccent, readsOnBackground } from './accent'
 
 describe('customAccent', () => {
   it('writes dark text on a light color and white on a dark one', () => {

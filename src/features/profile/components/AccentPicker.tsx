@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Alert, OptionGrid, Stack } from '@/ui'
+import { Alert, ColorField, OptionGrid, RainbowSwatch, Stack } from '@/ui'
 import {
   ACCENTS,
   applyAccent,
@@ -49,7 +49,7 @@ export function AccentPicker() {
           {
             value: 'custom' as const,
             label: 'Personalizado',
-            content: <span className={styles.rainbow} aria-hidden />,
+            content: <RainbowSwatch />,
           },
         ]}
         value={accent}
@@ -57,18 +57,7 @@ export function AccentPicker() {
       />
       {accent === 'custom' && (
         <>
-          <label className={styles.customRow}>
-            <input
-              type="color"
-              className={styles.colorInput}
-              value={custom}
-              onChange={(e) => handleCustom(e.target.value)}
-            />
-            <span>
-              <span className={styles.customLabel}>Tu color</span>
-              <span className={styles.customHex}>{custom.toUpperCase()}</span>
-            </span>
-          </label>
+          <ColorField value={custom} onChange={handleCustom} />
           {!readsOnBackground(custom, theme) && (
             <Alert>
               {theme === 'dark'

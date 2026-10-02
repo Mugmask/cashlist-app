@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { useSyncExternalStore } from 'react'
 import { db, type CustomCategory } from '@/lib/db'
-import { CATEGORY_ICONS, categoryColor } from './categoryIcons'
+import { CATEGORY_ICONS, categoryColor, customCategoryColor } from './categoryIcons'
 
 export interface Category {
   id: string
@@ -21,6 +21,8 @@ export interface Category {
   icon: LucideIcon
   color: string
   own?: CustomCategory // set when the user made it: it can be edited and deleted
+  // Set on a built-in the user renamed or recolored: their row for it (it can be reset)
+  custom?: CustomCategory
 }
 
 // Stored as the id; label, icon and chart color are UI only. None is gray: every one has a
@@ -41,7 +43,6 @@ export const BUILT_IN_CATEGORIES: readonly Category[] = [
 ]
 
 export const OTHER_ID = 'other'
-const OTHER = BUILT_IN_CATEGORIES.find((c) => c.id === OTHER_ID)!
 
 // Categories that were folded into another one; rows may still carry them until they sync
 const MERGED: Record<string, string> = { going_out: 'personal', health: 'personal' }
@@ -52,21 +53,51 @@ interface Categories {
   loaded: boolean // the user's ones were read from the local database
   list: readonly Category[] // built-in first, then the user's alphabetically, "Otros" last
   byId: ReadonlyMap<string, Category>
+  other: Category // "Otros", with the user's name and color for it if they changed them
+}
+
+// The exact color the user picked, or the palette's
+function colorOf(row: CustomCategory) {
+  return row.customColor ? customCategoryColor(row.customColor) : categoryColor(row.color)
+}
+
+// The user's name and color for each built-in they changed. Two devices changing the same
+// one offline leave two rows: the latest wins.
+function builtInChanges(rows: readonly CustomCategory[]) {
+  const latest = new Map<string, CustomCategory>()
+  for (const row of rows) {
+    if (!row.builtIn) continue
+    const seen = latest.get(row.builtIn)
+    if (!seen || row.updatedAt > seen.updatedAt) latest.set(row.builtIn, row)
+  }
+  return latest
+}
+
+function withChanges(category: Category, changes: ReadonlyMap<string, CustomCategory>) {
+  const custom = changes.get(category.id)
+  if (!custom || custom.deleted) return category
+  // An icon of their own when they picked one; '' (rows from before icons could change)
+  // keeps the app's
+  const icon = CATEGORY_ICONS[custom.icon]?.icon ?? category.icon
+  return { ...category, label: custom.name, icon, color: colorOf(custom), custom }
 }
 
 function build(custom: readonly CustomCategory[], loaded: boolean): Categories {
+  const changes = builtInChanges(custom)
+  const builtIn = BUILT_IN_CATEGORIES.map((c) => withChanges(c, changes))
+  const other = builtIn.find((c) => c.id === OTHER_ID)!
   const own = custom
-    .filter((c) => !c.deleted)
+    .filter((c) => !c.deleted && !c.builtIn)
     .map((c): Category => ({
       id: c.id,
       label: c.name,
       icon: CATEGORY_ICONS[c.icon]?.icon ?? Tag,
-      color: categoryColor(c.color),
+      color: colorOf(c),
       own: c,
     }))
     .sort((a, b) => collator.compare(a.label, b.label))
-  const list = [...BUILT_IN_CATEGORIES.filter((c) => c !== OTHER), ...own, OTHER]
-  return { loaded, list, byId: new Map(list.map((c) => [c.id, c])) }
+  const list = [...builtIn.filter((c) => c !== other), ...own, other]
+  return { loaded, list, other, byId: new Map(list.map((c) => [c.id, c])) }
 }
 
 // The categories live in one module-level store, so plain functions (totals, filters) can
@@ -102,5 +133,5 @@ export function useCategories() {
 
 // Falls back to "Otros" for categories this device doesn't know (yet), or that were deleted
 export function getCategory(id: string) {
-  return current.byId.get(MERGED[id] ?? id) ?? OTHER
+  return current.byId.get(MERGED[id] ?? id) ?? current.other
 }

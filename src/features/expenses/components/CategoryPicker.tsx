@@ -10,12 +10,12 @@ export interface CategoryPickerProps {
   onChange: (id: string) => void
 }
 
-// The categories as chips, plus making a new one (picked right away) and editing the user's
-// ones. Used by the expense and fixed expense forms.
+// The categories as chips, plus making a new one (picked right away) and editing them: the
+// user's, and the name and color of the built-in ones. Used by the expense and fixed expense
+// forms.
 export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
   const { list } = useCategories()
   const [sheet, setSheet] = useState<'list' | 'create' | null>(null)
-  const hasOwn = list.some((c) => c.own)
 
   const options = list.map(({ id, label, icon: Icon }) => ({
     value: id,
@@ -38,12 +38,10 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
           <Plus aria-hidden />
           Nueva categoría
         </button>
-        {hasOwn && (
-          <button type="button" className={styles.action} onClick={() => setSheet('list')}>
-            <Settings2 aria-hidden />
-            Editar categorías
-          </button>
-        )}
+        <button type="button" className={styles.action} onClick={() => setSheet('list')}>
+          <Settings2 aria-hidden />
+          Editar categorías
+        </button>
       </div>
       <CategoriesSheet
         open={sheet !== null}

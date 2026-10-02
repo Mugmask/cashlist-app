@@ -1,3 +1,4 @@
+import { contrast, HEX_COLOR } from '@/utils/color'
 import { BACKGROUNDS, type Theme } from './theme'
 
 // The app's accent color, picked in the profile: one of the presets (their colors live in
@@ -34,22 +35,6 @@ function isAccent(value: unknown): value is Accent {
   return value === 'custom' || ACCENTS.some((accent) => accent.value === value)
 }
 
-const HEX = /^#[0-9a-f]{6}$/i
-
-function luminance(hex: string) {
-  const [r, g, b] = [1, 3, 5].map((i) => {
-    const c = parseInt(hex.slice(i, i + 2), 16) / 255
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
-  })
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
-
-// WCAG contrast ratio between two #rrggbb colors, 1 to 21
-export function contrast(a: string, b: string) {
-  const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x)
-  return (light + 0.05) / (dark + 0.05)
-}
-
 export function customAccent(color: string): CustomAccent {
   return { color, on: contrast(color, ON_DARK) >= contrast(color, ON_LIGHT) ? ON_DARK : ON_LIGHT }
 }
@@ -73,7 +58,7 @@ export function readCustomAccent(): CustomAccent | null {
   try {
     const stored: unknown = JSON.parse(localStorage.getItem(CUSTOM_KEY) ?? 'null')
     const color = (stored as Partial<CustomAccent> | null)?.color
-    return typeof color === 'string' && HEX.test(color) ? customAccent(color) : null
+    return typeof color === 'string' && HEX_COLOR.test(color) ? customAccent(color) : null
   } catch {
     return null
   }

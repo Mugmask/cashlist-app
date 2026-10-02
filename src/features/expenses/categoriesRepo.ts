@@ -1,9 +1,10 @@
 import { db, type CustomCategory } from '@/lib/db'
 import { normalizeName } from '@/utils/text'
 import type { Category } from './categories'
-import { CATEGORY_COLOR_COUNT } from './categoryIcons'
+import { PICKABLE_COLORS } from './categoryIcons'
 
-export type CategoryInput = Pick<CustomCategory, 'name' | 'icon' | 'color'>
+// customColor: an exact color over the palette's; left out (undefined), the palette's again
+export type CategoryInput = Pick<CustomCategory, 'name' | 'icon' | 'color' | 'customColor'>
 
 export const MAX_CATEGORY_NAME = 24 // a chip, a chart legend: little room
 
@@ -33,6 +34,34 @@ export const categoriesRepo = {
   get(id: string) {
     return db.categories.get(id)
   },
+
+  // The user's name, icon and color for a built-in one: updates their row for it, or makes it
+  async customizeBuiltIn(builtIn: Category, changes: CategoryInput, now = new Date()) {
+    const { custom } = builtIn
+    if (custom) {
+      await db.categories.update(custom.id, {
+        ...changes,
+        deleted: false,
+        updatedAt: now.toISOString(),
+        pending: 1,
+      })
+      return
+    }
+    await db.categories.add({
+      ...changes,
+      id: crypto.randomUUID(),
+      builtIn: builtIn.id,
+      updatedAt: now.toISOString(),
+      deleted: false,
+      pending: 1,
+    })
+  },
+
+  // Back to the app's name, icon and color: every row for it goes (two devices may have made one)
+  async resetBuiltIn(builtInId: string, now = new Date()) {
+    const rows = await db.categories.filter((c) => c.builtIn === builtInId && !c.deleted).toArray()
+    await Promise.all(rows.map((row) => categoriesRepo.remove(row.id, now)))
+  },
 }
 
 // Another category already goes by this name ("Nafta" = "nafta "), other than `exceptId`
@@ -44,5 +73,5 @@ export function isNameTaken(name: string, categories: readonly Category[], excep
 // A color for a new one: the palette in turn, so consecutive ones don't look alike
 export function nextColor(categories: readonly Category[]) {
   const own = categories.filter((c) => c.own).length
-  return (own % CATEGORY_COLOR_COUNT) + 1
+  return PICKABLE_COLORS[own % PICKABLE_COLORS.length]
 }

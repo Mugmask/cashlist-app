@@ -65,6 +65,8 @@
   --color-cat-7: #8d7afe; /* violet */
   --color-cat-8: #ff3f4d; /* red */
   --color-chart-context: #9aa0ab; /* the month before in a line chart: gray, but in sight */
+  /* How much of a category's exact color (picked by the user) shows; black is the rest */
+  --custom-color-strength: 100%;
 
   /* Status */
   --color-danger: #ff6464;
@@ -226,6 +228,7 @@
   --color-cat-6: #028f02;
   --color-cat-7: #6f5ae8;
   --color-cat-8: #e0283a;
+  --custom-color-strength: 82%; /* a step darker, like the hues above */
 
   --color-danger: #b82723;
   --color-danger-soft: rgb(184 39 35 / 0.1);

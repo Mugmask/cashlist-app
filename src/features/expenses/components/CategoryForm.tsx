@@ -1,28 +1,95 @@
+import { RotateCcw } from 'lucide-react'
 import { useState, type CSSProperties, type FormEvent } from 'react'
 import { runSync } from '@/lib/sync'
-import { Button, OptionGrid, Stack, TextField, useToast } from '@/ui'
+import { useCurrentTheme, type Theme } from '@/features/profile'
+import {
+  Alert,
+  Button,
+  ColorField,
+  OptionGrid,
+  RainbowSwatch,
+  Stack,
+  TextField,
+  useToast,
+} from '@/ui'
+import { colorDistance, contrast } from '@/utils/color'
 import { capitalize } from '@/utils/text'
-import { useCategories, type Category } from '../categories'
+import { BUILT_IN_CATEGORIES, useCategories, type Category } from '../categories'
 import { categoriesRepo, isNameTaken, MAX_CATEGORY_NAME, nextColor } from '../categoriesRepo'
-import { CATEGORY_COLOR_COUNT, CATEGORY_ICONS, categoryColor, DEFAULT_ICON } from '../categoryIcons'
+import {
+  CATEGORY_ICONS,
+  categoryColor,
+  colorIndexOf,
+  customCategoryColor,
+  DEFAULT_ICON,
+  iconKeyOf,
+  PICKABLE_COLORS,
+  shownCustomColor,
+} from '../categoryIcons'
 import styles from './CategoryForm.module.css'
 
-const COLOR_INDEXES = Array.from({ length: CATEGORY_COLOR_COUNT }, (_, i) => i + 1)
+// Closer than this (OKLab), two categories are hard to tell apart in a chart
+const TOO_ALIKE = 0.06
+// Below this against the background, an icon or a chart bar is hard to see (WCAG non-text)
+const MIN_GRAPHIC_CONTRAST = 3
+const BACKGROUND: Record<Theme, string> = { dark: '#141519', light: '#f5f7f9' } // the cards'
+
+// A palette color as the theme on screen draws it
+function paletteHex(index: number) {
+  return getComputedStyle(document.documentElement).getPropertyValue(`--color-cat-${index}`).trim()
+}
+
+// What a category looks like right now, as #rrggbb: its exact color, or its palette one
+function shownColor(category: Category, theme: Theme) {
+  const exact = (category.own ?? category.custom)?.customColor
+  return exact ? shownCustomColor(exact, theme) : paletteHex(colorIndexOf(category.color))
+}
 
 export interface CategoryFormProps {
-  category?: Category // editing one of the user's when set, creating otherwise
+  // Editing when set (one of the user's, or a built-in one), creating otherwise
+  category?: Category
   onSaved: (id: string) => void
 }
 
-// Name, icon and color of a category the user makes. The icons show in the picked color, so
-// the grid is also the preview.
+// Name, icon and color of a category: one the user makes, or a built-in one (which can then go
+// back to the original). The icons show in the picked color, so the grid is also the preview.
 export function CategoryForm({ category, onSaved }: CategoryFormProps) {
   const toast = useToast()
   const { list } = useCategories()
   const own = category?.own
-  const [name, setName] = useState(own?.name ?? '')
-  const [icon, setIcon] = useState(own?.icon ?? DEFAULT_ICON)
-  const [color, setColor] = useState(() => own?.color ?? nextColor(list))
+  const builtIn = category && !own ? category : undefined
+  const [name, setName] = useState(own?.name ?? builtIn?.label ?? '')
+  // A built-in one opens on the icon it shows: the app's, or the one the user gave it
+  const [icon, setIcon] = useState(own?.icon ?? (builtIn ? iconKeyOf(builtIn.icon) : DEFAULT_ICON))
+  const theme = useCurrentTheme()
+  const [color, setColor] = useState(() =>
+    own ? own.color : builtIn ? colorIndexOf(builtIn.color) : nextColor(list),
+  )
+  // An exact color over the palette: picked with "Personalizado", kept while back on the palette
+  const saved = (own ?? builtIn?.custom)?.customColor
+  const [exact, setExact] = useState(saved !== undefined)
+  const [hex, setHex] = useState(() => saved ?? paletteHex(color))
+  const shownHex = shownCustomColor(hex, theme)
+  // The category that looks the most like the exact color, if too much
+  const lookalike = exact
+    ? list
+        .filter((c) => c.id !== category?.id)
+        .map((c) => ({ category: c, distance: colorDistance(shownHex, shownColor(c, theme)) }))
+        .sort((a, b) => a.distance - b.distance)
+        .find((c) => c.distance < TOO_ALIKE)?.category
+    : undefined
+  const faint = exact && contrast(shownHex, BACKGROUND[theme]) < MIN_GRAPHIC_CONTRAST
+
+  function pickColor(next: number | 'custom') {
+    if (next === 'custom') {
+      // Starts from the palette color it had, so the picker opens on something familiar
+      if (!exact && saved === undefined) setHex(paletteHex(color))
+      setExact(true)
+      return
+    }
+    setExact(false)
+    setColor(next)
+  }
 
   const clean = capitalize(name.trim())
   const taken = clean !== '' && isNameTaken(clean, list, category?.id)
@@ -33,15 +100,35 @@ export function CategoryForm({ category, onSaved }: CategoryFormProps) {
     // This form can open from inside the expense form: its submit must not reach that one
     e.stopPropagation()
     if (!isValid) return
-    const input = { name: clean, icon, color }
+    const customColor = exact ? hex : undefined // undefined: back to the palette's
+    if (builtIn) {
+      await categoriesRepo.customizeBuiltIn(builtIn, { name: clean, icon, color, customColor })
+    }
+    const input = { name: clean, icon, color, customColor }
     const id = category ? category.id : await categoriesRepo.create(input)
-    if (category) await categoriesRepo.update(category.id, input)
+    if (own) await categoriesRepo.update(own.id, input)
     toast(category ? 'Categoría guardada' : `Categoría ${clean} creada`)
     runSync().catch(() => {}) // on failure it stays pending and retries on its own
     onSaved(id)
   }
 
-  const tint = { '--option-color': categoryColor(color) } as CSSProperties
+  async function handleReset() {
+    if (!builtIn) return
+    await categoriesRepo.resetBuiltIn(builtIn.id)
+    const original = BUILT_IN_CATEGORIES.find((c) => c.id === builtIn.id)?.label
+    toast(`${original} volvió a como venía`)
+    runSync().catch(() => {})
+    onSaved(builtIn.id)
+  }
+
+  // Green isn't offered any more, but one that already is keeps showing it as picked
+  const colors: readonly number[] = PICKABLE_COLORS.includes(color as never)
+    ? PICKABLE_COLORS
+    : [...PICKABLE_COLORS, color].sort((a, b) => a - b)
+
+  const tint = {
+    '--option-color': exact ? customCategoryColor(hex) : categoryColor(color),
+  } as CSSProperties
 
   return (
     <form onSubmit={handleSubmit}>
@@ -70,25 +157,54 @@ export function CategoryForm({ category, onSaved }: CategoryFormProps) {
           value={icon}
           onChange={setIcon}
         />
-        <OptionGrid
-          label="Color"
-          options={COLOR_INDEXES.map((index) => ({
-            value: index,
-            label: `Color ${index}`,
-            content: (
-              <span
-                className={styles.swatch}
-                style={{ background: categoryColor(index) }}
-                aria-hidden
-              />
-            ),
-          }))}
-          value={color}
-          onChange={setColor}
-        />
+        <Stack gap={3}>
+          <OptionGrid<number | 'custom'>
+            label="Color"
+            className={styles.colors}
+            options={[
+              ...colors.map((index) => ({
+                value: index,
+                label: `Color ${index}`,
+                content: (
+                  <span
+                    className={styles.swatch}
+                    style={{ background: categoryColor(index) }}
+                    aria-hidden
+                  />
+                ),
+              })),
+              { value: 'custom' as const, label: 'Personalizado', content: <RainbowSwatch /> },
+            ]}
+            value={exact ? 'custom' : color}
+            onChange={pickColor}
+          />
+          {exact && (
+            <>
+              <ColorField value={hex} onChange={setHex} />
+              {lookalike ? (
+                <Alert>
+                  Se parece mucho a {lookalike.label}: en los gráficos va a costar distinguirlas.
+                </Alert>
+              ) : (
+                faint && <Alert>Ese color se ve poco sobre el fondo: probá uno más fuerte.</Alert>
+              )}
+            </>
+          )}
+        </Stack>
         <Button type="submit" size="lg" fullWidth disabled={!isValid}>
           {category ? 'Guardar cambios' : 'Crear categoría'}
         </Button>
+        {builtIn?.custom && (
+          <Button
+            variant="ghost"
+            size="lg"
+            fullWidth
+            icon={<RotateCcw aria-hidden />}
+            onClick={handleReset}
+          >
+            Volver al original
+          </Button>
+        )}
       </Stack>
     </form>
   )

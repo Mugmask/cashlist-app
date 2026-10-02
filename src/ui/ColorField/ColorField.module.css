@@ -1,0 +1,71 @@
+/* The whole row opens the device's color picker */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  cursor: pointer;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+}
+
+.input {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  cursor: pointer;
+  appearance: none;
+}
+
+.input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.input::-webkit-color-swatch {
+  border: 0;
+  border-radius: var(--radius-pill);
+}
+
+.input::-moz-color-swatch {
+  border: 0;
+  border-radius: var(--radius-pill);
+}
+
+.label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.hex {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.rainbow {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: conic-gradient(
+    var(--color-cat-8),
+    var(--color-cat-4),
+    var(--color-cat-6),
+    var(--color-cat-3),
+    var(--color-cat-1),
+    var(--color-cat-7),
+    var(--color-cat-5),
+    var(--color-cat-8)
+  );
+}

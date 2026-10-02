@@ -121,6 +121,8 @@ interface CategoryRow {
   name: string
   icon: string
   color: number
+  custom_color: string | null
+  builtin: string | null
   updated_at: string
   deleted: boolean
   synced_at: string
@@ -129,12 +131,14 @@ interface CategoryRow {
 export const categoriesTable: SyncedTable<CustomCategory, CategoryRow> = {
   name: 'categories',
   local: db.categories,
-  columns: 'id, name, icon, color, updated_at, deleted, synced_at',
+  columns: 'id, name, icon, color, custom_color, builtin, updated_at, deleted, synced_at',
   toRow: (c) => ({
     id: c.id,
     name: c.name,
     icon: c.icon,
     color: c.color,
+    custom_color: c.customColor ?? null,
+    builtin: c.builtIn ?? null,
     updated_at: c.updatedAt,
     deleted: c.deleted,
   }),
@@ -143,6 +147,8 @@ export const categoriesTable: SyncedTable<CustomCategory, CategoryRow> = {
     name: row.name,
     icon: row.icon,
     color: row.color,
+    ...(row.custom_color && { customColor: row.custom_color }),
+    ...(row.builtin && { builtIn: row.builtin }),
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,

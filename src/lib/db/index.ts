@@ -63,7 +63,11 @@ export interface Recipe extends Syncable {
 export interface CustomCategory extends Syncable {
   name: string
   icon: string
-  color: number
+  color: number // index into the palette; still kept with a custom color, as its fallback
+  customColor?: string // #rrggbb, when the user picked an exact color over the palette's
+  // Set when the row isn't a category of its own but the user's name and color for a
+  // built-in one (its key: 'groceries'...). Its icon is then the built-in's, and unused.
+  builtIn?: string
 }
 
 // The user's profile, a single row ('me'). Monthly income is in pesos.
