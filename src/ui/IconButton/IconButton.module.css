@@ -68,12 +68,12 @@
 .accent {
   width: 48px;
   height: 48px;
-  background: var(--color-accent-fill);
+  background: var(--color-accent-icon-fill);
   color: var(--color-on-accent);
 }
 
 .accent:hover:not(:disabled) {
-  background: var(--color-accent-fill-hover);
+  background: var(--color-accent-icon-fill-hover);
 }
 
 .iconButton:disabled {

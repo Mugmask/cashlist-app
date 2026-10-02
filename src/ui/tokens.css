@@ -55,6 +55,10 @@
      goes a step deeper. Text on the accent is always white */
   --color-accent-fill: oklch(from var(--color-accent) 0.52 c h);
   --color-accent-fill-hover: oklch(from var(--color-accent) 0.47 c h);
+  /* Under an icon alone (the bottom bar's +, IconButton accent) it can be brighter: an icon
+     needs 3:1, not 4.5:1, and white holds >= 3.4:1 here for any hue */
+  --color-accent-icon-fill: oklch(from var(--color-accent) 0.62 c h);
+  --color-accent-icon-fill-hover: oklch(from var(--color-accent) 0.57 c h);
   --color-on-accent: #ffffff;
   --color-accent-soft: color-mix(in srgb, var(--color-accent) 12%, transparent);
 
