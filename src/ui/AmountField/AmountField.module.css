@@ -85,8 +85,9 @@ button.switch:active {
   caret-color: var(--color-accent);
 }
 
+/* Muted, not subtle: the field sits on a glowing card, where subtle drops under 4.5:1 */
 .input::placeholder {
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
 }
 
 .input:focus {

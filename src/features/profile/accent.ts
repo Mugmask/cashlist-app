@@ -25,7 +25,8 @@ const DEFAULT_ACCENT: Preset = 'green'
 const STORAGE_KEY = 'cashlist:accent'
 const CUSTOM_KEY = 'cashlist:accent-custom' // the last custom color, kept while on a preset
 
-const ON_DARK = '#0a0b0d' // tokens.css --color-bg: the app is dark-only
+const BACKGROUND = '#0e1014' // tokens.css --color-bg: the app is dark-only
+const ON_DARK = '#0a0b0d' // the dark text on a light accent
 const ON_LIGHT = '#ffffff'
 // What every accent holds against the background, like the presets: enough to stay >= 4.5:1
 // (WCAG AA) on the cards, which its own glow makes lighter than the background
@@ -38,7 +39,7 @@ function isAccent(value: unknown): value is Accent {
 
 // Whether the color, as picked, is too dark to read on the background: it gets lightened
 export function needsLightening(color: string) {
-  return contrast(color, ON_DARK) < ACCENT_CONTRAST
+  return contrast(color, BACKGROUND) < ACCENT_CONTRAST
 }
 
 // The picked color, lightened toward white just enough to read like the presets

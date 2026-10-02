@@ -6,7 +6,7 @@
   color-scheme: dark;
 
   /* Surfaces */
-  --color-bg: #0a0b0d;
+  --color-bg: #0e1014; /* near black, a hair lifted: the glass reads, the page never goes flat */
   --color-surface: rgb(20 21 25 / 0.62); /* see-through: the glow behind shows */
   --color-surface-raised: #1d1f25;
   --color-border: rgb(255 255 255 / 0.08);
@@ -14,7 +14,7 @@
   /* What says "a field is here" (inputs, checkboxes): >= 3:1 on cards and sheets (WCAG 1.4.11);
      the two above are decoration, separators */
   --color-border-control: rgb(255 255 255 / 0.34);
-  --color-overlay: rgb(0 0 0 / 0.6);
+  --color-overlay: rgb(0 0 0 / 0.5); /* behind sheets: the page dims, and still shows */
   --color-surface-glass: rgb(20 21 25 / 0.78); /* needs backdrop-filter behind it */
   /* The bottom bar's: more opaque and a step lighter than the cards it floats over, and a
      neutral gray: the cards' cool tint, lighter, read as light blue on the black */
@@ -42,9 +42,10 @@
 
   /* Text */
   --color-text: #f4f5f7;
-  /* Both >= 4.5:1 on the worst spot: a card under its accent glow (WCAG AA) */
-  --color-text-muted: #a3a8b3;
-  --color-text-subtle: #999ea9; /* placeholders */
+  /* >= 4.5:1 on the worst spot: a hero card's glow over the page's brightest blob, any accent
+     (WCAG AA) */
+  --color-text-muted: #b2b6bf;
+  --color-text-subtle: #999ea9; /* placeholders, on opaque fields only: >= 6:1 there */
 
   /* Accent: the only saturated color in the UI. The user can swap it in the profile (the
      [data-accent] themes below): every other accent token derives from these two */
@@ -55,7 +56,7 @@
 
   /* Charts: the accent marks what matters, this gray the context around it
      (>= 3:1 on the surface, validated with the dataviz palette script) */
-  --color-chart-muted: #868b96;
+  --color-chart-muted: #8f949e;
   --color-chart-grid: rgb(255 255 255 / 0.06);
 
   /* Categorical: one fixed hue per expense category. Each is as vivid as sRGB allows at the
@@ -73,8 +74,8 @@
   --color-chart-context: #9aa0ab; /* the month before in a line chart: gray, but in sight */
 
   /* Status */
-  --color-danger: #ff7a7a;
-  --color-danger-soft: rgb(255 122 122 / 0.12);
+  --color-danger: #ff9a9a; /* light enough to hold 4.5:1 on the glowing cards, as text */
+  --color-danger-soft: rgb(255 154 154 / 0.12);
   --color-warning: #ffc94d;
   --color-warning-soft: rgb(255 201 77 / 0.12);
 
@@ -116,26 +117,39 @@
   --shadow-raised: 0 8px 32px rgb(0 0 0 / 0.45);
   --shadow-glass: 0 4px 16px rgb(0 0 0 / 0.3); /* small glass pieces floating on the page */
   --nav-shadow-color: rgb(0 0 0 / 0.55); /* the bottom bar's, drawn along its notched shape */
-  /* Glass: sheets frost what's under them, over soft blobs of the accent behind the page */
-  --color-sheet: rgb(20 21 25 / 0.86);
-  --sheet-blur: blur(24px) saturate(140%);
+  /* Glass: sheets frost what's under them, over soft blobs of the accent behind the page.
+     As see-through as it gets while text on it keeps 4.5:1 with a bright accent button right
+     behind (with the overlay above and the sheet's own glow) */
+  --color-sheet: rgb(20 21 25 / 0.76);
+  --sheet-blur: blur(32px) saturate(160%);
   /* The selected tab of a segmented control: a hairline and a drop, to stand off the track */
   --shadow-selected: 0 0 0 1px rgb(255 255 255 / 0.12), 0 2px 8px rgb(0 0 0 / 0.45);
+  /* One blob per corner side, so no stretch of the page is bare black, over a faint wash of
+     the accent. The first stays the brightest: the cards' contrast is measured under it */
   --page-glow:
     radial-gradient(
-      70% 45% at 0% 0%,
+      80% 50% at 0% 0%,
       color-mix(in srgb, var(--color-accent) 16%, transparent),
       transparent 70%
     ),
     radial-gradient(
-      60% 45% at 100% 50%,
-      color-mix(in srgb, var(--color-glow-2) 22%, transparent),
+      70% 50% at 100% 45%,
+      color-mix(in srgb, var(--color-glow-2) 24%, transparent),
       transparent 70%
     ),
     radial-gradient(
-      55% 40% at 10% 80%,
-      color-mix(in srgb, var(--color-accent) 10%, transparent),
+      70% 45% at 0% 85%,
+      color-mix(in srgb, var(--color-accent) 11%, transparent),
       transparent 70%
+    ),
+    radial-gradient(
+      70% 45% at 100% 100%,
+      color-mix(in srgb, var(--color-glow-2) 20%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(
+      color-mix(in srgb, var(--color-accent) 3%, transparent),
+      color-mix(in srgb, var(--color-accent) 3%, transparent)
     );
   --color-shimmer: rgb(255 255 255 / 0.05); /* skeletons' passing light */
   /* Cards as glass lit from above (Card): a wash down from the top and a bright top edge */

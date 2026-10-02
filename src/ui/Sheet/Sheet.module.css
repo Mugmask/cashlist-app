@@ -5,15 +5,50 @@
   margin: auto auto 0;
   padding: 0;
   overflow: hidden; /* the body inside scrolls, not the sheet */
-  border: 1px solid var(--color-border);
-  border-bottom: 0;
+  /* The border is drawn by ::after, inside: the sheet clips what overflows it */
+  border: 0;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  /* Opaque on the dark; frosted glass over the page on the light */
-  background: var(--color-sheet);
+  /* Frosted glass lit from above, like the cards: a wash down from the top edge and a faint
+     light of the accent from the top-right corner */
+  background:
+    linear-gradient(180deg, var(--card-sheen), transparent 160px),
+    radial-gradient(
+      90% 60% at 100% 0%,
+      color-mix(in srgb, var(--color-accent) 6%, transparent),
+      transparent 70%
+    ),
+    var(--color-sheet);
   -webkit-backdrop-filter: var(--sheet-blur);
   backdrop-filter: var(--sheet-blur);
   color: var(--color-text);
-  box-shadow: var(--shadow-raised);
+  box-shadow:
+    inset 0 1px 0 var(--card-edge),
+    var(--shadow-raised);
+}
+
+/* The edge catching the light: bright along the top, fading out down the sides */
+.sheet::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px 1px 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    var(--card-edge),
+    var(--color-border) 120px,
+    transparent 260px
+  );
+  /* Only the ring: the padding box punched out of the whole */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 .sheet[open] {

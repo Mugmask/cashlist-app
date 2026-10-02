@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { contrast } from '@/utils/color'
 import { customAccent, needsLightening, readableAccent } from './accent'
 
-const BACKGROUND = '#0a0b0d'
+const BACKGROUND = '#0e1014'
+const ON_DARK = '#0a0b0d'
 
 describe('customAccent', () => {
   it('writes dark text on the accent, which is always light enough to read', () => {
-    expect(customAccent('#2cff8f')).toEqual({ color: '#2cff8f', on: BACKGROUND })
-    expect(customAccent('#ffd84d').on).toBe(BACKGROUND)
-    expect(customAccent('#1a237e').on).toBe(BACKGROUND)
+    expect(customAccent('#2cff8f')).toEqual({ color: '#2cff8f', on: ON_DARK })
+    expect(customAccent('#ffd84d').on).toBe(ON_DARK)
+    expect(customAccent('#1a237e').on).toBe(ON_DARK)
   })
 })
 

@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const BACKGROUND = '#0a0b0d' // --color-bg
+const BACKGROUND = '#0e1014' // --color-bg
 
 // https://vite.dev/config/
 export default defineConfig({
