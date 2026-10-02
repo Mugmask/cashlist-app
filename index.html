@@ -30,7 +30,6 @@
         if (accent === 'custom') {
           const custom = JSON.parse(localStorage.getItem('cashlist:accent-custom'))
           root.style.setProperty('--color-accent', custom.color)
-          root.style.setProperty('--color-on-accent', custom.on)
         }
       } catch {}
     </script>

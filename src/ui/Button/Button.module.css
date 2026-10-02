@@ -1,4 +1,5 @@
 .button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -30,7 +31,7 @@
    opacity: over a glass sheet or a page's glow, nothing shows through it */
 .primary:disabled {
   opacity: 1;
-  background: color-mix(in srgb, var(--color-accent) 45%, var(--color-surface-raised));
+  background: color-mix(in srgb, var(--color-accent-fill) 45%, var(--color-surface-raised));
   /* The text color, softened: it reads on the faded accent */
   color: color-mix(in srgb, var(--color-text) 60%, transparent);
 }
@@ -52,23 +53,49 @@
 }
 
 .primary {
-  background: var(--color-accent);
+  background: var(--color-accent-fill);
   color: var(--color-on-accent);
 }
 
 .primary:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: var(--color-accent-fill-hover);
   box-shadow: var(--glow-accent);
 }
 
-.secondary {
-  background: var(--color-surface-raised);
-  border-color: var(--color-border);
+/* The cards' glass, neutral: only the primary carries the accent */
+.secondary,
+.danger {
+  background: var(--glass-button);
+  background-clip: padding-box;
+  -webkit-backdrop-filter: var(--glass-button-blur);
+  backdrop-filter: var(--glass-button-blur);
+  box-shadow: var(--glass-button-shadow);
   color: var(--color-text);
 }
 
-.secondary:hover:not(:disabled) {
-  border-color: var(--color-border-strong);
+.secondary:hover:not(:disabled),
+.danger:hover:not(:disabled) {
+  background: var(--glass-button-hover);
+}
+
+/* The edge catching the light: bright on top, fading down the sides */
+:is(.secondary, .danger)::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--glass-button-edge);
+  /* Only the ring: the padding box punched out of the whole */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 .ghost {
@@ -78,10 +105,11 @@
 
 .ghost:hover:not(:disabled) {
   color: var(--color-text);
-  background: var(--color-surface-raised);
+  background: var(--glass-button-hover);
 }
 
+/* The same glass: only its word and icon turn red. A red block would clash with some
+   accents and break from the cards */
 .danger {
-  background: var(--color-danger-soft);
   color: var(--color-danger);
 }

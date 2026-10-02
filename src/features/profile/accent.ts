@@ -17,7 +17,6 @@ export type Accent = Preset | 'custom'
 
 export interface CustomAccent {
   color: string // #rrggbb
-  on: string // text drawn on top of it: black or white, whichever reads better
 }
 
 const DEFAULT_ACCENT: Preset = 'green'
@@ -26,8 +25,6 @@ const STORAGE_KEY = 'cashlist:accent'
 const CUSTOM_KEY = 'cashlist:accent-custom' // the last custom color, kept while on a preset
 
 const BACKGROUND = '#0e1014' // tokens.css --color-bg: the app is dark-only
-const ON_DARK = '#0a0b0d' // the dark text on a light accent
-const ON_LIGHT = '#ffffff'
 // What every accent holds against the background, like the presets: enough to stay >= 4.5:1
 // (WCAG AA) on the cards, which its own glow makes lighter than the background
 const ACCENT_CONTRAST = 7
@@ -52,8 +49,7 @@ export function readableAccent(color: string) {
 }
 
 export function customAccent(picked: string): CustomAccent {
-  const color = readableAccent(picked)
-  return { color, on: contrast(color, ON_DARK) >= contrast(color, ON_LIGHT) ? ON_DARK : ON_LIGHT }
+  return { color: readableAccent(picked) }
 }
 
 export function readAccent(): Accent {
@@ -85,10 +81,8 @@ export function applyAccent(accent: Accent, custom?: CustomAccent) {
   root.dataset.accent = accent
   if (custom) {
     root.style.setProperty('--color-accent', custom.color)
-    root.style.setProperty('--color-on-accent', custom.on)
   } else {
     root.style.removeProperty('--color-accent')
-    root.style.removeProperty('--color-on-accent')
   }
   try {
     localStorage.setItem(STORAGE_KEY, accent)

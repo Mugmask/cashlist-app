@@ -1,4 +1,5 @@
 .iconButton {
+  position: relative;
   display: inline-grid;
   place-items: center;
   flex-shrink: 0;
@@ -30,25 +31,49 @@
 }
 
 .ghost:hover:not(:disabled) {
-  background: var(--color-surface-raised);
+  background: var(--glass-button-hover);
   color: var(--color-text);
 }
 
+/* The cards' glass, like Button's secondary */
 .secondary {
-  background: var(--color-surface-raised);
-  border-color: var(--color-border);
+  background: var(--glass-button);
+  background-clip: padding-box;
+  -webkit-backdrop-filter: var(--glass-button-blur);
+  backdrop-filter: var(--glass-button-blur);
+  box-shadow: var(--glass-button-shadow);
   color: var(--color-text);
+}
+
+/* The edge catching the light: bright on top, fading down the sides */
+.secondary::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--glass-button-edge);
+  /* Only the ring: the padding box punched out of the whole */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 .accent {
   width: 48px;
   height: 48px;
-  background: var(--color-accent);
+  background: var(--color-accent-fill);
   color: var(--color-on-accent);
 }
 
 .accent:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: var(--color-accent-fill-hover);
 }
 
 .iconButton:disabled {

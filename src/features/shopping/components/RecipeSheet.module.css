@@ -44,9 +44,9 @@
   place-items: center;
   width: 24px;
   height: 24px;
-  border: 2px solid var(--color-accent);
+  border: 2px solid var(--color-accent-fill);
   border-radius: var(--radius-pill);
-  background: var(--color-accent);
+  background: var(--color-accent-fill);
   color: var(--color-on-accent);
   transition:
     background-color var(--duration-fast) var(--ease-out),

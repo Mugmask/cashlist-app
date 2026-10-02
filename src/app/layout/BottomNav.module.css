@@ -131,7 +131,7 @@
   padding: 0;
   border: 0;
   border-radius: var(--radius-pill);
-  background: var(--color-accent);
+  background: var(--color-accent-fill);
   color: var(--color-on-accent);
   box-shadow: var(--glow-accent);
   cursor: pointer;
@@ -141,7 +141,7 @@
 }
 
 .fab:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-accent-fill-hover);
 }
 
 .fab:active {
