@@ -170,7 +170,6 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
               label: currency === 'USD' ? 'Cambiar a pesos' : 'Cambiar a dólares',
               onSwitch: () => changeCurrency(currency === 'USD' ? 'ARS' : 'USD'),
             }}
-            autoFocus={!expense}
             required
           />
           {currency === 'USD' && (

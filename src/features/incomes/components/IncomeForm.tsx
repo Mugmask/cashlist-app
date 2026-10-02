@@ -58,7 +58,6 @@ export function IncomeForm({ income, onSaved }: IncomeFormProps) {
           label="Monto"
           value={amount}
           onValueChange={setAmount}
-          autoFocus={!income}
           required
         />
         <TextField
