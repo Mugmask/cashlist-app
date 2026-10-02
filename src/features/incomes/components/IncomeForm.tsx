@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { Income } from '@/lib/db'
 import { runSync } from '@/lib/sync'
-import { AmountField, Button, DayField, NoteField, Stack, StickyActions, TextField } from '@/ui'
+import { AmountField, Button, DayField, NoteField, Stack, TextField } from '@/ui'
 import { amountToInput, parseAmount } from '@/utils/currency'
 import { nowOnDay, toDayKey, withDayKey } from '@/utils/dates'
 import { capitalize } from '@/utils/text'
@@ -72,11 +72,9 @@ export function IncomeForm({ income, onSaved }: IncomeFormProps) {
         />
         <DayField label="Cuándo entró" value={day} max={today} onChange={setDay} />
         <NoteField value={note} onChange={setNote} />
-        <StickyActions>
-          <Button type="submit" size="lg" fullWidth disabled={!isValid}>
-            {income ? 'Guardar cambios' : 'Guardar ingreso'}
-          </Button>
-        </StickyActions>
+        <Button type="submit" size="lg" fullWidth disabled={!isValid}>
+          {income ? 'Guardar cambios' : 'Guardar ingreso'}
+        </Button>
       </Stack>
     </form>
   )

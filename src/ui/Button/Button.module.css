@@ -27,8 +27,7 @@
 }
 
 /* A disabled primary looks the same faded accent, but solid, through color rather than
-   opacity: stuck at the bottom of a sheet (StickyActions), what scrolls under it would show
-   through a see-through one */
+   opacity: over a glass sheet or a page's glow, nothing shows through it */
 .primary:disabled {
   opacity: 1;
   background: color-mix(in srgb, var(--color-accent) 45%, var(--color-surface-raised));

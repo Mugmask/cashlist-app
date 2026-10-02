@@ -57,9 +57,8 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  /* A field getting focus is scrolled clear of the edges' fade, and of a form's buttons
-     stuck at the bottom (StickyActions: a large button and its fade) */
-  scroll-padding: var(--space-6) 0 104px;
+  /* A field getting focus is scrolled clear of the edges' fade */
+  scroll-padding: var(--space-6) 0;
   padding: var(--space-4) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
   -webkit-mask-image: linear-gradient(
     to bottom,

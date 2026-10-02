@@ -1,4 +1,4 @@
-import { Plus, Settings2 } from 'lucide-react'
+import { Settings2 } from 'lucide-react'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { ChipGroup } from '@/ui'
 import { getCategory, OTHER_ID, useCategories } from '../categories'
@@ -12,12 +12,11 @@ export interface CategoryPickerProps {
 }
 
 // The categories as chips in two rows that scroll sideways, the most used first, so they take
-// little of the form; making a new one (picked right away) and editing them (the user's, and
-// the built-in ones' name, icon and color) close the rows. Used by the expense and fixed
-// expense forms.
+// little of the form. "Editar", the last chip, opens them all to edit, and to make a new one
+// there (picked right away). Used by the expense and fixed expense forms.
 export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
   const { list } = useCategories()
-  const [sheet, setSheet] = useState<'list' | 'create' | null>(null)
+  const [editing, setEditing] = useState(false)
   const recent = useRecentExpenses()
   // Ranked once, when the expenses load: chips don't move around while picking
   const [ranked, setRanked] = useState<readonly string[] | null>(null)
@@ -59,22 +58,18 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
           options={options}
           value={picked}
           onChange={onChange}
+          after={
+            <button type="button" className={styles.edit} onClick={() => setEditing(true)}>
+              <Settings2 aria-hidden />
+              Editar
+            </button>
+          }
         />
-        <div className={styles.actions}>
-          <button type="button" className={styles.action} onClick={() => setSheet('create')}>
-            <Plus aria-hidden />
-            Nueva
-          </button>
-          <button type="button" className={styles.action} onClick={() => setSheet('list')}>
-            <Settings2 aria-hidden />
-            Editar
-          </button>
-        </div>
       </div>
       <CategoriesSheet
-        open={sheet !== null}
-        startWith={sheet ?? 'list'}
-        onClose={() => setSheet(null)}
+        open={editing}
+        startWith="list"
+        onClose={() => setEditing(false)}
         onCreated={onChange}
         onDeleted={(id) => id === value && onChange(OTHER_ID)}
       />

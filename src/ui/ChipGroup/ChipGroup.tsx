@@ -16,6 +16,8 @@ export interface ChipGroupProps<T extends string> {
   // Shows the label above the chips; otherwise it's only announced by screen readers
   showLabel?: boolean
   className?: string
+  // After the chips, in their same flow: a button that isn't an option (Editar, say)
+  after?: ReactNode
 }
 
 const KEY_STEPS: Partial<Record<string, 1 | -1>> = {
@@ -33,6 +35,7 @@ export function ChipGroup<T extends string>({
   onChange,
   showLabel = false,
   className,
+  after,
 }: ChipGroupProps<T>) {
   const labelId = useId()
   const refs = useRef<Array<HTMLButtonElement | null>>([])
@@ -82,6 +85,7 @@ export function ChipGroup<T extends string>({
             </button>
           )
         })}
+        {after}
       </div>
     </div>
   )
