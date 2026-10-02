@@ -8,6 +8,7 @@
   width: 32px;
   height: 32px;
   border-radius: var(--radius-pill);
+  margin-right: var(--space-2); /* its own room: online, its (empty) slot takes none */
   background: var(--color-warning-soft);
   color: var(--color-warning);
 }

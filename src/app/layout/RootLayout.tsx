@@ -88,10 +88,10 @@ function AppShell({ userId, email }: { userId: string; email?: string }) {
           <div className={styles.shell}>
             <PullToRefresh />
             <header className={styles.header}>
-              <OfflineBadge />
-              {/* The month, centered on the screen; the shopping list isn't about a month */}
-              {MONTHLY_SCREENS.has(pathname) ? <MonthSwitcher /> : <span />}
+              {/* The shopping list isn't about a month */}
+              {MONTHLY_SCREENS.has(pathname) && <MonthSwitcher />}
               <div className={styles.headerEnd}>
+                <OfflineBadge />
                 <ProfileButton email={email} />
               </div>
             </header>

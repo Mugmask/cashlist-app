@@ -15,8 +15,8 @@ function subscribe(onChange: () => void) {
 const isOnline = () => navigator.onLine
 
 // Everything keeps working offline; this only says why changes aren't reaching other devices.
-// A small icon on the header's left (its middle is the month); the full sentence is for screen
-// readers, in a status region so they hear it when the connection drops.
+// A small icon in the header, next to the profile; the full sentence is for screen readers,
+// in a status region so they hear it when the connection drops.
 export function OfflineBadge() {
   const online = useSyncExternalStore(subscribe, isOnline)
 
