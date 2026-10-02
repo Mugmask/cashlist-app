@@ -24,7 +24,7 @@
   height: 20px;
   padding: 0 6px;
   border-radius: var(--radius-pill);
-  background: var(--color-accent-fill);
+  background: var(--color-accent);
   font-size: var(--text-2xs);
   color: var(--color-on-accent);
 }

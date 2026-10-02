@@ -10,11 +10,11 @@
   padding: 0;
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
-  /* Clear glass, like the month switcher beside it */
-  background: var(--glass-button);
+  /* The bottom bar's glass, like the month switcher beside it */
+  background: var(--header-glass);
   background-clip: padding-box;
-  -webkit-backdrop-filter: var(--glass-button-blur);
-  backdrop-filter: var(--glass-button-blur);
+  -webkit-backdrop-filter: var(--nav-blur);
+  backdrop-filter: var(--nav-blur);
   box-shadow: var(--glass-button-shadow);
   font-family: var(--font-display);
   font-weight: var(--weight-semibold);

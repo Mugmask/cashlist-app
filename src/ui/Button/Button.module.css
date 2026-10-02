@@ -31,7 +31,7 @@
    opacity: over a glass sheet or a page's glow, nothing shows through it */
 .primary:disabled {
   opacity: 1;
-  background: color-mix(in srgb, var(--color-accent-fill) 45%, var(--color-surface-raised));
+  background: color-mix(in srgb, var(--color-accent) 45%, var(--color-surface-raised));
   /* The text color, softened: it reads on the faded accent */
   color: color-mix(in srgb, var(--color-text) 60%, transparent);
 }
@@ -59,12 +59,12 @@
 }
 
 .primary {
-  background: var(--color-accent-fill);
+  background: var(--color-accent);
   color: var(--color-on-accent);
 }
 
 .primary:hover:not(:disabled) {
-  background: var(--color-accent-fill-hover);
+  background: var(--color-accent-hover);
   box-shadow: var(--glow-accent);
 }
 

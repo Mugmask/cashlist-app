@@ -52,6 +52,6 @@
 }
 
 .selected .count {
-  background: var(--color-accent-fill);
+  background: var(--color-accent);
   color: var(--color-on-accent);
 }

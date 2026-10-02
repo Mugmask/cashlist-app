@@ -1,4 +1,4 @@
-/* Glass, like the buttons: the page's glow shows through, blurred, lit from above */
+/* Glass, like the bottom bar: the page's glow shows through, blurred, lit from above */
 .switcher {
   position: relative;
   display: flex;
@@ -9,10 +9,10 @@
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
   /* Clear glass, the buttons' own: the page's glow shows through it, frosted */
-  background: var(--glass-button);
+  background: var(--header-glass);
   background-clip: padding-box;
-  -webkit-backdrop-filter: var(--glass-button-blur);
-  backdrop-filter: var(--glass-button-blur);
+  -webkit-backdrop-filter: var(--nav-blur);
+  backdrop-filter: var(--nav-blur);
   box-shadow: var(--glass-button-shadow);
 }
 

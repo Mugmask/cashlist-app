@@ -21,6 +21,10 @@
   --color-nav-glass: rgb(28 28 30 / 0.62); /* see-through: the blur keeps text below unreadable */
   /* Heavy, so what scrolls under the bar turns into color and never reads as text */
   --nav-blur: blur(28px) saturate(160%);
+  /* The header's pieces (month switcher, avatar): the bottom bar's glass, lit from the top,
+     so the two bars read as a pair */
+  --header-glass:
+    linear-gradient(180deg, rgb(255 255 255 / 0.07), transparent 70%), var(--color-nav-glass);
   --color-nav-edge: rgb(255 255 255 / 0.07); /* a hint of an edge, not a line */
   --color-nav-scrim: rgb(0 0 0 / 0.75); /* the shade the content sinks into behind the bar */
   /* Sign-in screen: a soft glow rising from the top */
@@ -50,16 +54,12 @@
   /* Accent: the only saturated color in the UI. The user can swap it in the profile (the
      [data-accent] themes below): every other accent token derives from it */
   --color-accent: #2cff8f;
-  /* What carries text (buttons, the bottom bar's +, badges, checks): the accent at a fixed
-     OKLCH lightness, so white reads on it (>= 5:1) whatever the hue, a custom one too. Hover
-     goes a step deeper. Text on the accent is always white */
-  --color-accent-fill: oklch(from var(--color-accent) 0.52 c h);
-  --color-accent-fill-hover: oklch(from var(--color-accent) 0.47 c h);
-  /* Under an icon alone (the bottom bar's +, IconButton accent) it can be brighter: an icon
-     needs 3:1, not 4.5:1, and white holds >= 3.4:1 here for any hue */
-  --color-accent-icon-fill: oklch(from var(--color-accent) 0.62 c h);
-  --color-accent-icon-fill-hover: oklch(from var(--color-accent) 0.57 c h);
-  --color-on-accent: #ffffff;
+  /* Buttons, the bottom bar's +, badges and checks are filled with the accent itself, the
+     color picked, the same as the amounts and bars: one shade across the app. Every accent
+     (the presets, and custom ones once lightened) holds >= 7:1 on the background, so this
+     one dark ink reads on all of them */
+  --color-on-accent: #0a0b0d;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, white);
   --color-accent-soft: color-mix(in srgb, var(--color-accent) 12%, transparent);
 
   /* Charts: the accent marks what matters, this gray the context around it
@@ -201,7 +201,7 @@
 /*
  * Accent themes, picked in the profile and set on <html> before the first paint (index.html).
  * Any element can carry one: the profile's swatches preview each through var(--color-accent).
- * Each is >= 7:1 on the background (as text); fills derive from it (--color-accent-fill).
+ * Each is >= 7:1 on the background (as text), and so against --color-on-accent (dark ink on it).
  */
 [data-accent='green'] {
   --color-accent: #2cff8f;
