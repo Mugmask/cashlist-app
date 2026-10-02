@@ -33,14 +33,230 @@
   transform: scale(var(--tap-scale));
 }
 
-.email {
-  margin: 0;
+/* Who's signed in, at the top of the sheet */
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.identityAvatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-soft);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--color-accent);
+}
+
+.identityAvatar svg {
+  width: 24px;
+  height: 24px;
+}
+
+.identityText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.identityName {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+.identityEmail {
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
 }
 
-.label {
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* The "$" inside the income field, where TextField puts its icon */
+.currency {
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+}
+
+/* "Cuenta": rows of one list, like a phone's settings */
+.list {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+/* :not() for weight: a row's own border: 0 would win over a plain `* + *` */
+.list > :not(:first-child) {
+  border-top: 1px solid var(--color-border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 52px;
+  padding: 0 var(--space-4);
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.row > span {
+  flex: 1;
+}
+
+.row > svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.row:active {
+  background: var(--color-border);
+}
+
+@media (hover: hover) {
+  .row:hover {
+    background: var(--color-border);
+  }
+}
+
+.row:disabled {
+  cursor: default;
+}
+
+.rowDanger,
+.rowDanger > svg {
+  color: var(--color-danger);
+}
+
+/* Turns down while its form is open */
+.chevron {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+[aria-expanded='true'] > .chevron {
+  transform: rotate(90deg);
+}
+
+/* What a row unfolds: the password form, the unsynced warning */
+.rowBody {
+  padding: var(--space-4);
+}
+
+.swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+/* The six presets and "Personalizado" in one row, even on a narrow phone */
+.accents [role='radiogroup'] {
+  grid-template-columns: repeat(7, 1fr);
+}
+
+/* "Personalizado": every hue, since it can be any */
+.rainbow {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: conic-gradient(
+    var(--color-cat-8),
+    var(--color-cat-4),
+    var(--color-cat-6),
+    var(--color-cat-3),
+    var(--color-cat-1),
+    var(--color-cat-7),
+    var(--color-cat-5),
+    var(--color-cat-8)
+  );
+}
+
+/* The whole row opens the device's color picker */
+.customRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  cursor: pointer;
+}
+
+.customRow > span {
+  display: flex;
+  flex-direction: column;
+}
+
+.colorInput {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  cursor: pointer;
+  appearance: none;
+}
+
+.colorInput::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.colorInput::-webkit-color-swatch {
+  border: 0;
+  border-radius: var(--radius-pill);
+}
+
+.colorInput::-moz-color-swatch {
+  border: 0;
+  border-radius: var(--radius-pill);
+}
+
+.customLabel {
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.customHex {
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
 }

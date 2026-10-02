@@ -1,18 +1,20 @@
 import { LogOut, UserRound } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { useLocation } from 'react-router'
 import { signOut, unsyncedBeforeSignOut } from '@/features/auth'
 import type { Profile } from '@/lib/db'
 import { runSync } from '@/lib/sync'
-import { Alert, AmountField, Button, Sheet, Stack, TextField, useToast } from '@/ui'
-import { amountToInput, parseAmount } from '@/utils/currency'
+import { Alert, Button, cx, Sheet, Spinner, Stack, TextField, useToast } from '@/ui'
+import { amountInputChange, amountToInput, parseAmount } from '@/utils/currency'
 import { capitalize } from '@/utils/text'
 import { profileRepo, useProfile } from '../profileRepo'
+import { AccentPicker } from './AccentPicker'
 import { ChangePassword } from './ChangePassword'
+import { ThemePicker } from './ThemePicker'
 import styles from './ProfileButton.module.css'
 
-// The header's avatar: opens the profile (name, income) and signing out. Going to another
-// screen (Android's back, say) closes it: it belongs to the screen it was opened on.
+// The header's avatar: opens the profile and signing out. Going to another screen
+// (Android's back, say) closes it: it belongs to the screen it was opened on.
 export function ProfileButton({ email }: { email?: string }) {
   const profile = useProfile()
   const { pathname } = useLocation()
@@ -34,9 +36,7 @@ export function ProfileButton({ email }: { email?: string }) {
         <Initial name={profile?.name} />
       </button>
       <Sheet open={isOpen} onClose={() => setIsOpen(false)} title="Perfil">
-        {profile !== undefined && (
-          <ProfileForm profile={profile} email={email} onSaved={() => setIsOpen(false)} />
-        )}
+        {profile !== undefined && <ProfileContent profile={profile} email={email} />}
       </Sheet>
     </>
   )
@@ -47,15 +47,50 @@ function Initial({ name }: { name?: string }) {
   return initial ? <span aria-hidden>{initial}</span> : <UserRound aria-hidden />
 }
 
-function ProfileForm({
-  profile,
-  email,
-  onSaved,
-}: {
-  profile: Profile | null
-  email?: string
-  onSaved: () => void
-}) {
+// Who's signed in, then one section per kind of thing: what the app knows about you, how it
+// looks (applied on tap), and the account. Only "Tus datos" needs saving, so only it has a
+// save button, and only once something there changed.
+function ProfileContent({ profile, email }: { profile: Profile | null; email?: string }) {
+  return (
+    <Stack gap={7}>
+      <div className={styles.identity}>
+        <span className={styles.identityAvatar}>
+          <Initial name={profile?.name} />
+        </span>
+        <div className={styles.identityText}>
+          <span className={styles.identityName}>{profile?.name || 'Sin nombre'}</span>
+          {email && <span className={styles.identityEmail}>{email}</span>}
+        </div>
+      </div>
+      <Section title="Tus datos">
+        <DataForm profile={profile} />
+      </Section>
+      <Section title="Apariencia">
+        <Stack gap={5}>
+          <ThemePicker />
+          <AccentPicker />
+        </Stack>
+      </Section>
+      <Section title="Cuenta">
+        <div className={styles.list}>
+          <ChangePassword />
+          <SignOutRow />
+        </div>
+      </Section>
+    </Stack>
+  )
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className={styles.section}>
+      <h3 className={styles.sectionTitle}>{title}</h3>
+      {children}
+    </section>
+  )
+}
+
+function DataForm({ profile }: { profile: Profile | null }) {
   const toast = useToast()
   const [name, setName] = useState(profile?.name ?? '')
   const [income, setIncome] = useState(
@@ -63,51 +98,52 @@ function ProfileForm({
   )
   // Income is optional: empty is fine, something unreadable isn't
   const parsedIncome = income === '' ? undefined : parseAmount(income)
+  const cleanName = capitalize(name.trim()) || undefined
+  // Against what's saved: right after saving, the profile catches up and this goes false
+  const changed =
+    cleanName !== (profile?.name || undefined) || parsedIncome !== profile?.monthlyIncome
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (parsedIncome === null) return
-    await profileRepo.save({
-      name: capitalize(name.trim()) || undefined,
-      monthlyIncome: parsedIncome,
-    })
-    toast('Perfil guardado')
+    if (parsedIncome === null || !changed) return
+    await profileRepo.save({ name: cleanName, monthlyIncome: parsedIncome })
+    toast('Datos guardados')
     runSync().catch(() => {}) // on failure it stays pending and retries on its own
-    onSaved()
   }
 
   return (
-    <Stack gap={5}>
-      <form onSubmit={handleSubmit}>
-        <Stack gap={4}>
-          {email && <p className={styles.email}>{email}</p>}
-          <TextField
-            label="Nombre"
-            autoCapitalize="sentences"
-            placeholder="Cómo te llamás"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoComplete="given-name"
-          />
-          <div>
-            <span className={styles.label}>Ingreso mensual</span>
-            <AmountField label="Ingreso mensual" value={income} onValueChange={setIncome} />
-          </div>
-          <Button type="submit" size="lg" fullWidth disabled={parsedIncome === null}>
-            Guardar
-          </Button>
-        </Stack>
-      </form>
-      {/* Its own form, beside the profile's: forms can't nest */}
-      <ChangePassword />
-      <SignOutButton />
-    </Stack>
+    <form onSubmit={handleSubmit}>
+      <Stack gap={4}>
+        <TextField
+          label="Nombre"
+          autoCapitalize="sentences"
+          placeholder="Cómo te llamás"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoComplete="given-name"
+        />
+        <TextField
+          label="Ingreso mensual"
+          inputMode="decimal"
+          placeholder="0"
+          icon={<span className={styles.currency}>$</span>}
+          value={income}
+          onChange={(e) => setIncome(amountInputChange(income, e.target.value))}
+          hint="Tu sueldo fijo: se suma solo a cada mes"
+          error={parsedIncome === null ? 'Revisá el monto' : null}
+          autoComplete="off"
+        />
+        <Button type="submit" size="lg" fullWidth disabled={!changed || parsedIncome === null}>
+          Guardar cambios
+        </Button>
+      </Stack>
+    </form>
   )
 }
 
 // Signing out clears this device's data. If some change couldn't be uploaded, it warns
 // first and only a second tap signs out anyway.
-function SignOutButton() {
+function SignOutRow() {
   const toast = useToast()
   const [unsynced, setUnsynced] = useState(0)
   const [busy, setBusy] = useState(false)
@@ -126,23 +162,25 @@ function SignOutButton() {
   }
 
   return (
-    <Stack gap={3}>
+    <>
       {unsynced > 0 && (
-        <Alert tone="danger">
-          {unsynced === 1 ? 'Hay 1 cambio' : `Hay ${unsynced} cambios`} sin sincronizar. Si cerrás
-          sesión ahora, se pierden.
-        </Alert>
+        <div className={styles.rowBody}>
+          <Alert tone="danger">
+            {unsynced === 1 ? 'Hay 1 cambio' : `Hay ${unsynced} cambios`} sin sincronizar. Si cerrás
+            sesión ahora, se pierden.
+          </Alert>
+        </div>
       )}
-      <Button
-        variant="ghost"
-        size="lg"
-        fullWidth
-        icon={<LogOut aria-hidden />}
-        loading={busy}
+      <button
+        type="button"
+        className={cx(styles.row, styles.rowDanger)}
+        disabled={busy}
+        aria-busy={busy || undefined}
         onClick={handleClick}
       >
-        {unsynced > 0 ? 'Cerrar sesión igual' : 'Cerrar sesión'}
-      </Button>
-    </Stack>
+        {busy ? <Spinner size={18} /> : <LogOut aria-hidden />}
+        <span>{unsynced > 0 ? 'Cerrar sesión igual' : 'Cerrar sesión'}</span>
+      </button>
+    </>
   )
 }

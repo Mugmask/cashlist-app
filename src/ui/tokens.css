@@ -7,7 +7,7 @@
 
   /* Surfaces */
   --color-bg: #0a0b0d;
-  --color-surface: #141519;
+  --color-surface: rgb(20 21 25 / 0.62); /* see-through: the glow behind shows */
   --color-surface-raised: #1d1f25;
   --color-border: rgb(255 255 255 / 0.08);
   --color-border-strong: rgb(255 255 255 / 0.16);
@@ -15,29 +15,41 @@
   --color-surface-glass: rgb(20 21 25 / 0.78); /* needs backdrop-filter behind it */
   /* The bottom bar's: more opaque and a step lighter than the cards it floats over, and a
      neutral gray: the cards' cool tint, lighter, read as light blue on the black */
-  --color-nav-glass: rgb(28 28 30 / 0.9);
+  --color-nav-glass: rgb(28 28 30 / 0.62); /* see-through: the blur keeps text below unreadable */
+  /* Heavy, so what scrolls under the bar turns into color and never reads as text */
+  --nav-blur: blur(28px) saturate(160%);
+  --color-nav-edge: rgb(255 255 255 / 0.07); /* a hint of an edge, not a line */
   /* Sign-in screen: a soft glow rising from the top */
   --gradient-auth:
-    radial-gradient(70% 45% at 50% 0%, rgb(44 255 143 / 0.2), transparent 70%),
-    radial-gradient(50% 35% at 85% 100%, rgb(44 255 143 / 0.07), transparent 70%), var(--color-bg);
-  --gradient-hero:
-    radial-gradient(120% 90% at 100% 0%, rgb(44 255 143 / 0.22), transparent 55%),
-    var(--color-surface);
+    radial-gradient(
+      70% 45% at 50% 0%,
+      color-mix(in srgb, var(--color-accent) 20%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      50% 35% at 85% 100%,
+      color-mix(in srgb, var(--color-accent) 7%, transparent),
+      transparent 70%
+    ),
+    var(--color-bg);
+  /* The second glow of a hero card (Card), answering the accent from the other corner */
+  --color-glow-2: #5a78ff;
 
   /* Text */
   --color-text: #f4f5f7;
   --color-text-muted: #8f94a0;
   --color-text-subtle: #868b96; /* placeholders: 4.8:1 on raised surfaces, just above AA */
 
-  /* Accent: the only saturated color in the UI */
+  /* Accent: the only saturated color in the UI. The user can swap it in the profile (the
+     [data-accent] themes below): every other accent token derives from these two */
   --color-accent: #2cff8f;
-  --color-accent-hover: #6affb0;
-  --color-accent-soft: rgb(44 255 143 / 0.12);
   --color-on-accent: #04140b;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 75%, white);
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 12%, transparent);
 
   /* Charts: the accent marks what matters, this gray the context around it
      (>= 3:1 on the surface, validated with the dataviz palette script) */
-  --color-chart-muted: #646975;
+  --color-chart-muted: #6e737f;
   --color-chart-grid: rgb(255 255 255 / 0.06);
 
   /* Categorical: one fixed hue per expense category. Each is as vivid as sRGB allows at the
@@ -96,7 +108,23 @@
 
   /* Elevation */
   --shadow-raised: 0 8px 32px rgb(0 0 0 / 0.45);
-  --glow-accent: 0 0 24px rgb(44 255 143 / 0.35);
+  --nav-shadow-color: rgb(0 0 0 / 0.55); /* the bottom bar's, drawn along its notched shape */
+  /* Glass: sheets frost what's under them, over soft blobs of color behind the page. Dimmer
+     than the light theme's, so the dark stays dark */
+  --color-sheet: rgb(20 21 25 / 0.86);
+  --sheet-blur: blur(24px) saturate(140%);
+  /* The selected tab of a segmented control: a hairline and a drop, to stand off the track */
+  --shadow-selected: 0 0 0 1px rgb(255 255 255 / 0.12), 0 2px 8px rgb(0 0 0 / 0.45);
+  --page-glow:
+    radial-gradient(
+      70% 45% at 0% 0%,
+      color-mix(in srgb, var(--color-accent) 24%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(60% 45% at 100% 50%, rgb(90 120 255 / 0.26), transparent 70%),
+    radial-gradient(55% 40% at 10% 80%, rgb(255 110 90 / 0.18), transparent 70%);
+  --color-shimmer: rgb(255 255 255 / 0.05); /* skeletons' passing light */
+  --glow-accent: 0 0 24px color-mix(in srgb, var(--color-accent) 35%, transparent);
 
   /* Motion */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -111,6 +139,139 @@
   --content-max-width: 480px;
   --gutter: var(--space-4);
   --bottom-nav-height: 68px;
+}
+
+/*
+ * Accent themes, picked in the profile and set on <html> before the first paint (index.html).
+ * Any element can carry one: the profile's swatches preview each through var(--color-accent).
+ * Each is >= 7:1 on the background (as text) and against its on-accent (dark text on it).
+ */
+[data-accent='green'] {
+  --color-accent: #2cff8f;
+  --color-on-accent: #04140b;
+}
+[data-accent='cyan'] {
+  --color-accent: #3dd8ff;
+  --color-on-accent: #03141a;
+}
+[data-accent='blue'] {
+  --color-accent: #74a7ff;
+  --color-on-accent: #050d1f;
+}
+[data-accent='violet'] {
+  --color-accent: #b18cff;
+  --color-on-accent: #120a24;
+}
+[data-accent='pink'] {
+  --color-accent: #ff7ac8;
+  --color-on-accent: #240716;
+}
+[data-accent='orange'] {
+  --color-accent: #ff9a4d;
+  --color-on-accent: #241003;
+}
+
+/*
+ * Light theme (glass), picked in the profile (Tema) and set on <html> before the first paint
+ * (index.html). A cool gray page with soft blobs of color behind (--page-glow), and white
+ * surfaces see-through enough to let them show. Only what floats over real content blurs
+ * (the bottom bar, sheets, the sign-in card): over a soft glow a blur shows nothing, and on
+ * every card it would cost scrolling. Floating bits (toasts, inputs) stay opaque, to read.
+ * Text >= 4.5:1 on the bare page, the worst case; the chart grays >= 3:1 on cards.
+ */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --color-bg: #e9edf3;
+  --color-surface: rgb(255 255 255 / 0.55);
+  --color-surface-raised: #ffffff;
+  --color-border: rgb(20 30 50 / 0.11);
+  --color-border-strong: rgb(20 30 50 / 0.2);
+  --color-overlay: rgb(20 30 50 / 0.25);
+  --color-surface-glass: rgb(255 255 255 / 0.6);
+  --color-nav-glass: rgb(255 255 255 / 0.72);
+  --nav-blur: blur(28px) saturate(180%);
+  --color-nav-edge: rgb(20 30 50 / 0.08);
+  --color-sheet: rgb(246 248 251 / 0.82);
+  --color-glow-2: #7aa0ff;
+  --sheet-blur: blur(24px) saturate(160%);
+  /* The selected tab of a segmented control: white on see-through white needs a lift */
+  --shadow-selected: 0 1px 2px rgb(20 30 50 / 0.12), 0 2px 8px rgb(20 30 50 / 0.08);
+  --page-glow:
+    radial-gradient(
+      70% 45% at 0% 0%,
+      color-mix(in srgb, var(--color-accent) 30%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(60% 45% at 100% 55%, rgb(120 160 255 / 0.3), transparent 70%),
+    radial-gradient(60% 40% at 20% 100%, rgb(255 170 110 / 0.26), transparent 70%);
+
+  --color-text: #10141c;
+  --color-text-muted: #4a515f;
+  --color-text-subtle: #535a68;
+
+  /* Hover darkens instead: lightening a mid color on a light page washes it out */
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+
+  --color-chart-muted: #767c88;
+  --color-chart-grid: rgb(20 30 50 / 0.07);
+  --color-chart-context: #6a7180;
+
+  /* The categorical hues a step darker, to hold >= 3:1 on light cards as on the dark */
+  --color-cat-1: #1f7ae0;
+  --color-cat-2: #d94a00;
+  --color-cat-3: #00936a;
+  --color-cat-4: #a86e00;
+  --color-cat-5: #e0186f;
+  --color-cat-6: #028f02;
+  --color-cat-7: #6f5ae8;
+  --color-cat-8: #e0283a;
+
+  --color-danger: #b82723;
+  --color-danger-soft: rgb(184 39 35 / 0.1);
+  --color-warning: #855800;
+  --color-warning-soft: rgb(133 88 0 / 0.12);
+
+  --shadow-raised: 0 8px 32px rgb(20 30 50 / 0.1);
+  --nav-shadow-color: rgb(20 30 50 / 0.12);
+  --color-shimmer: rgb(255 255 255 / 0.7);
+}
+
+/*
+ * The accents for the light theme: darker, to read as text on the light page (>= 4.5:1 on every
+ * surface), with white text on them. Selectors carry the theme so they outweigh the dark
+ * presets above; the first block is also the default, with no accent picked.
+ */
+:root[data-theme='light'],
+:root[data-theme='light'][data-accent='green'],
+:root[data-theme='light'] [data-accent='green'] {
+  --color-accent: #00733f;
+  --color-on-accent: #ffffff;
+}
+:root[data-theme='light'][data-accent='cyan'],
+:root[data-theme='light'] [data-accent='cyan'] {
+  --color-accent: #006a99;
+  --color-on-accent: #ffffff;
+}
+:root[data-theme='light'][data-accent='blue'],
+:root[data-theme='light'] [data-accent='blue'] {
+  --color-accent: #2a5bd0;
+  --color-on-accent: #ffffff;
+}
+:root[data-theme='light'][data-accent='violet'],
+:root[data-theme='light'] [data-accent='violet'] {
+  --color-accent: #6d45d1;
+  --color-on-accent: #ffffff;
+}
+:root[data-theme='light'][data-accent='pink'],
+:root[data-theme='light'] [data-accent='pink'] {
+  --color-accent: #b5267a;
+  --color-on-accent: #ffffff;
+}
+:root[data-theme='light'][data-accent='orange'],
+:root[data-theme='light'] [data-accent='orange'] {
+  --color-accent: #a84800;
+  --color-on-accent: #ffffff;
 }
 
 @media (prefers-reduced-motion: reduce) {

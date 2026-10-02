@@ -261,7 +261,13 @@ function MonthBalance({
   const over = left < 0
 
   return (
-    <Card as="section" variant="hero" padding="lg" aria-labelledby="balance-title">
+    <Card
+      as="section"
+      variant="hero"
+      glow={over ? 'danger' : 'accent'}
+      padding="lg"
+      aria-labelledby="balance-title"
+    >
       <h2 id="balance-title" className={styles.heroLabel}>
         {over ? 'Te pasaste' : 'Te quedan'} en {monthName}
       </h2>

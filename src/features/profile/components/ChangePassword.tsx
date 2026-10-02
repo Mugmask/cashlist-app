@@ -1,8 +1,9 @@
-import { Eye, EyeOff, KeyRound } from 'lucide-react'
+import { ChevronRight, Eye, EyeOff, KeyRound } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Alert, Button, IconButton, Stack, TextField, useToast } from '@/ui'
 import { passwordErrorMessage } from '@/utils/errors'
+import styles from './ProfileButton.module.css'
 
 export const MIN_PASSWORD_LENGTH = 8
 
@@ -44,19 +45,21 @@ export function ChangePassword() {
     close()
   }
 
-  if (!open) {
-    return (
-      <Button
-        variant="ghost"
-        size="lg"
-        fullWidth
-        icon={<KeyRound aria-hidden />}
-        onClick={() => setOpen(true)}
-      >
-        Cambiar contraseña
-      </Button>
-    )
-  }
+  // A row of the profile's "Cuenta" list; opening it unfolds the form right under it
+  const row = (
+    <button
+      type="button"
+      className={styles.row}
+      aria-expanded={open}
+      onClick={() => (open ? close() : setOpen(true))}
+    >
+      <KeyRound aria-hidden />
+      <span>Cambiar contraseña</span>
+      <ChevronRight aria-hidden className={styles.chevron} />
+    </button>
+  )
+
+  if (!open) return row
 
   const toggle = (
     <IconButton
@@ -67,35 +70,38 @@ export function ChangePassword() {
   )
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Stack gap={3}>
-        <TextField
-          label="Contraseña nueva"
-          type={visible ? 'text' : 'password'}
-          autoComplete="new-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          hint={`Al menos ${MIN_PASSWORD_LENGTH} caracteres`}
-          error={tooShort ? `Tiene que tener al menos ${MIN_PASSWORD_LENGTH} caracteres` : null}
-          trailing={toggle}
-          autoFocus
-        />
-        <TextField
-          label="Repetila"
-          type={visible ? 'text' : 'password'}
-          autoComplete="new-password"
-          value={repeat}
-          onChange={(e) => setRepeat(e.target.value)}
-          error={mismatch ? 'No coinciden' : null}
-        />
-        {error && <Alert tone="danger">{error}</Alert>}
-        <Button type="submit" size="lg" fullWidth disabled={!isValid} loading={busy}>
-          Guardar contraseña
-        </Button>
-        <Button variant="ghost" size="lg" fullWidth onClick={close}>
-          Cancelar
-        </Button>
-      </Stack>
-    </form>
+    <>
+      {row}
+      <form onSubmit={handleSubmit} className={styles.rowBody}>
+        <Stack gap={3}>
+          <TextField
+            label="Contraseña nueva"
+            type={visible ? 'text' : 'password'}
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            hint={`Al menos ${MIN_PASSWORD_LENGTH} caracteres`}
+            error={tooShort ? `Tiene que tener al menos ${MIN_PASSWORD_LENGTH} caracteres` : null}
+            trailing={toggle}
+            autoFocus
+          />
+          <TextField
+            label="Repetila"
+            type={visible ? 'text' : 'password'}
+            autoComplete="new-password"
+            value={repeat}
+            onChange={(e) => setRepeat(e.target.value)}
+            error={mismatch ? 'No coinciden' : null}
+          />
+          {error && <Alert tone="danger">{error}</Alert>}
+          <Button type="submit" size="lg" fullWidth disabled={!isValid} loading={busy}>
+            Guardar contraseña
+          </Button>
+          <Button variant="ghost" size="lg" fullWidth onClick={close}>
+            Cancelar
+          </Button>
+        </Stack>
+      </form>
+    </>
   )
 }

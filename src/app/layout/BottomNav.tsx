@@ -6,7 +6,7 @@ import {
   ReceiptText,
   ShoppingBasket,
 } from 'lucide-react'
-import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { NavLink } from 'react-router'
 import { useAddExpense } from '@/features/expenses'
 import { cx, useCurrentPrimaryAction } from '@/ui'
@@ -56,6 +56,8 @@ export function BottomNav() {
   // The + does what the current screen needs (a fixed expense in Fijos...); by default, an expense
   const action = useCurrentPrimaryAction() ?? { label: 'Cargar gasto', run: addExpense }
   const [dockRef, width] = useWidth()
+  // For the SVG's filter and mask: url(#…) wants a plain id, without useId's punctuation
+  const ids = `nav${useId().replace(/[^a-z0-9]/gi, '')}`
   const path = width > 0 ? notchedBarPath({ ...BAR_SHAPE, width }) : null
 
   return (
@@ -75,7 +77,38 @@ export function BottomNav() {
               viewBox={`0 0 ${width} ${BAR_SHAPE.height}`}
               aria-hidden
             >
-              <path d={path} />
+              {/* The shadow, here rather than as a filter on the dock: a filter there would
+                  cut the glass's backdrop-filter off from the page, so it'd blur nothing.
+                  SVG filters before it masks, so the mask leaves only the shadow outside. */}
+              <defs>
+                <filter id={`${ids}-shadow`} x="-20%" y="-50%" width="140%" height="250%">
+                  <feDropShadow dx="0" dy="6" stdDeviation="10" className={styles.shadowFlood} />
+                </filter>
+                <mask
+                  id={`${ids}-outside`}
+                  maskUnits="userSpaceOnUse"
+                  x={-60}
+                  y={-60}
+                  width={width + 120}
+                  height={BAR_SHAPE.height + 120}
+                >
+                  <rect
+                    x={-60}
+                    y={-60}
+                    width={width + 120}
+                    height={BAR_SHAPE.height + 120}
+                    fill="white"
+                  />
+                  <path d={path} fill="black" />
+                </mask>
+              </defs>
+              <path
+                d={path}
+                className={styles.shadow}
+                filter={`url(#${ids}-shadow)`}
+                mask={`url(#${ids}-outside)`}
+              />
+              <path d={path} className={styles.edgeLine} />
             </svg>
           </>
         )}

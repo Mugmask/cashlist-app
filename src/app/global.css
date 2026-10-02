@@ -27,6 +27,19 @@ body {
   overflow-wrap: break-word;
   /* Safety net: nothing may widen the page. Layout bugs still get fixed where they happen. */
   overflow-x: clip;
+  /* Its own stacking context, so the glow below (z-index -1) paints over its background */
+  isolation: isolate;
+}
+
+/* The light theme's glow behind everything (none on the dark). A fixed layer of its own:
+   iOS ignores background-attachment: fixed, and the glow must not scroll away */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--page-glow);
+  pointer-events: none;
 }
 
 h1,

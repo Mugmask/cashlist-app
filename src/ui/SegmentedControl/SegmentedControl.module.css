@@ -35,6 +35,7 @@
 .selected:hover {
   background: var(--color-surface-raised);
   color: var(--color-text);
+  box-shadow: var(--shadow-selected);
 }
 
 .count {

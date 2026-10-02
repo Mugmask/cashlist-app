@@ -8,7 +8,10 @@
   border: 1px solid var(--color-border);
   border-bottom: 0;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  background: var(--color-surface);
+  /* Opaque on the dark; frosted glass over the page on the light */
+  background: var(--color-sheet);
+  -webkit-backdrop-filter: var(--sheet-blur);
+  backdrop-filter: var(--sheet-blur);
   color: var(--color-text);
   box-shadow: var(--shadow-raised);
 }

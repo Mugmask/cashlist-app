@@ -22,6 +22,29 @@
     <meta name="format-detection" content="telephone=no" />
     <title>Cashlist</title>
     <!--
+      The theme and accent picked in the profile, set before anything paints
+      (features/profile/theme.ts, accent.ts). Each on its own: a broken one leaves the other.
+    -->
+    <script>
+      const root = document.documentElement
+      try {
+        if (localStorage.getItem('cashlist:theme') === 'light') {
+          root.dataset.theme = 'light'
+          document.querySelector('meta[name="theme-color"]').content = '#e9edf3'
+          document.querySelector('meta[name="color-scheme"]').content = 'light'
+        }
+      } catch {}
+      try {
+        const accent = localStorage.getItem('cashlist:accent')
+        if (accent) root.dataset.accent = accent
+        if (accent === 'custom') {
+          const custom = JSON.parse(localStorage.getItem('cashlist:accent-custom'))
+          root.style.setProperty('--color-accent', custom.color)
+          root.style.setProperty('--color-on-accent', custom.on)
+        }
+      } catch {}
+    </script>
+    <!--
       Boot splash: painted before any JS loads, then replaced by React. SplashScreen.tsx renders
       the same markup while the session loads, so the handoff is seamless. Inline on purpose.
     -->
@@ -29,7 +52,7 @@
       html,
       body {
         margin: 0;
-        background: #0a0b0d;
+        background: var(--color-bg, #0a0b0d);
       }
       .boot-splash {
         position: fixed;
@@ -39,8 +62,8 @@
         align-items: center;
         justify-content: center;
         gap: 20px;
-        background: #0a0b0d;
-        color: #f4f5f7;
+        background: var(--color-bg, #0a0b0d);
+        color: var(--color-text, #f4f5f7);
         font:
           700 22px/1 system-ui,
           sans-serif;
@@ -53,7 +76,7 @@
         animation: boot-splash-pulse 1.6s ease-in-out infinite;
       }
       .boot-splash span {
-        color: #2cff8f;
+        color: var(--color-accent, #2cff8f);
       }
       @keyframes boot-splash-pulse {
         50% {
