@@ -39,9 +39,11 @@ export function CategoryPicker({ value, onChange, pickFirst }: CategoryPickerPro
   }, [ranked, onChange])
   const picked = getCategory(value).id // unknown or deleted ones show (and save) as Otros
 
-  // The picked one in sight once ranked: it may sit past the first columns
+  // The picked one in sight once ranked: it may sit past the first columns. Not when the
+  // first is about to be picked: that one is already in sight.
   const scroller = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
+    if (!settled.current) return
     const row = scroller.current
     const chip = row?.querySelector<HTMLElement>('[aria-checked="true"]')
     if (!row || !chip) return
