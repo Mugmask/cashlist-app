@@ -19,8 +19,10 @@ export function useFixedOverview(month: Date) {
       getFixedPayments(period),
       getFixedInUseBy(period),
     ])
-    const gone = period < toPeriod(new Date())
-    return { fixed: fixedForPeriod(all, payments, inUse, gone), payments }
+    // Read with the data: due dates count from it (it moves on with the next change or visit)
+    const today = new Date()
+    const gone = period < toPeriod(today)
+    return { fixed: fixedForPeriod(all, payments, inUse, gone), payments, today }
   }, period)
 
   const dollars = data?.fixed.filter((f) => f.currency === 'USD') ?? []
@@ -29,5 +31,8 @@ export function useFixedOverview(month: Date) {
 
   if (!data) return undefined
   const rates = { tarjeta: card.estimate?.rate, blue: blue.estimate?.rate }
-  return { period, ...buildFixedOverview(data.fixed, data.payments, rates) }
+  return {
+    period,
+    ...buildFixedOverview(data.fixed, data.payments, rates, { period, today: data.today }),
+  }
 }

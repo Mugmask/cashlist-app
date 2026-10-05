@@ -60,23 +60,31 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Fits whole on a 360px phone; truncates only next to amounts with cents */
-.paidOn {
+/* Paid on, or due on. Fits whole on a 360px phone; truncates only next to amounts with cents */
+.note {
   overflow: hidden;
   font-size: var(--text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.paidOn::before {
+.note::before {
   content: '·';
   margin-right: var(--space-2);
   color: var(--color-text-muted);
 }
 
-.paidOn,
+.note,
 .muted {
   color: var(--color-text-muted);
+}
+
+.warning {
+  color: var(--color-warning);
+}
+
+.danger {
+  color: var(--color-danger);
 }
 
 /* One line on any phone: the name truncates. Only when the text is enlarged enough that the
@@ -97,7 +105,7 @@
     gap: 0;
   }
 
-  .paidOn::before {
+  .note::before {
     display: none;
   }
 }

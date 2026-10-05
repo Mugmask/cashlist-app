@@ -3,6 +3,7 @@ import { Amount, VisuallyHidden } from '@/ui'
 import { formatShortDay } from '@/utils/dates'
 import { getCategory } from '../categories'
 import type { MonthExpense } from '../installments'
+import { describeShare } from '../shared'
 import { CategoryIcon } from './CategoryIcon'
 import styles from './ExpenseRow.module.css'
 
@@ -22,6 +23,9 @@ export function ExpenseRow({ expense, showDate = true, onOpen }: ExpenseRowProps
   const meta = [
     showDate && formatShortDay(expense.spentAt),
     installment && `Cuota ${installment.number}/${installment.count}`,
+    // An installment's share is told from the whole purchase, not the month's installment
+    expense.sharedTotal !== undefined &&
+      (describeShare({ ...expense, amount: installment?.total ?? expense.amount }) ?? 'Compartido'),
   ]
     .filter(Boolean)
     .join(' · ')

@@ -9,6 +9,7 @@ export interface FixedExpenseInput {
   amount: number // in dollars when currency is USD
   paymentMethod: PaymentMethod
   currency?: 'USD'
+  dueDay?: number // 1 to 31
 }
 
 // Single entry point to local fixed expenses: components never touch Dexie directly
@@ -34,6 +35,7 @@ export const fixedRepo = {
       ...existing,
       ...input,
       currency: input.currency,
+      dueDay: input.dueDay,
       updatedAt: now.toISOString(),
       pending: 1,
     })

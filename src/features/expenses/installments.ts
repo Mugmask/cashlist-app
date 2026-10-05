@@ -1,5 +1,6 @@
 import type { Expense } from '@/lib/db'
 import { monthsBetween, toPeriod } from '@/utils/dates'
+import { chargedOf } from './shared'
 
 // Installment plans offered when paying by card ("1" is a single payment)
 export const INSTALLMENT_OPTIONS = ['1', '2', '3', '6', '9', '12'] as const
@@ -43,10 +44,11 @@ export function forMonth(expense: Expense, period: string): MonthExpense | null 
 
 // What a card statement charges for this expense. A statement is named after the month whose
 // purchases it closes ("2026-09", paid in October): it charges the 1st installment of that
-// month's purchases, the 2nd of the month before's, and so on.
+// month's purchases, the 2nd of the month before's, and so on. A shared purchase is charged
+// whole: the card doesn't know who owes what.
 export function chargeOn(expense: Expense, statementPeriod: string) {
   const index = monthsBetween(toPeriod(new Date(expense.spentAt)), statementPeriod)
-  const parts = splitInstallments(expense.amount, installmentsOf(expense))
+  const parts = splitInstallments(chargedOf(expense), installmentsOf(expense))
   return index >= 0 && index < parts.length ? parts[index] : 0
 }
 
@@ -55,6 +57,6 @@ export function chargeOn(expense: Expense, statementPeriod: string) {
 export function chargedAfter(expense: Expense, period: string) {
   const index = monthsBetween(toPeriod(new Date(expense.spentAt)), period)
   if (index < 0) return 0
-  const parts = splitInstallments(expense.amount, installmentsOf(expense))
+  const parts = splitInstallments(chargedOf(expense), installmentsOf(expense))
   return parts.slice(index + 1).reduce((sum, p) => sum + p, 0)
 }

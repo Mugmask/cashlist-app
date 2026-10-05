@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Expense, FixedExpense } from '@/lib/db'
-import { buildFixedOverview, fixedForPeriod } from './overview'
+import { buildFixedOverview, dueIn, fixedForPeriod } from './overview'
 
 const ISO = '2026-09-01T10:00:00.000Z'
 
@@ -125,5 +125,46 @@ describe('fixedForPeriod', () => {
       'rent',
       'gym',
     ])
+  })
+})
+
+describe('buildFixedOverview with due days', () => {
+  const rent = { ...fixed('Alquiler', 500000), dueDay: 10 }
+  const internet = { ...fixed('Internet', 20000), dueDay: 31 }
+  const gym = fixed('Gimnasio', 30000) // no due day
+
+  it('counts the days left from today, and puts the most urgent first', () => {
+    const today = new Date(2026, 8, 12, 23, 30) // September 12th, late at night
+    const { pending } = buildFixedOverview(
+      [gym, internet, rent],
+      [],
+      {},
+      {
+        period: '2026-09',
+        today,
+      },
+    )
+    expect(pending.map((l) => l.fixed.name)).toEqual(['Alquiler', 'Internet', 'Gimnasio'])
+    expect(pending[0].due).toEqual({ day: 10, daysLeft: -2 })
+    expect(pending[1].due).toEqual({ day: 30, daysLeft: 18 }) // September has 30 days
+    expect(pending[2].due).toBeUndefined()
+  })
+
+  it('says nothing about the ones already paid', () => {
+    const { paid } = buildFixedOverview(
+      [rent],
+      [payment('Alquiler', 500000, '2026-09-05T12:00:00.000Z')],
+      {},
+      { period: '2026-09', today: new Date(2026, 8, 20) },
+    )
+    expect(paid[0].due).toBeUndefined()
+  })
+})
+
+describe('dueIn', () => {
+  it('works across months and years', () => {
+    expect(dueIn('2026-10', 1, new Date(2026, 8, 30))).toEqual({ day: 1, daysLeft: 1 })
+    expect(dueIn('2026-12', 31, new Date(2027, 0, 1))).toEqual({ day: 31, daysLeft: -1 })
+    expect(dueIn('2027-02', 31, new Date(2027, 1, 28))).toEqual({ day: 28, daysLeft: 0 })
   })
 })

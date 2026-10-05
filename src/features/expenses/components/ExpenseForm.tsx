@@ -4,7 +4,13 @@ import { convertAmount, fitsInPesos, toPesos } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { useConversionRate } from '@/lib/useDollarRate'
 import { AmountField, Button, ChipGroup, DayField, NoteField, Stack, TextField } from '@/ui'
-import { amountToInput, formatCurrencyShort, parseAmount, type Currency } from '@/utils/currency'
+import {
+  amountInputChange,
+  amountToInput,
+  formatCurrencyShort,
+  parseAmount,
+  type Currency,
+} from '@/utils/currency'
 import { nowOnDay, toDayKey, withDayKey } from '@/utils/dates'
 import { capitalize } from '@/utils/text'
 import { BUILT_IN_CATEGORIES, getCategory } from '../categories'
@@ -12,6 +18,7 @@ import { INSTALLMENT_OPTIONS, splitInstallments } from '../installments'
 import { expensesRepo } from '../expensesRepo'
 import { matchSuggestions, type NameSuggestion } from '../suggestions'
 import { useNameSuggestions } from '../useNameSuggestions'
+import { SHARE_CHIPS, shareOf, shareOptionFor, type ShareOption } from '../shared'
 import { PAYMENT_METHOD_OPTIONS } from '../paymentMethods'
 import { CategoryIcon } from './CategoryIcon'
 import { CategoryPicker } from './CategoryPicker'
@@ -32,14 +39,36 @@ export interface ExpenseFormProps {
   onSaved?: () => void
 }
 
+// An expense as the form loads it, in its own currency: the whole bill, and my part of it
+// when shared. A shared dollar expense keeps its bill in pesos: back in dollars at its rate.
+function initialAmounts(expense: Expense | undefined) {
+  if (!expense) return { total: '', share: '1' as ShareOption, part: '' }
+  const dollars = expense.currency === 'USD'
+  const mine = dollars ? expense.foreignAmount! : expense.amount
+  if (expense.sharedTotal === undefined) {
+    return { total: amountToInput(mine), share: '1' as ShareOption, part: '' }
+  }
+  const total = dollars
+    ? Math.round((expense.sharedTotal / expense.exchangeRate!) * 100) / 100
+    : expense.sharedTotal
+  const share = shareOptionFor(total, mine)
+  return {
+    total: amountToInput(total),
+    share,
+    part: share === 'part' ? amountToInput(mine) : '',
+  }
+}
+
 // New expense, or corrections to one already loaded. The day is today unless picked otherwise.
-// In dollars, it's converted to pesos with today's rate for how it was paid.
+// In dollars, it's converted to pesos with today's rate for how it was paid. Shared, the
+// amount is the whole bill and what's saved is my part of it.
 export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: ExpenseFormProps) {
   const wasDollars = expense?.currency === 'USD'
+  const [initial] = useState(() => initialAmounts(expense))
   const [currency, setCurrency] = useState<Currency>(wasDollars ? 'USD' : 'ARS')
-  const [amount, setAmount] = useState(
-    expense ? amountToInput(wasDollars ? expense.foreignAmount! : expense.amount) : '',
-  )
+  const [amount, setAmount] = useState(initial.total)
+  const [share, setShare] = useState(initial.share)
+  const [part, setPart] = useState(initial.part)
   const [category, setCategory] = useState(
     expense ? getCategory(expense.category).id : (defaults?.category ?? BUILT_IN_CATEGORIES[0].id),
   )
@@ -85,6 +114,18 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
     value === null ? null : currency === 'USD' ? (rate ? toPesos(value, rate.rate) : null) : value
   const installment =
     inInstallments && pesos !== null ? splitInstallments(pesos, Number(installments))[0] : null
+  // My part of the bill, in its currency: all of it unless shared
+  const shared = share !== '1'
+  const mine =
+    value === null
+      ? null
+      : share === '1'
+        ? value
+        : share === 'part'
+          ? parseAmount(part)
+          : shareOf(value, Number(share))
+  // A part has to be something, and less than the whole bill
+  const badPart = shared && value !== null && mine !== null && (mine <= 0 || mine >= value)
 
   // Editing, switching currency converts the amount already there: at the rate it was loaded
   // with if it was in dollars (back to pesos gives exactly what it cost), else today's
@@ -95,26 +136,42 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
     const converted = await convertAmount(value, next, paymentMethod, expense.exchangeRate)
     // Unless it was retyped meanwhile
     if (converted) setAmount((current) => (current === typed ? amountToInput(converted) : current))
+    // An exact part goes along, at the same rate
+    const typedPart = part
+    const partValue = share === 'part' ? parseAmount(part) : null
+    if (partValue === null) return
+    const convertedPart = await convertAmount(partValue, next, paymentMethod, expense.exchangeRate)
+    if (convertedPart) {
+      setPart((current) => (current === typedPart ? amountToInput(convertedPart) : current))
+    }
   }
   // In dollars, an amount that doesn't fit once in pesos can't be saved (a zero too many)
   const tooBig =
     currency === 'USD' && value !== null && rate !== null && !fitsInPesos(value, rate.rate)
   const isValid =
-    value !== null && (currency === 'ARS' || rate !== null) && !tooBig && day !== '' && day <= today
+    value !== null &&
+    mine !== null &&
+    !badPart &&
+    (currency === 'ARS' || rate !== null) &&
+    !tooBig &&
+    day !== '' &&
+    day <= today
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!isValid || value === null) return
+    if (!isValid || value === null || mine === null) return
+    // Not shared, undefined clears the whole bill
     const money =
       currency === 'USD' && rate
         ? {
-            amount: toPesos(value, rate.rate),
+            amount: toPesos(mine, rate.rate),
             currency: 'USD' as const,
-            foreignAmount: value,
+            foreignAmount: mine,
             exchangeRate: rate.rate,
             exchangeRateKind: rate.kind,
+            sharedTotal: shared ? toPesos(value, rate.rate) : undefined,
           }
-        : { amount: value }
+        : { amount: mine, sharedTotal: shared ? value : undefined }
     const fields = {
       ...money,
       category,
@@ -143,6 +200,8 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
       setAmount('')
       setName('')
       setNote('')
+      setShare('1')
+      setPart('')
     }
     runSync().catch(() => {}) // on failure it stays pending and retries on its own
     onSaved?.()
@@ -234,6 +293,34 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
             )}
           </div>
         )}
+        <div>
+          <ChipGroup
+            label="¿Lo compartiste?"
+            showLabel
+            options={SHARE_CHIPS}
+            value={share}
+            onChange={setShare}
+          />
+          {share === 'part' && (
+            <TextField
+              className={styles.part}
+              label={currency === 'USD' ? 'Tu parte, en dólares' : 'Tu parte'}
+              hideLabel
+              placeholder={currency === 'USD' ? 'Tu parte en US$' : 'Tu parte en $'}
+              inputMode="decimal"
+              autoComplete="off"
+              value={part}
+              onChange={(e) => setPart((previous) => amountInputChange(previous, e.target.value))}
+            />
+          )}
+          {shared && value !== null && mine !== null && (
+            <p className={badPart ? styles.tooBig : styles.installments} role="status">
+              {badPart
+                ? 'Tu parte tiene que ser menos que el total'
+                : `Tu parte: ${formatCurrencyShort(mine, currency)} de ${formatCurrencyShort(value, currency)}`}
+            </p>
+          )}
+        </div>
         <DayField label="Cuándo fue" value={day} max={today} onChange={setDay} />
         <NoteField value={note} onChange={setNote} />
         <Button type="submit" size="lg" fullWidth disabled={!isValid}>

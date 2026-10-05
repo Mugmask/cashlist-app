@@ -35,6 +35,10 @@ export interface Expense extends Syncable {
   // A card purchase in installments: how many (2 or more). `amount` is still the total, and
   // it counts whole in the month it was bought; each statement charges one installment.
   installments?: number
+  // Paid in full but shared (a dinner for two): `amount` is my part, what every total counts,
+  // and this is the whole bill in pesos, what the card statement charges. With dollars,
+  // `foreignAmount` is my part too.
+  sharedTotal?: number
 }
 
 // Money that comes in apart from the profile's monthly income (a transfer back, a sale...):
@@ -86,6 +90,7 @@ export interface FixedExpense extends Syncable {
   // Charged in dollars (Netflix, Spotify...): then `amount` is in dollars, and each payment
   // is a dollar expense converted at that day's rate
   currency?: 'USD' // missing means pesos
+  dueDay?: number // 1 to 31, the day of the month it's due; a shorter month uses its last day
 }
 
 export type ShoppingItemStatus = 'in_stock' | 'to_buy' | 'in_cart'

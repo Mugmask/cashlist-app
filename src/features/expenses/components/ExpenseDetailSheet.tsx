@@ -12,6 +12,7 @@ import { expensesRepo } from '../expensesRepo'
 import { installmentsOf, splitInstallments } from '../installments'
 import { PAYMENT_METHOD_OPTIONS } from '../paymentMethods'
 import { isFixed } from '../selectors'
+import { describeShare } from '../shared'
 import { CategoryIcon } from './CategoryIcon'
 import styles from './ExpenseDetailSheet.module.css'
 import { ExpenseForm } from './ExpenseForm'
@@ -102,11 +103,17 @@ function ExpenseDetail({
 
       <dl className={styles.facts}>
         {dollars && (
-          <Fact label="Total en pesos">
+          <Fact label={expense.sharedTotal === undefined ? 'Total en pesos' : 'Tu parte en pesos'}>
             {formatCurrencyShort(expense.amount)}
             <span className={styles.rate}>
               {formatRate({ kind: expense.exchangeRateKind!, rate: expense.exchangeRate! })}
             </span>
+          </Fact>
+        )}
+        {expense.sharedTotal !== undefined && (
+          <Fact label="Compartido">
+            {formatCurrencyShort(expense.sharedTotal)} en total
+            {describeShare(expense) && `, ${describeShare(expense)!.toLowerCase()}`}
           </Fact>
         )}
         <Fact label="Fecha">{formatFullDateTime(expense.spentAt)}</Fact>

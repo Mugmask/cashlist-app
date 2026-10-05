@@ -52,3 +52,12 @@
   font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
+
+/* A fixed expense overdue or due soon, in place of the names */
+.muted.warning {
+  color: var(--color-warning);
+}
+
+.muted.danger {
+  color: var(--color-danger);
+}

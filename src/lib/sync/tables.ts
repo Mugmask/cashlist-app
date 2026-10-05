@@ -29,6 +29,7 @@ interface ExpenseRow {
   exchange_rate: number | string | null
   exchange_rate_kind: ExchangeRateKind | null
   installments: number | null
+  shared_total: number | string | null
   updated_at: string
   deleted: boolean
   synced_at: string
@@ -38,7 +39,7 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
   name: 'expenses',
   local: db.expenses,
   columns:
-    'id, amount, category, spent_at, name, note, fixed_expense_id, fixed_period, payment_method, currency, foreign_amount, exchange_rate, exchange_rate_kind, installments, updated_at, deleted, synced_at',
+    'id, amount, category, spent_at, name, note, fixed_expense_id, fixed_period, payment_method, currency, foreign_amount, exchange_rate, exchange_rate_kind, installments, shared_total, updated_at, deleted, synced_at',
   toRow: (e) => ({
     id: e.id,
     amount: e.amount,
@@ -54,6 +55,7 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
     exchange_rate: e.exchangeRate ?? null,
     exchange_rate_kind: e.exchangeRateKind ?? null,
     installments: e.installments ?? null,
+    shared_total: e.sharedTotal ?? null,
     updated_at: e.updatedAt,
     deleted: e.deleted,
   }),
@@ -74,6 +76,7 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
       exchangeRateKind: row.exchange_rate_kind ?? 'blue',
     }),
     ...(row.installments !== null && { installments: row.installments }),
+    ...(row.shared_total !== null && { sharedTotal: Number(row.shared_total) }),
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,
@@ -234,6 +237,7 @@ interface FixedExpenseRow {
   amount: number | string
   payment_method: PaymentMethod
   currency: 'ARS' | 'USD'
+  due_day: number | null
   updated_at: string
   deleted: boolean
   synced_at: string
@@ -242,7 +246,8 @@ interface FixedExpenseRow {
 export const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
   name: 'fixed_expenses',
   local: db.fixedExpenses,
-  columns: 'id, name, category, amount, payment_method, currency, updated_at, deleted, synced_at',
+  columns:
+    'id, name, category, amount, payment_method, currency, due_day, updated_at, deleted, synced_at',
   toRow: (f) => ({
     id: f.id,
     name: f.name,
@@ -250,6 +255,7 @@ export const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
     amount: f.amount,
     payment_method: f.paymentMethod ?? 'cash',
     currency: f.currency ?? 'ARS',
+    due_day: f.dueDay ?? null,
     updated_at: f.updatedAt,
     deleted: f.deleted,
   }),
@@ -260,6 +266,7 @@ export const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
     amount: Number(row.amount),
     paymentMethod: row.payment_method,
     ...(row.currency === 'USD' && { currency: 'USD' as const }),
+    ...(row.due_day !== null && { dueDay: row.due_day }),
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,

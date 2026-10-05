@@ -1,6 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router'
-import { Amount, Card } from '@/ui'
+import { Amount, Card, cx } from '@/ui'
+import { dueLabel, urgentLines } from '../dueLabel'
 import type { FixedOverview } from '../useFixedOverview'
 import styles from './FixedHomeCard.module.css'
 
@@ -13,6 +14,10 @@ export function FixedHomeCard({ overview }: { overview: FixedOverview }) {
   // Which ones are left, like the shopping card: "Internet, Netflix y 2 más"
   const names = pending.slice(0, PREVIEW_COUNT).map((l) => l.fixed.name)
   const rest = pending.length - names.length
+  // Overdue or due soon: that goes first, in place of the names
+  const urgent = urgentLines(pending)
+  const first = urgent[0]
+  const alert = first && dueLabel(first.due!)
 
   return (
     <Link to="/fixed" className={styles.link}>
@@ -38,11 +43,18 @@ export function FixedHomeCard({ overview }: { overview: FixedOverview }) {
         ) : (
           <>
             <Amount value={totals.remaining} size="lg" />
-            <span className={styles.muted}>
-              {pending.length === 1 ? 'Falta ' : `Faltan ${pending.length}: `}
-              {names.join(', ')}
-              {rest > 0 && ` y ${rest} más`}
-            </span>
+            {alert ? (
+              <span className={cx(styles.muted, styles[alert.tone])} role="status">
+                {first.fixed.name} {alert.text.toLowerCase()}
+                {urgent.length > 1 && ` y ${urgent.length - 1} más`}
+              </span>
+            ) : (
+              <span className={styles.muted}>
+                {pending.length === 1 ? 'Falta ' : `Faltan ${pending.length}: `}
+                {names.join(', ')}
+                {rest > 0 && ` y ${rest} más`}
+              </span>
+            )}
           </>
         )}
       </Card>

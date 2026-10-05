@@ -17,6 +17,7 @@ export type ExpenseChanges = Partial<
     | 'exchangeRate'
     | 'exchangeRateKind'
     | 'installments'
+    | 'sharedTotal'
   >
 >
 
@@ -32,6 +33,7 @@ export interface NewExpense {
   exchangeRate?: number
   exchangeRateKind?: ExchangeRateKind
   installments?: number // a card purchase in installments (2 or more)
+  sharedTotal?: number // the whole bill, when `amount` is only my part of it
   // Only for the payment of a fixed expense
   fixedExpenseId?: string
   fixedPeriod?: string

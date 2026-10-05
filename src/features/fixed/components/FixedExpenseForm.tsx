@@ -9,6 +9,13 @@ import { capitalize } from '@/utils/text'
 import { fixedRepo } from '../fixedRepo'
 import { FixedHistory } from './FixedHistory'
 
+// Empty is fine (no due day); otherwise a whole day of the month. Null when it isn't one.
+function parseDueDay(text: string): number | undefined | null {
+  if (!text.trim()) return undefined
+  const day = Number(text)
+  return Number.isInteger(day) && day >= 1 && day <= 31 ? day : null
+}
+
 export interface FixedExpenseFormProps {
   fixed?: FixedExpense // editing when set, creating otherwise
   onDone: () => void
@@ -21,6 +28,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
   const [category, setCategory] = useState(fixed?.category ?? 'rent')
   const [paymentMethod, setPaymentMethod] = useState(fixed?.paymentMethod ?? 'cash')
   const [currency, setCurrency] = useState<Currency>(fixed?.currency ?? 'ARS')
+  const [dueDay, setDueDay] = useState(fixed?.dueDay ? String(fixed.dueDay) : '')
 
   // Editing, switching currency converts the amount already there (at today's rate)
   async function changeCurrency(next: Currency) {
@@ -34,7 +42,8 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
   }
 
   const parsedAmount = parseAmount(amount)
-  const isValid = name.trim() !== '' && parsedAmount !== null
+  const parsedDueDay = parseDueDay(dueDay)
+  const isValid = name.trim() !== '' && parsedAmount !== null && parsedDueDay !== null
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -45,6 +54,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
       amount: parsedAmount!,
       paymentMethod,
       currency: currency === 'USD' ? ('USD' as const) : undefined,
+      dueDay: parsedDueDay ?? undefined,
     }
     if (fixed) await fixedRepo.update(fixed.id, input)
     else await fixedRepo.create(input)
@@ -92,6 +102,16 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
           options={PAYMENT_METHOD_OPTIONS}
           value={paymentMethod}
           onChange={setPaymentMethod}
+        />
+        <TextField
+          label="Día de vencimiento (opcional)"
+          hint="Te avisamos cuando se acerca y si se pasa"
+          placeholder="Ej: 10"
+          inputMode="numeric"
+          autoComplete="off"
+          value={dueDay}
+          onChange={(e) => setDueDay(e.target.value.replace(/\D/g, '').slice(0, 2))}
+          error={parsedDueDay === null ? 'Tiene que ser un día del 1 al 31' : null}
         />
         {fixed && <FixedHistory fixedExpenseId={fixed.id} />}
         <Button type="submit" size="lg" fullWidth disabled={!isValid}>
