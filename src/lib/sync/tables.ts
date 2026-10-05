@@ -243,6 +243,7 @@ interface FixedExpenseRow {
   due_day: number | null
   share_with: number | null
   share_part: number | string | null
+  note: string | null
   updated_at: string
   deleted: boolean
   synced_at: string
@@ -252,7 +253,7 @@ export const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
   name: 'fixed_expenses',
   local: db.fixedExpenses,
   columns:
-    'id, name, category, amount, payment_method, currency, due_day, share_with, share_part, updated_at, deleted, synced_at',
+    'id, name, category, amount, payment_method, currency, due_day, share_with, share_part, note, updated_at, deleted, synced_at',
   toRow: (f) => ({
     id: f.id,
     name: f.name,
@@ -263,6 +264,7 @@ export const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
     due_day: f.dueDay ?? null,
     share_with: f.shareWith ?? null,
     share_part: f.sharePart ?? null,
+    note: f.note ?? null,
     updated_at: f.updatedAt,
     deleted: f.deleted,
   }),
@@ -276,6 +278,7 @@ export const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
     ...(row.due_day !== null && { dueDay: row.due_day }),
     ...(row.share_with !== null && { shareWith: row.share_with }),
     ...(row.share_part !== null && { sharePart: Number(row.share_part) }),
+    ...(row.note !== null && { note: row.note }),
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,

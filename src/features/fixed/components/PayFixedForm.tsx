@@ -3,9 +3,11 @@ import { ConversionNote, ManualRateField } from '@/features/expenses'
 import { fitsInPesos } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { useConversionRate } from '@/lib/useDollarRate'
-import { AmountField, Button, DayField, Stack, useToast } from '@/ui'
+import { StickyNote } from 'lucide-react'
+import { AmountField, Button, DayField, NoteField, Stack, useToast, VisuallyHidden } from '@/ui'
 import { amountToInput, formatCurrencyShort, parseAmount } from '@/utils/currency'
 import { nowOnDay, toDayKey } from '@/utils/dates'
+import { capitalize } from '@/utils/text'
 import { fixedRepo } from '../fixedRepo'
 import { isShared, myPartOf, shareLabel } from '../fixedShare'
 import type { FixedLine } from '../overview'
@@ -27,6 +29,7 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
   const [saving, setSaving] = useState(false) // guards against a double tap paying twice
   const [today] = useState(() => toDayKey(new Date())) // read once: the form is short-lived
   const [day, setDay] = useState(today) // paid days ago, it's loaded on the day it was
+  const [note, setNote] = useState('') // this payment's
   const conversion = useConversionRate({
     enabled: dollars,
     method: fixed.paymentMethod ?? 'cash',
@@ -55,7 +58,10 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
     if (!isValid || parsed === null || saving) return
     setSaving(true)
     const paidAt = day === today ? undefined : nowOnDay(day)
-    await fixedRepo.pay(fixed, parsed, period, conversion.rate ?? undefined, paidAt)
+    await fixedRepo.pay(fixed, parsed, period, conversion.rate ?? undefined, {
+      paidAt,
+      note: capitalize(note.trim()) || undefined,
+    })
     toast(`Pago de ${fixed.name} registrado`)
     runSync().catch(() => {}) // on failure it stays pending and retries on its own
     onDone()
@@ -68,6 +74,16 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
           <strong>{fixed.name}</strong> de {monthName}
           {fixed.paymentMethod === 'card' && ', con tarjeta'}
         </p>
+        {/* The fixed expense's own note: what's needed to pay it */}
+        {fixed.note && (
+          <p className={styles.fixedNote}>
+            <StickyNote aria-hidden />
+            <span>
+              <VisuallyHidden>Nota de {fixed.name}: </VisuallyHidden>
+              {fixed.note}
+            </span>
+          </p>
+        )}
         <div>
           <AmountField
             label={dollars ? `Monto de ${fixed.name} en dólares` : `Monto de ${fixed.name}`}
@@ -93,6 +109,7 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
           )}
         </div>
         <DayField label="Cuándo lo pagaste" value={day} max={today} onChange={setDay} />
+        <NoteField value={note} onChange={setNote} />
         {conversion.needsManual && (
           <ManualRateField value={conversion.manual} onChange={conversion.setManual} />
         )}

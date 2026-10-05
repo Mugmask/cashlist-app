@@ -99,6 +99,8 @@ export interface FixedExpense extends Syncable {
   // the fixed expense's currency; never both.
   shareWith?: number
   sharePart?: number
+  // What's good to have at hand when paying it: a customer number, the landlord's CBU...
+  note?: string
 }
 
 export type ShoppingItemStatus = 'in_stock' | 'to_buy' | 'in_cart'

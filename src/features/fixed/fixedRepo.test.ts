@@ -23,12 +23,13 @@ describe('fixedRepo', () => {
       125000,
       '2026-09',
       undefined,
-      paidAt,
+      { paidAt, note: 'Con recargo' },
     )
 
     expect(await db.expenses.get(expenseId)).toMatchObject({
       spentAt: paidAt,
       fixedPeriod: '2026-09',
+      note: 'Con recargo',
     })
   })
 

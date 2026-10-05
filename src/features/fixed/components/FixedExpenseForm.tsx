@@ -10,7 +10,7 @@ import {
 import type { FixedExpense } from '@/lib/db'
 import { convertAmount } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
-import { AmountField, Button, ChipGroup, Stack, TextField, useToast } from '@/ui'
+import { AmountField, Button, ChipGroup, Stack, TextAreaField, TextField, useToast } from '@/ui'
 import { amountToInput, parseAmount, type Currency } from '@/utils/currency'
 import { capitalize } from '@/utils/text'
 import { fixedRepo } from '../fixedRepo'
@@ -37,6 +37,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
   const [paymentMethod, setPaymentMethod] = useState(fixed?.paymentMethod ?? 'cash')
   const [currency, setCurrency] = useState<Currency>(fixed?.currency ?? 'ARS')
   const [dueDay, setDueDay] = useState(fixed?.dueDay ? String(fixed.dueDay) : '')
+  const [note, setNote] = useState(fixed?.note ?? '')
   const [initialShare] = useState(() => shareInput(fixed))
   const [share, setShare] = useState(initialShare.share)
   const [part, setPart] = useState(initialShare.part)
@@ -70,6 +71,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
       paymentMethod,
       currency: currency === 'USD' ? ('USD' as const) : undefined,
       dueDay: parsedDueDay ?? undefined,
+      note: capitalize(note.trim()) || undefined,
       ...shareFields(share, share === 'part' ? mine : null),
     }
     if (fixed) await fixedRepo.update(fixed.id, input)
@@ -137,6 +139,14 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
           value={dueDay}
           onChange={(e) => setDueDay(e.target.value.replace(/\D/g, '').slice(0, 2))}
           error={parsedDueDay === null ? 'Tiene que ser un día del 1 al 31' : null}
+        />
+        <TextAreaField
+          label="Nota (opcional)"
+          hint="La vas a ver cada vez que lo pagues"
+          placeholder="N° de cliente, CBU o alias, cómo se paga…"
+          autoCapitalize="sentences"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
         />
         {fixed && <FixedHistory fixedExpenseId={fixed.id} />}
         <Button type="submit" size="lg" fullWidth disabled={!isValid}>

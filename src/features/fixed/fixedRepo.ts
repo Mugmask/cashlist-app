@@ -13,6 +13,7 @@ export interface FixedExpenseInput {
   dueDay?: number // 1 to 31
   shareWith?: number // an even split between 2 to 4
   sharePart?: number // or my exact part
+  note?: string
 }
 
 // Single entry point to local fixed expenses: components never touch Dexie directly
@@ -41,6 +42,7 @@ export const fixedRepo = {
       dueDay: input.dueDay,
       shareWith: input.shareWith,
       sharePart: input.sharePart,
+      note: input.note,
       updatedAt: now.toISOString(),
       pending: 1,
     })
@@ -62,13 +64,14 @@ export const fixedRepo = {
   // Records this month's payment as an expense, made at `paidAt` (now by default). A different
   // amount (prices went up) becomes the one suggested from now on. A dollar one is paid in
   // dollars, converted at `rate`. `amount` is the whole bill: a shared one records my part of
-  // it, keeping the bill as the expense's sharedTotal.
+  // it, keeping the bill as the expense's sharedTotal. `note` is this payment's, not the
+  // fixed expense's.
   async pay(
     fixed: FixedExpense,
     amount: number,
     period: string,
     rate?: ConversionRate,
-    paidAt?: string,
+    { paidAt, note }: { paidAt?: string; note?: string } = {},
     now = new Date(),
   ) {
     if (fixed.currency === 'USD' && !rate) throw new Error('A dollar payment needs a rate')
@@ -93,6 +96,7 @@ export const fixedRepo = {
       fixedPeriod: period,
       paymentMethod: fixed.paymentMethod ?? 'cash',
       spentAt: paidAt,
+      note,
     })
     // The amount suggested next time follows the latest month paid: catching up on an old
     // month at its old price doesn't take back a raise already paid since
