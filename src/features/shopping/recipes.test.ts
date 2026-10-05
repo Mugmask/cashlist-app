@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '@/lib/db'
-import { productSuggestions, withIngredient } from './recipes'
+import { inPantry, productSuggestions, withIngredient } from './recipes'
 import { recipesRepo } from './recipesRepo'
 
 beforeEach(async () => {
@@ -77,5 +77,19 @@ describe('recipesRepo', () => {
       ['Huevo', 2, 'to_buy'],
       ['Papa', 6, 'to_buy'],
     ])
+  })
+})
+
+describe('inPantry', () => {
+  it('finds the ingredients the pantry has, by name like the list', () => {
+    const ingredients = [
+      { name: 'Fideos', quantity: 1 },
+      { name: 'Tomate', quantity: 3 },
+      { name: 'Cebolla', quantity: 1 },
+    ]
+    expect(inPantry(ingredients, ['fideos', 'Cebolla ', 'Arroz'])).toEqual(
+      new Set(['Fideos', 'Cebolla']),
+    )
+    expect(inPantry(ingredients, [])).toEqual(new Set())
   })
 })

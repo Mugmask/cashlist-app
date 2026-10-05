@@ -1,0 +1,123 @@
+/* Two cards a row on a phone, more on wider screens */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grid > li {
+  display: flex;
+}
+
+.glass {
+  display: flex;
+  flex: 1;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.glass:has(.card:active) {
+  transform: scale(var(--tap-scale));
+}
+
+.card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+  margin-bottom: var(--space-1);
+  color: var(--color-accent);
+}
+
+/* Up to two lines: names like "Milanesas con puré" read whole */
+.name {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font-weight: var(--weight-semibold);
+  line-height: 1.25;
+}
+
+.meta,
+.ingredients {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.ingredients {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* At the bottom, however long the name: what's missing from home */
+.missing,
+.ready {
+  margin-top: auto;
+  padding-top: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-muted);
+}
+
+.ready {
+  color: var(--color-accent);
+}
+
+/* A card still to be: dashed, no glass */
+.create {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 140px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.create:active {
+  transform: scale(var(--tap-scale));
+}
+
+.create svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-accent);
+}
+
+@media (hover: hover) {
+  .create:hover {
+    border-color: var(--color-accent);
+  }
+}

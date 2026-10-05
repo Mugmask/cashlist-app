@@ -42,3 +42,13 @@ export function productSuggestions(
     )
     .slice(0, MAX_SUGGESTIONS)
 }
+
+// The ingredients already at home: the ones the pantry has in stock (bought, not run out),
+// matched by name like the list does ("papa" = "Papa")
+export function inPantry(
+  ingredients: readonly RecipeIngredient[],
+  pantry: readonly string[],
+): Set<string> {
+  const stocked = new Set(pantry.map(normalizeName))
+  return new Set(ingredients.filter((i) => stocked.has(normalizeName(i.name))).map((i) => i.name))
+}

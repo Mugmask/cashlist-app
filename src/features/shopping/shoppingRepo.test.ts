@@ -1,3 +1,4 @@
+import { MAX_QUANTITY } from './items'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '@/lib/db'
 import { shoppingRepo } from './shoppingRepo'
@@ -103,5 +104,15 @@ describe('shoppingRepo', () => {
     const again = await shoppingRepo.add({ name: 'Queso', quantity: 1 })
     expect(again).toMatchObject({ outcome: 'new' })
     expect(again.id).not.toBe(id)
+  })
+
+  it('setQuantity changes how many, between 1 and the most allowed', async () => {
+    const { id } = await shoppingRepo.add({ name: 'Leche', quantity: 1 })
+    await shoppingRepo.setQuantity(id, 3)
+    expect(await get(id)).toMatchObject({ quantity: 3, pending: 1 })
+    await shoppingRepo.setQuantity(id, 0)
+    expect((await get(id))?.quantity).toBe(1)
+    await shoppingRepo.setQuantity(id, 500)
+    expect((await get(id))?.quantity).toBe(MAX_QUANTITY)
   })
 })

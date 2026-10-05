@@ -8,8 +8,9 @@ import styles from './AddItemForm.module.css'
 
 const LABEL = 'Agregar a la lista'
 
-// Puts a product on the list ("leche x2"). `inputRef` lets the page focus the field (the bottom
-// nav's + on this screen). Adding one already there says so instead of silently doing it.
+// Puts a product on the list; how many is set on the list with − / + ("leche x2" typed still
+// works). `inputRef` lets the page focus the field (the bottom nav's + on this screen). Adding
+// one already there says so instead of silently doing it.
 export function AddItemForm({
   inputRef: outerRef,
 }: {
@@ -37,7 +38,7 @@ export function AddItemForm({
         ref={inputRef}
         label={LABEL}
         hideLabel
-        placeholder="Agregar… (ej: leche x2)"
+        placeholder="Agregar a la lista…"
         value={text}
         onChange={(e) => setText(e.target.value)}
         enterKeyHint="done"

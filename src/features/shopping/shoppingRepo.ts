@@ -70,6 +70,11 @@ export const shoppingRepo = {
     await write(id, { status: 'to_buy', quantity: 1 }, now)
   },
 
+  // How many to buy, from the list's − / + (1 to MAX_QUANTITY)
+  async setQuantity(id: string, quantity: number, now = new Date()) {
+    await write(id, { quantity: Math.min(Math.max(1, quantity), MAX_QUANTITY) }, now)
+  },
+
   // In the store: to buy ↔ in cart
   async toggle(id: string, now = new Date()) {
     const item = await db.shoppingItems.get(id)

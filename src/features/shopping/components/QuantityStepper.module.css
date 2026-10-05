@@ -1,0 +1,28 @@
+/* A pill of the cards' neutral glass holding − n + */
+.stepper {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--glass-button);
+}
+
+/* Smaller than a lone icon button, the pill keeps the row's height; still easy to hit */
+.button {
+  width: 36px;
+  height: 36px;
+}
+
+.button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.value {
+  min-width: 2ch;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}

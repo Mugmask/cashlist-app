@@ -1,23 +1,31 @@
-import { Check, Plus, X } from 'lucide-react'
+import { Check, Plus } from 'lucide-react'
 import { useState, type KeyboardEvent } from 'react'
 import type { Recipe, RecipeIngredient } from '@/lib/db'
 import { runSync } from '@/lib/sync'
 import { Alert, Button, cx, IconButton, Sheet, Stack, TextField, useToast } from '@/ui'
 import { capitalize } from '@/utils/text'
 import { parseItemInput } from '../items'
-import { productSuggestions, withIngredient } from '../recipes'
+import { inPantry, productSuggestions, withIngredient } from '../recipes'
 import { recipesRepo } from '../recipesRepo'
+import { QuantityStepper } from './QuantityStepper'
 import styles from './RecipeSheet.module.css'
 
 export interface RecipeSheetProps {
   open: boolean
   recipe?: Recipe // set: cooking it (and editing it from there); missing: a new one
   products: readonly string[] // names already on the list or bought, to suggest
+  pantry: readonly string[] // names of what's at home: cooking starts with them as had
   onClose: () => void
 }
 
 // A recipe: cook it (tick off what's at home, the rest goes on the list) or edit it.
-export function RecipeSheet({ open, recipe: current, products, onClose }: RecipeSheetProps) {
+export function RecipeSheet({
+  open,
+  recipe: current,
+  products,
+  pantry,
+  onClose,
+}: RecipeSheetProps) {
   const [editing, setEditing] = useState(false)
   // While it slides down (closed, or its recipe just deleted) it keeps showing the last one
   const [recipe, setRecipe] = useState(current)
@@ -43,24 +51,34 @@ export function RecipeSheet({ open, recipe: current, products, onClose }: Recipe
           onDeleted={close}
         />
       ) : (
-        <Cook recipe={recipe} onEdit={() => setEditing(true)} onDone={close} />
+        <Cook
+          key={recipe.id}
+          recipe={recipe}
+          pantry={pantry}
+          onEdit={() => setEditing(true)}
+          onDone={close}
+        />
       )}
     </Sheet>
   )
 }
 
-// "¿Qué te falta?": every ingredient ticked; untick what's already at home
+// "¿Qué te falta?": every ingredient ticked but the ones the pantry has; untick what else is
+// already at home
 function Cook({
   recipe,
+  pantry,
   onEdit,
   onDone,
 }: {
   recipe: Recipe
+  pantry: readonly string[]
   onEdit: () => void
   onDone: () => void
 }) {
   const toast = useToast()
-  const [have, setHave] = useState(() => new Set<string>())
+  const [have, setHave] = useState(() => inPantry(recipe.ingredients, pantry))
+  const [fromPantry] = useState(() => have.size > 0)
   const [busy, setBusy] = useState(false) // a double tap would add everything twice
   const missing = recipe.ingredients.filter((i) => !have.has(i.name))
 
@@ -95,7 +113,11 @@ function Cook({
 
   return (
     <Stack gap={4}>
-      <p className={styles.hint}>Destildá lo que ya tenés en casa: el resto va a la lista.</p>
+      <p className={styles.hint}>
+        {fromPantry
+          ? 'Lo que está en tu despensa ya figura como que lo tenés. Tocá para cambiarlo: lo que falte va a la lista.'
+          : 'Destildá lo que ya tenés en casa: el resto va a la lista.'}
+      </p>
       <ul className={styles.list} aria-label="Ingredientes">
         {recipe.ingredients.map((i) => {
           const needed = !have.has(i.name)
@@ -214,11 +236,16 @@ function RecipeForm({
             {ingredients.map((i) => (
               <li key={i.name} className={styles.row}>
                 <span className={styles.name}>{i.name}</span>
-                {i.quantity > 1 && <span className={styles.quantity}>x{i.quantity}</span>}
-                <IconButton
-                  label={`Sacar ${i.name}`}
-                  icon={<X />}
-                  onClick={() => setIngredients((current) => current.filter((x) => x !== i))}
+                <QuantityStepper
+                  name={i.name}
+                  value={i.quantity}
+                  removeLabel={`Sacar ${i.name} de la receta`}
+                  onChange={(quantity) =>
+                    setIngredients((current) =>
+                      current.map((x) => (x === i ? { ...x, quantity } : x)),
+                    )
+                  }
+                  onRemove={() => setIngredients((current) => current.filter((x) => x !== i))}
                 />
               </li>
             ))}
@@ -228,7 +255,7 @@ function RecipeForm({
           <TextField
             label="Agregar ingrediente"
             hideLabel
-            placeholder="Agregar… (ej: papa x4)"
+            placeholder="Agregar ingrediente…"
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
             onKeyDown={onKeyDown}
@@ -251,7 +278,7 @@ function RecipeForm({
                 key={product}
                 type="button"
                 className={styles.suggestion}
-                // Keeps the count typed ("pa x3" → Papa x3)
+                // Keeps a count typed ("pa x3" → Papa x3)
                 onClick={() => add({ name: product, quantity: parsed?.quantity ?? 1 })}
               >
                 <Plus aria-hidden />

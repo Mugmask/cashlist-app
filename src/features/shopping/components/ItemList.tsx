@@ -1,10 +1,11 @@
-import { Check, X } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useEffect, useRef, type MouseEvent } from 'react'
 import type { ShoppingItem } from '@/lib/db'
 import { runSync } from '@/lib/sync'
-import { cx, IconButton, useToast, VisuallyHidden } from '@/ui'
+import { cx, useToast } from '@/ui'
 import { shoppingRepo } from '../shoppingRepo'
 import styles from './ItemList.module.css'
+import { QuantityStepper } from './QuantityStepper'
 import { pendingRefocus, requestRefocus, takeRefocus } from './refocus'
 
 export function ItemList({ items }: { items: readonly ShoppingItem[] }) {
@@ -22,6 +23,11 @@ export function ItemList({ items }: { items: readonly ShoppingItem[] }) {
     // Only when the button had focus (keyboard or screen reader), not to steal it on a tap
     if (document.activeElement === event.currentTarget) requestRefocus(item.id)
     await shoppingRepo.toggle(item.id)
+    runSync().catch(() => {})
+  }
+
+  async function handleQuantity(item: ShoppingItem, quantity: number) {
+    await shoppingRepo.setQuantity(item.id, quantity)
     runSync().catch(() => {})
   }
 
@@ -52,17 +58,12 @@ export function ItemList({ items }: { items: readonly ShoppingItem[] }) {
                 {checked && <Check />}
               </span>
               <span className={styles.name}>{item.name}</span>
-              {item.quantity > 1 && (
-                <span className={styles.quantity}>
-                  x{item.quantity}
-                  <VisuallyHidden> unidades</VisuallyHidden>
-                </span>
-              )}
             </button>
-            <IconButton
-              label={`Sacar ${item.name} de la lista`}
-              icon={<X />}
-              onClick={() => handleRemove(item)}
+            <QuantityStepper
+              name={item.name}
+              value={item.quantity}
+              onChange={(quantity) => handleQuantity(item, quantity)}
+              onRemove={() => handleRemove(item)}
             />
           </li>
         )
