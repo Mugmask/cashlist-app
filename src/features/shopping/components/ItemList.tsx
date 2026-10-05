@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react'
+import { Check, Undo2 } from 'lucide-react'
 import { useEffect, useRef, type MouseEvent } from 'react'
 import type { ShoppingItem } from '@/lib/db'
 import { runSync } from '@/lib/sync'
@@ -32,8 +32,17 @@ export function ItemList({ items }: { items: readonly ShoppingItem[] }) {
   }
 
   async function handleRemove(item: ShoppingItem) {
-    await shoppingRepo.removeFromList(item.id)
-    toast(`Sacaste ${item.name} de la lista`)
+    const { id, status, quantity } = item
+    await shoppingRepo.removeFromList(id)
+    toast(`Sacaste ${item.name} de la lista`, {
+      action: {
+        label: 'Deshacer',
+        onClick: async () => {
+          await shoppingRepo.restoreToList(id, { status, quantity })
+          runSync().catch(() => {})
+        },
+      },
+    })
     runSync().catch(() => {})
   }
 
@@ -59,12 +68,25 @@ export function ItemList({ items }: { items: readonly ShoppingItem[] }) {
               </span>
               <span className={styles.name}>{item.name}</span>
             </button>
-            <QuantityStepper
-              name={item.name}
-              value={item.quantity}
-              onChange={(quantity) => handleQuantity(item, quantity)}
-              onRemove={() => handleRemove(item)}
-            />
+            {checked ? (
+              // In the cart: the way back to the list, in plain sight (tapping the row works too)
+              <button
+                type="button"
+                className={styles.back}
+                onClick={(e) => handleToggle(item, e)}
+                aria-label={`Devolver ${item.name} a la lista`}
+              >
+                <Undo2 aria-hidden />
+                Devolver
+              </button>
+            ) : (
+              <QuantityStepper
+                name={item.name}
+                value={item.quantity}
+                onChange={(quantity) => handleQuantity(item, quantity)}
+                onRemove={() => handleRemove(item)}
+              />
+            )}
           </li>
         )
       })}

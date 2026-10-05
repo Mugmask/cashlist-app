@@ -70,3 +70,33 @@
   color: var(--color-text-muted);
   text-decoration: line-through;
 }
+
+/* In the cart: back to the list. A pill of the cards' neutral glass, like the stepper it
+   stands in for */
+.back {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--glass-button);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.back:active {
+  transform: scale(var(--tap-scale));
+}
+
+.back svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+}

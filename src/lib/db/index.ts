@@ -78,6 +78,9 @@ export interface CustomCategory extends Syncable {
 export interface Profile extends Syncable {
   name?: string
   monthlyIncome?: number
+  // The user's names for the store sections of the shopping list, by section id ("dairy":
+  // "Heladera"); the app's name for the rest
+  aisleNames?: Record<string, string>
 }
 
 // Something charged every month (rent, internet...). Its amount is the one suggested next
@@ -108,6 +111,7 @@ export interface ShoppingItem extends Syncable {
   status: ShoppingItemStatus
   lastBoughtAt?: string // ISO
   timesBought: number
+  aisle?: string // the store section the user put it in; guessed from its name when missing
 }
 
 interface SyncState {

@@ -35,6 +35,7 @@ export interface AddResult {
   outcome: 'new' | 'back' | 'more'
   name: string
   quantity: number // on the list now
+  aisle?: string // the section the user put it in before, for a known one
 }
 
 // Single entry point to the shopping products. A product has one row that cycles
@@ -59,6 +60,7 @@ export const shoppingRepo = {
         outcome: onList ? 'more' : 'back',
         name: existing.name,
         quantity: total,
+        aisle: existing.aisle,
       }
     })
   },
@@ -73,6 +75,11 @@ export const shoppingRepo = {
   // How many to buy, from the list's − / + (1 to MAX_QUANTITY)
   async setQuantity(id: string, quantity: number, now = new Date()) {
     await write(id, { quantity: Math.min(Math.max(1, quantity), MAX_QUANTITY) }, now)
+  },
+
+  // The store section the user puts it in, over the one guessed from its name
+  async setAisle(id: string, aisle: string, now = new Date()) {
+    await write(id, { aisle }, now)
   },
 
   // In the store: to buy ↔ in cart
@@ -91,6 +98,15 @@ export const shoppingRepo = {
       item.timesBought > 0 ? { status: 'in_stock', quantity: 1 } : { deleted: true },
       now,
     )
+  },
+
+  // Takes a removal back ("Deshacer"): on the list again as it was, even if it had been deleted
+  async restoreToList(
+    id: string,
+    { status, quantity }: Pick<ShoppingItem, 'status' | 'quantity'>,
+    now = new Date(),
+  ) {
+    await write(id, { status, quantity, deleted: false }, now)
   },
 
   // "Ya no lo compro": the product is forgotten, so it stops showing among the frequent ones

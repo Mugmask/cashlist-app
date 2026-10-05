@@ -115,4 +115,14 @@ describe('shoppingRepo', () => {
     await shoppingRepo.setQuantity(id, 500)
     expect((await get(id))?.quantity).toBe(MAX_QUANTITY)
   })
+
+  it('restoreToList takes a removal back, even of a product that was deleted', async () => {
+    const { id } = await shoppingRepo.add({ name: 'Palta', quantity: 3 })
+    await shoppingRepo.toggle(id) // in the cart
+    await shoppingRepo.removeFromList(id)
+    expect((await get(id))?.deleted).toBe(true) // never bought: it went entirely
+
+    await shoppingRepo.restoreToList(id, { status: 'in_cart', quantity: 3 })
+    expect(await get(id)).toMatchObject({ status: 'in_cart', quantity: 3, deleted: false })
+  })
 })

@@ -16,6 +16,19 @@
   margin-bottom: var(--space-6); /* room to breathe before the screen's own title */
 }
 
+/* Only the profile: it floats on the right of the screen's first row instead of taking a row
+   of its own. Taps go through the empty part to the screen. */
+.headerBare {
+  position: relative;
+  z-index: 1;
+  margin-bottom: -48px;
+  pointer-events: none;
+}
+
+.headerBare > * {
+  pointer-events: auto;
+}
+
 .headerEnd {
   display: flex;
   flex-shrink: 0;

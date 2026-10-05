@@ -35,4 +35,18 @@ describe('profileRepo', () => {
     expect(await db.profile.count()).toBe(1)
     expect((await profileRepo.get())?.monthlyIncome).toBeUndefined()
   })
+
+  it('section names are saved apart and survive saving the name and income', async () => {
+    await profileRepo.save({ name: 'Juan', monthlyIncome: 1_200_000 })
+    await profileRepo.saveAisleNames({ dairy: 'Heladera' })
+    await profileRepo.saveMonthlyIncome(2_000_000)
+
+    expect(await profileRepo.get()).toMatchObject({
+      name: 'Juan',
+      monthlyIncome: 2_000_000,
+      aisleNames: { dairy: 'Heladera' },
+    })
+    await profileRepo.saveAisleNames({})
+    expect((await profileRepo.get())?.aisleNames).toBeUndefined()
+  })
 })

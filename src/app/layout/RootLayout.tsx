@@ -7,7 +7,7 @@ import { ProfileButton } from '@/features/profile'
 import { requestPersistentStorage } from '@/lib/db'
 import { supabase } from '@/lib/supabase'
 import { useAutoSync, useFirstSync } from '@/lib/sync'
-import { Alert, PageLoader, PrimaryActionProvider, ToastProvider } from '@/ui'
+import { Alert, cx, PageLoader, PrimaryActionProvider, ToastProvider } from '@/ui'
 import { UpdatePrompt } from '../UpdatePrompt'
 import { AuthShell } from './AuthShell'
 import { BackLink } from './BackLink'
@@ -69,6 +69,7 @@ function AppShell({ userId, email }: { userId: string; email?: string }) {
   useFocusHeadingOnNavigate(mainRef)
   const back = useBackTarget()
   const { pathname } = useLocation()
+  const monthly = MONTHLY_SCREENS.has(pathname)
   const [params, setParams] = useSearchParams()
   // Read once on mount: the effect below then drops the param
   const [openedFromShortcut] = useState(() => params.get('action') === ADD_EXPENSE_ACTION)
@@ -87,9 +88,10 @@ function AppShell({ userId, email }: { userId: string; email?: string }) {
         <MonthProvider>
           <div className={styles.shell}>
             <PullToRefresh />
-            <header className={styles.header}>
-              {/* The shopping list isn't about a month */}
-              {MONTHLY_SCREENS.has(pathname) && <MonthSwitcher />}
+            {/* The shopping list isn't about a month: with only the profile left, the header
+                doesn't take a row of its own (the screen's title sits beside the profile) */}
+            <header className={cx(styles.header, !monthly && styles.headerBare)}>
+              {monthly && <MonthSwitcher />}
               <div className={styles.headerEnd}>
                 <OfflineBadge />
                 <ProfileButton email={email} />

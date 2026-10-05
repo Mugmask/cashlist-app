@@ -3,7 +3,6 @@ import { useRef, useState } from 'react'
 import { runSync } from '@/lib/sync'
 import {
   Button,
-  Card,
   EmptyState,
   PageHeader,
   PageLoader,
@@ -13,14 +12,16 @@ import {
   usePrimaryAction,
 } from '@/ui'
 import { AddItemForm } from './components/AddItemForm'
+import { AislePickerSheet } from './components/AislePickerSheet'
 import { FinishPurchaseForm } from './components/FinishPurchaseForm'
-import { ItemList } from './components/ItemList'
 import { KnownProductsSheet } from './components/KnownProductsSheet'
 import { RecipeCards } from './components/RecipeCards'
+import { ShoppingList } from './components/ShoppingList'
 import { RecipeSheet } from './components/RecipeSheet'
 import { useRecipes } from './recipesRepo'
 import styles from './ShoppingPage.module.css'
 import { shoppingRepo } from './shoppingRepo'
+import { useAisleNames } from './useAisleNames'
 import { useShoppingList } from './useShoppingList'
 
 type Tab = 'list' | 'recipes'
@@ -31,6 +32,9 @@ type Tab = 'list' | 'recipes'
 export function ShoppingPage() {
   const shopping = useShoppingList()
   const [tab, setTab] = useState<Tab>('list')
+  const names = useAisleNames()
+  // The product whose section is being picked, from the toast after adding it
+  const [pickingAisle, setPickingAisle] = useState<string | null>(null)
   const [isFinishing, setIsFinishing] = useState(false)
   const [isBrowsing, setIsBrowsing] = useState(false)
   const recipes = useRecipes()
@@ -74,7 +78,7 @@ export function ShoppingPage() {
       {tab === 'list' ? (
         <>
           <Stack gap={3}>
-            <AddItemForm inputRef={addInputRef} />
+            <AddItemForm inputRef={addInputRef} names={names} onPickAisle={setPickingAisle} />
             {/* One row that scrolls sideways, so the list stays close to the top */}
             {known.length > 0 && (
               <ul className={styles.chips} aria-label="Frecuentes">
@@ -111,24 +115,14 @@ export function ShoppingPage() {
               }
             />
           ) : (
-            <section aria-label="Para comprar">
-              {/* How many is on the tab already */}
-              <h2 className={styles.sectionTitle}>Para comprar</h2>
-              <Card padding="none">
-                {/* What's missing first; what's already in the cart below, ticked */}
-                <ItemList items={[...toBuy, ...inCart]} />
-              </Card>
+            <>
+              <ShoppingList toBuy={toBuy} inCart={inCart} names={names} />
               {inCart.length > 0 && (
-                <Button
-                  size="lg"
-                  fullWidth
-                  className={styles.finish}
-                  onClick={() => setIsFinishing(true)}
-                >
+                <Button size="lg" fullWidth onClick={() => setIsFinishing(true)}>
                   Terminar compra
                 </Button>
               )}
-            </section>
+            </>
           )}
         </>
       ) : (
@@ -150,12 +144,23 @@ export function ShoppingPage() {
       <Sheet open={isFinishing} onClose={() => setIsFinishing(false)} title="Terminar compra">
         <FinishPurchaseForm items={inCart} onDone={() => setIsFinishing(false)} />
       </Sheet>
-      <KnownProductsSheet open={isBrowsing} onClose={() => setIsBrowsing(false)} items={known} />
+      <KnownProductsSheet
+        open={isBrowsing}
+        onClose={() => setIsBrowsing(false)}
+        items={[...known, ...toBuy, ...inCart]}
+        names={names}
+      />
+      <AislePickerSheet
+        item={[...toBuy, ...inCart, ...known].find((i) => i.id === pickingAisle) ?? null}
+        names={names}
+        onClose={() => setPickingAisle(null)}
+      />
       <RecipeSheet
         open={recipeSheet !== null}
         recipe={openRecipe}
         products={products}
         pantry={pantry}
+        onList={[...toBuy, ...inCart].map((i) => i.name)}
         onClose={() => setRecipeSheet(null)}
       />
     </Stack>

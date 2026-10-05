@@ -195,6 +195,7 @@ interface ShoppingItemRow {
   status: ShoppingItemStatus
   last_bought_at: string | null
   times_bought: number
+  aisle: string | null
   updated_at: string
   deleted: boolean
   synced_at: string
@@ -204,7 +205,7 @@ export const shoppingItemsTable: SyncedTable<ShoppingItem, ShoppingItemRow> = {
   name: 'shopping_items',
   local: db.shoppingItems,
   columns:
-    'id, name, quantity, status, last_bought_at, times_bought, updated_at, deleted, synced_at',
+    'id, name, quantity, status, last_bought_at, times_bought, aisle, updated_at, deleted, synced_at',
   toRow: (i) => ({
     id: i.id,
     name: i.name,
@@ -214,6 +215,7 @@ export const shoppingItemsTable: SyncedTable<ShoppingItem, ShoppingItemRow> = {
     // Some local rows lack it (or got NaN from += 1 on it): the column is not null. Sent as 0,
     // the next pull brings it back fixed.
     times_bought: Number.isInteger(i.timesBought) ? i.timesBought : 0,
+    aisle: i.aisle ?? null,
     updated_at: i.updatedAt,
     deleted: i.deleted,
   }),
@@ -224,6 +226,7 @@ export const shoppingItemsTable: SyncedTable<ShoppingItem, ShoppingItemRow> = {
     status: row.status,
     lastBoughtAt: row.last_bought_at ?? undefined,
     timesBought: row.times_bought,
+    ...(row.aisle !== null && { aisle: row.aisle }),
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,
@@ -283,6 +286,7 @@ interface ProfileRow {
   id: string
   name: string | null
   monthly_income: number | string | null
+  aisle_names: Record<string, string> | null
   updated_at: string
   deleted: boolean
   synced_at: string
@@ -291,12 +295,13 @@ interface ProfileRow {
 export const profileTable: SyncedTable<Profile, ProfileRow> = {
   name: 'profiles',
   local: db.profile,
-  columns: 'id, name, monthly_income, updated_at, deleted, synced_at',
+  columns: 'id, name, monthly_income, aisle_names, updated_at, deleted, synced_at',
   onConflict: 'user_id,id', // composite primary key; user_id comes from auth.uid()
   toRow: (p) => ({
     id: p.id,
     name: p.name ?? null,
     monthly_income: p.monthlyIncome ?? null,
+    aisle_names: p.aisleNames ?? null,
     updated_at: p.updatedAt,
     deleted: p.deleted,
   }),
@@ -304,6 +309,7 @@ export const profileTable: SyncedTable<Profile, ProfileRow> = {
     id: row.id,
     name: row.name ?? undefined,
     monthlyIncome: row.monthly_income === null ? undefined : Number(row.monthly_income),
+    ...(row.aisle_names && { aisleNames: row.aisle_names }),
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,

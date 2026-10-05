@@ -15,6 +15,7 @@ export interface RecipeSheetProps {
   recipe?: Recipe // set: cooking it (and editing it from there); missing: a new one
   products: readonly string[] // names already on the list or bought, to suggest
   pantry: readonly string[] // names of what's at home: cooking starts with them as had
+  onList: readonly string[] // names already on the list: cooking doesn't add them again
   onClose: () => void
 }
 
@@ -24,6 +25,7 @@ export function RecipeSheet({
   recipe: current,
   products,
   pantry,
+  onList,
   onClose,
 }: RecipeSheetProps) {
   const [editing, setEditing] = useState(false)
@@ -55,6 +57,7 @@ export function RecipeSheet({
           key={recipe.id}
           recipe={recipe}
           pantry={pantry}
+          onList={onList}
           onEdit={() => setEditing(true)}
           onDone={close}
         />
@@ -63,22 +66,27 @@ export function RecipeSheet({
   )
 }
 
-// "¿Qué te falta?": every ingredient ticked but the ones the pantry has; untick what else is
-// already at home
+// "¿Qué te falta?": every ingredient ticked but the ones the pantry has and the ones already
+// on the list (cooking twice in a week doesn't double them); untick what else is at home
 function Cook({
   recipe,
   pantry,
+  onList,
   onEdit,
   onDone,
 }: {
   recipe: Recipe
   pantry: readonly string[]
+  onList: readonly string[]
   onEdit: () => void
   onDone: () => void
 }) {
   const toast = useToast()
-  const [have, setHave] = useState(() => inPantry(recipe.ingredients, pantry))
-  const [fromPantry] = useState(() => have.size > 0)
+  const [listed] = useState(() => inPantry(recipe.ingredients, onList))
+  const [have, setHave] = useState(
+    () => new Set([...inPantry(recipe.ingredients, pantry), ...listed]),
+  )
+  const [preset] = useState(() => have.size > 0)
   const [busy, setBusy] = useState(false) // a double tap would add everything twice
   const missing = recipe.ingredients.filter((i) => !have.has(i.name))
 
@@ -114,8 +122,8 @@ function Cook({
   return (
     <Stack gap={4}>
       <p className={styles.hint}>
-        {fromPantry
-          ? 'Lo que está en tu despensa ya figura como que lo tenés. Tocá para cambiarlo: lo que falte va a la lista.'
+        {preset
+          ? 'Lo que tenés en casa o ya está en la lista no se agrega. Tocá para cambiarlo: lo que falte va a la lista.'
           : 'Destildá lo que ya tenés en casa: el resto va a la lista.'}
       </p>
       <ul className={styles.list} aria-label="Ingredientes">
@@ -135,7 +143,11 @@ function Cook({
                 </span>
                 <span className={styles.name}>{i.name}</span>
                 {i.quantity > 1 && <span className={styles.quantity}>x{i.quantity}</span>}
-                {!needed && <span className={styles.haveLabel}>Lo tengo</span>}
+                {!needed && (
+                  <span className={styles.haveLabel}>
+                    {listed.has(i.name) ? 'Ya en la lista' : 'Lo tengo'}
+                  </span>
+                )}
               </button>
             </li>
           )
