@@ -91,6 +91,11 @@ export interface FixedExpense extends Syncable {
   // is a dollar expense converted at that day's rate
   currency?: 'USD' // missing means pesos
   dueDay?: number // 1 to 31, the day of the month it's due; a shorter month uses its last day
+  // Shared (rent with a flatmate): `amount` is still the whole bill, and each payment records
+  // only my part of it. Either an even split between this many (2 to 4), or my exact part, in
+  // the fixed expense's currency; never both.
+  shareWith?: number
+  sharePart?: number
 }
 
 export type ShoppingItemStatus = 'in_stock' | 'to_buy' | 'in_cart'

@@ -168,3 +168,12 @@ describe('dueIn', () => {
     expect(dueIn('2027-02', 31, new Date(2027, 1, 28))).toEqual({ day: 28, daysLeft: 0 })
   })
 })
+
+describe('buildFixedOverview of a shared one', () => {
+  it('expects only my part', () => {
+    const rent = { ...fixed('Alquiler', 650000), shareWith: 2 }
+    const { pending, totals } = buildFixedOverview([rent], [])
+    expect(pending[0].shown).toEqual({ value: 325000, currency: 'ARS' })
+    expect(totals.expected).toBe(325000)
+  })
+})

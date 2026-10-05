@@ -5,11 +5,6 @@
   color: var(--color-text-muted);
 }
 
-/* My exact part of a shared bill, under its chips */
-.part {
-  margin-top: var(--space-3);
-}
-
 /* A dollar amount too big once in pesos */
 .tooBig {
   margin: var(--space-2) 0 0;

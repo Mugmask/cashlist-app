@@ -45,8 +45,9 @@
 /* Amount and due date share the second line, so the name gets the row's full width */
 .detail {
   display: flex;
+  flex-wrap: wrap; /* the note drops under the amount when the row can't hold it whole */
   align-items: baseline;
-  gap: var(--space-2);
+  column-gap: var(--space-2);
   min-width: 0;
 }
 
@@ -60,18 +61,24 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Paid on, or due on. Fits whole on a 360px phone; truncates only next to amounts with cents */
+/* Next to the amount when it's my part of a shared bill */
+.shared {
+  flex-shrink: 0;
+  align-self: center;
+  width: 14px;
+  height: 14px;
+  margin-left: calc(var(--space-1) * -1);
+  color: var(--color-text-muted);
+}
+
+/* Paid on, or due on: beside the amount when it fits, else under it */
 .note {
+  flex-shrink: 0; /* whole or on a line of its own, never cut beside the amount */
+  max-width: 100%;
   overflow: hidden;
   font-size: var(--text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.note::before {
-  content: '·';
-  margin-right: var(--space-2);
-  color: var(--color-text-muted);
 }
 
 .note,
@@ -103,9 +110,5 @@
   .detail {
     flex-direction: column;
     gap: 0;
-  }
-
-  .note::before {
-    display: none;
   }
 }

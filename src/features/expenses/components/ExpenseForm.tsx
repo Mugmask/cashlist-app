@@ -4,13 +4,7 @@ import { convertAmount, fitsInPesos, toPesos } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { useConversionRate } from '@/lib/useDollarRate'
 import { AmountField, Button, ChipGroup, DayField, NoteField, Stack, TextField } from '@/ui'
-import {
-  amountInputChange,
-  amountToInput,
-  formatCurrencyShort,
-  parseAmount,
-  type Currency,
-} from '@/utils/currency'
+import { amountToInput, formatCurrencyShort, parseAmount, type Currency } from '@/utils/currency'
 import { nowOnDay, toDayKey, withDayKey } from '@/utils/dates'
 import { capitalize } from '@/utils/text'
 import { BUILT_IN_CATEGORIES, getCategory } from '../categories'
@@ -18,11 +12,12 @@ import { INSTALLMENT_OPTIONS, splitInstallments } from '../installments'
 import { expensesRepo } from '../expensesRepo'
 import { matchSuggestions, type NameSuggestion } from '../suggestions'
 import { useNameSuggestions } from '../useNameSuggestions'
-import { SHARE_CHIPS, shareOf, shareOptionFor, type ShareOption } from '../shared'
+import { isValidPart, partOf, shareOptionFor, type ShareOption } from '../shared'
 import { PAYMENT_METHOD_OPTIONS } from '../paymentMethods'
 import { CategoryIcon } from './CategoryIcon'
 import { CategoryPicker } from './CategoryPicker'
 import { ConversionNote, ManualRateField } from './DollarConversion'
+import { ShareField } from './ShareField'
 import styles from './ExpenseForm.module.css'
 
 const INSTALLMENT_CHIPS = INSTALLMENT_OPTIONS.map((n) => ({
@@ -116,16 +111,8 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
     inInstallments && pesos !== null ? splitInstallments(pesos, Number(installments))[0] : null
   // My part of the bill, in its currency: all of it unless shared
   const shared = share !== '1'
-  const mine =
-    value === null
-      ? null
-      : share === '1'
-        ? value
-        : share === 'part'
-          ? parseAmount(part)
-          : shareOf(value, Number(share))
-  // A part has to be something, and less than the whole bill
-  const badPart = shared && value !== null && mine !== null && (mine <= 0 || mine >= value)
+  const mine = value === null ? null : partOf(value, share, part)
+  const badPart = shared && value !== null && mine !== null && !isValidPart(value, mine)
 
   // Editing, switching currency converts the amount already there: at the rate it was loaded
   // with if it was in dollars (back to pesos gives exactly what it cost), else today's
@@ -293,34 +280,15 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
             )}
           </div>
         )}
-        <div>
-          <ChipGroup
-            label="¿Lo compartiste?"
-            showLabel
-            options={SHARE_CHIPS}
-            value={share}
-            onChange={setShare}
-          />
-          {share === 'part' && (
-            <TextField
-              className={styles.part}
-              label={currency === 'USD' ? 'Tu parte, en dólares' : 'Tu parte'}
-              hideLabel
-              placeholder={currency === 'USD' ? 'Tu parte en US$' : 'Tu parte en $'}
-              inputMode="decimal"
-              autoComplete="off"
-              value={part}
-              onChange={(e) => setPart((previous) => amountInputChange(previous, e.target.value))}
-            />
-          )}
-          {shared && value !== null && mine !== null && (
-            <p className={badPart ? styles.tooBig : styles.installments} role="status">
-              {badPart
-                ? 'Tu parte tiene que ser menos que el total'
-                : `Tu parte: ${formatCurrencyShort(mine, currency)} de ${formatCurrencyShort(value, currency)}`}
-            </p>
-          )}
-        </div>
+        <ShareField
+          label="¿Lo compartiste?"
+          share={share}
+          onShareChange={setShare}
+          part={part}
+          onPartChange={setPart}
+          total={value}
+          currency={currency}
+        />
         <DayField label="Cuándo fue" value={day} max={today} onChange={setDay} />
         <NoteField value={note} onChange={setNote} />
         <Button type="submit" size="lg" fullWidth disabled={!isValid}>

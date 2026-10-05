@@ -2,12 +2,13 @@ import type { ExchangeRateKind, Expense, FixedExpense } from '@/lib/db'
 import { rateKindFor, toPesos } from '@/lib/exchangeRates'
 import type { Currency } from '@/utils/currency'
 import { daysInMonth, fromPeriod } from '@/utils/dates'
+import { myPartOf } from './fixedShare'
 
 export interface FixedLine {
   fixed: FixedExpense
   payment?: Expense // this month's payment; missing while still to pay
   // Pesos, for the totals: what was paid, or what's expected. A dollar one not paid yet is
-  // estimated at today's rate (0 until a rate is known).
+  // estimated at today's rate (0 until a rate is known). Shared, only my part.
   amount: number
   shown: { value: number; currency: Currency } // what the list shows: dollars stay dollars
   // Still to pay with a due day: that day in the month (31 is September's 30th) and how many
@@ -74,7 +75,9 @@ export function buildFixedOverview(
       fixed: f,
       payment,
       amount: payment?.amount ?? expectedPesos(f, rates),
-      shown: payment ? shownPayment(payment) : { value: f.amount, currency: f.currency ?? 'ARS' },
+      shown: payment
+        ? shownPayment(payment)
+        : { value: myPartOf(f, f.amount), currency: f.currency ?? 'ARS' },
       ...(!payment &&
         when &&
         f.dueDay !== undefined && { due: dueIn(when.period, f.dueDay, when.today) }),
@@ -103,9 +106,10 @@ export function buildFixedOverview(
 }
 
 function expectedPesos(f: FixedExpense, rates: TodayRates) {
-  if (f.currency !== 'USD') return f.amount
+  const mine = myPartOf(f, f.amount)
+  if (f.currency !== 'USD') return mine
   const rate = rates[rateKindFor(f.paymentMethod ?? 'cash')]
-  return rate ? toPesos(f.amount, rate) : 0
+  return rate ? toPesos(mine, rate) : 0
 }
 
 function shownPayment(p: Expense): FixedLine['shown'] {

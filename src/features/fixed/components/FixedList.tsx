@@ -1,4 +1,4 @@
-import { RotateCcw } from 'lucide-react'
+import { RotateCcw, Users } from 'lucide-react'
 import { CategoryIcon } from '@/features/expenses'
 import { runSync } from '@/lib/sync'
 import { Button, cx, IconButton, useToast, VisuallyHidden } from '@/ui'
@@ -6,6 +6,7 @@ import { formatCurrencyShort } from '@/utils/currency'
 import { formatShortDay } from '@/utils/dates'
 import { dueLabel } from '../dueLabel'
 import { fixedRepo } from '../fixedRepo'
+import { shareLabel } from '../fixedShare'
 import type { FixedLine } from '../overview'
 import styles from './FixedList.module.css'
 
@@ -29,6 +30,7 @@ export function FixedList({ lines, onEdit, onPay }: FixedListProps) {
       {lines.map((line) => {
         const isPaid = line.payment !== undefined
         const due = line.due && dueLabel(line.due)
+        const shared = shareLabel(line.fixed)
         return (
           <li key={line.fixed.id} className={styles.row}>
             <button type="button" className={styles.body} onClick={() => onEdit(line)}>
@@ -42,6 +44,8 @@ export function FixedList({ lines, onEdit, onPay }: FixedListProps) {
                   <span className={cx(styles.amount, isPaid && styles.muted)}>
                     {formatCurrencyShort(line.shown.value, line.shown.currency)}
                   </span>
+                  {/* Shared: the amount is my part. An icon, so the due date keeps its room */}
+                  {shared && <Users className={styles.shared} role="img" aria-label={shared} />}
                   {isPaid ? (
                     <span className={styles.note}>
                       Pagado el {formatShortDay(line.payment!.spentAt)}

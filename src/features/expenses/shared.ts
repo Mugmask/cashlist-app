@@ -1,4 +1,5 @@
 import type { Expense } from '@/lib/db'
+import { parseAmount } from '@/utils/currency'
 
 // How an expense paid in full is shared: just mine, between 2, 3 or 4 alike, or an exact part
 export type ShareOption = '1' | '2' | '3' | '4' | 'part'
@@ -36,4 +37,17 @@ export function describeShare(expense: Pick<Expense, 'amount' | 'sharedTotal'>) 
   if (expense.sharedTotal === undefined) return null
   const option = shareOptionFor(expense.sharedTotal, expense.amount)
   return option === 'part' ? null : SHARE_CHIPS.find((c) => c.value === option)!.label
+}
+
+// My part of a bill of `total` as the share chips say, in the bill's currency: all of it when
+// it's only mine, the exact part typed (null until it's a valid amount), or an even split
+export function partOf(total: number, share: ShareOption, part: string): number | null {
+  if (share === '1') return total
+  if (share === 'part') return parseAmount(part)
+  return shareOf(total, Number(share))
+}
+
+// A part has to be something, and less than the whole bill
+export function isValidPart(total: number, mine: number) {
+  return mine > 0 && mine < total
 }

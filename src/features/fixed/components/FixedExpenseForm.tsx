@@ -1,5 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { CategoryPicker, CURRENCY_OPTIONS, PAYMENT_METHOD_OPTIONS } from '@/features/expenses'
+import {
+  CategoryPicker,
+  CURRENCY_OPTIONS,
+  isValidPart,
+  partOf,
+  PAYMENT_METHOD_OPTIONS,
+  ShareField,
+} from '@/features/expenses'
 import type { FixedExpense } from '@/lib/db'
 import { convertAmount } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
@@ -7,6 +14,7 @@ import { AmountField, Button, ChipGroup, Stack, TextField, useToast } from '@/ui
 import { amountToInput, parseAmount, type Currency } from '@/utils/currency'
 import { capitalize } from '@/utils/text'
 import { fixedRepo } from '../fixedRepo'
+import { shareFields, shareInput } from '../fixedShare'
 import { FixedHistory } from './FixedHistory'
 
 // Empty is fine (no due day); otherwise a whole day of the month. Null when it isn't one.
@@ -29,6 +37,9 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
   const [paymentMethod, setPaymentMethod] = useState(fixed?.paymentMethod ?? 'cash')
   const [currency, setCurrency] = useState<Currency>(fixed?.currency ?? 'ARS')
   const [dueDay, setDueDay] = useState(fixed?.dueDay ? String(fixed.dueDay) : '')
+  const [initialShare] = useState(() => shareInput(fixed))
+  const [share, setShare] = useState(initialShare.share)
+  const [part, setPart] = useState(initialShare.part)
 
   // Editing, switching currency converts the amount already there (at today's rate)
   async function changeCurrency(next: Currency) {
@@ -43,7 +54,11 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
 
   const parsedAmount = parseAmount(amount)
   const parsedDueDay = parseDueDay(dueDay)
-  const isValid = name.trim() !== '' && parsedAmount !== null && parsedDueDay !== null
+  // An exact part is checked against the bill as typed here: it may come to more some month
+  const mine = parsedAmount === null ? null : partOf(parsedAmount, share, part)
+  const validShare =
+    share === '1' || (parsedAmount !== null && mine !== null && isValidPart(parsedAmount, mine))
+  const isValid = name.trim() !== '' && parsedAmount !== null && parsedDueDay !== null && validShare
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -55,6 +70,7 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
       paymentMethod,
       currency: currency === 'USD' ? ('USD' as const) : undefined,
       dueDay: parsedDueDay ?? undefined,
+      ...shareFields(share, share === 'part' ? mine : null),
     }
     if (fixed) await fixedRepo.update(fixed.id, input)
     else await fixedRepo.create(input)
@@ -102,6 +118,15 @@ export function FixedExpenseForm({ fixed, onDone }: FixedExpenseFormProps) {
           options={PAYMENT_METHOD_OPTIONS}
           value={paymentMethod}
           onChange={setPaymentMethod}
+        />
+        <ShareField
+          label="¿Lo compartís?"
+          share={share}
+          onShareChange={setShare}
+          part={part}
+          onPartChange={setPart}
+          total={parsedAmount}
+          currency={currency}
         />
         <TextField
           label="Día de vencimiento (opcional)"

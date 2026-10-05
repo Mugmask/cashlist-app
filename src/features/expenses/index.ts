@@ -34,5 +34,14 @@ export {
   splitInstallments,
 } from './installments'
 export { PAYMENT_METHOD_OPTIONS } from './paymentMethods'
+export { ShareField } from './components/ShareField'
+export {
+  isValidPart,
+  partOf,
+  SHARE_CHIPS,
+  shareOf,
+  shareOptionFor,
+  type ShareOption,
+} from './shared'
 export { firstTrackedPeriod, isFixed, summarizeMonth, totalsByCategory } from './selectors'
 export { useMonthExpenses } from './useMonthExpenses'

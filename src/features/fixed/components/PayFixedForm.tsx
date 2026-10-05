@@ -4,9 +4,10 @@ import { fitsInPesos } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { useConversionRate } from '@/lib/useDollarRate'
 import { AmountField, Button, DayField, Stack, useToast } from '@/ui'
-import { amountToInput, parseAmount } from '@/utils/currency'
+import { amountToInput, formatCurrencyShort, parseAmount } from '@/utils/currency'
 import { nowOnDay, toDayKey } from '@/utils/dates'
 import { fixedRepo } from '../fixedRepo'
+import { isShared, myPartOf, shareLabel } from '../fixedShare'
 import type { FixedLine } from '../overview'
 import styles from './PayFixedForm.module.css'
 
@@ -38,8 +39,16 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
     parsed !== null &&
     conversion.rate !== null &&
     !fitsInPesos(parsed, conversion.rate.rate)
+  // Shared, my part of this bill: an exact part can't be more than what the bill came to
+  const shared = isShared(fixed)
+  const mine = parsed === null ? null : myPartOf(fixed, parsed)
+  const partTooBig = shared && parsed !== null && mine !== null && mine >= parsed
   const isValid =
-    parsed !== null && (!dollars || conversion.rate !== null) && !tooBig && day <= today
+    parsed !== null &&
+    (!dollars || conversion.rate !== null) &&
+    !tooBig &&
+    !partTooBig &&
+    day <= today
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -73,6 +82,13 @@ export function PayFixedForm({ line, period, monthName, onDone }: PayFixedFormPr
           {tooBig && (
             <p className={styles.tooBig} role="alert">
               En pesos es más de lo que se puede cargar. ¿Sobra un cero?
+            </p>
+          )}
+          {shared && mine !== null && parsed !== null && (
+            <p className={partTooBig ? styles.tooBig : styles.share} role="status">
+              {partTooBig
+                ? `Tu parte (${formatCurrencyShort(mine, fixed.currency ?? 'ARS')}) es más que el total: cambiala en el fijo`
+                : `${shareLabel(fixed)}: tu parte es ${formatCurrencyShort(mine, fixed.currency ?? 'ARS')}`}
             </p>
           )}
         </div>

@@ -2,6 +2,7 @@ import { addExpense, getPaymentsOf, removeExpense } from '@/features/expenses'
 import { db, type FixedExpense, type PaymentMethod } from '@/lib/db'
 import { toPesos } from '@/lib/exchangeRates'
 import type { ConversionRate } from '@/lib/useDollarRate'
+import { isShared, myPartOf } from './fixedShare'
 
 export interface FixedExpenseInput {
   name: string
@@ -10,6 +11,8 @@ export interface FixedExpenseInput {
   paymentMethod: PaymentMethod
   currency?: 'USD'
   dueDay?: number // 1 to 31
+  shareWith?: number // an even split between 2 to 4
+  sharePart?: number // or my exact part
 }
 
 // Single entry point to local fixed expenses: components never touch Dexie directly
@@ -36,6 +39,8 @@ export const fixedRepo = {
       ...input,
       currency: input.currency,
       dueDay: input.dueDay,
+      shareWith: input.shareWith,
+      sharePart: input.sharePart,
       updatedAt: now.toISOString(),
       pending: 1,
     })
@@ -56,7 +61,8 @@ export const fixedRepo = {
 
   // Records this month's payment as an expense, made at `paidAt` (now by default). A different
   // amount (prices went up) becomes the one suggested from now on. A dollar one is paid in
-  // dollars, converted at `rate`.
+  // dollars, converted at `rate`. `amount` is the whole bill: a shared one records my part of
+  // it, keeping the bill as the expense's sharedTotal.
   async pay(
     fixed: FixedExpense,
     amount: number,
@@ -66,16 +72,19 @@ export const fixedRepo = {
     now = new Date(),
   ) {
     if (fixed.currency === 'USD' && !rate) throw new Error('A dollar payment needs a rate')
+    const mine = myPartOf(fixed, amount)
+    const shared = isShared(fixed)
     const money =
       fixed.currency === 'USD' && rate
         ? {
-            amount: toPesos(amount, rate.rate),
+            amount: toPesos(mine, rate.rate),
             currency: 'USD' as const,
-            foreignAmount: amount,
+            foreignAmount: mine,
             exchangeRate: rate.rate,
             exchangeRateKind: rate.kind,
+            ...(shared && { sharedTotal: toPesos(amount, rate.rate) }),
           }
-        : { amount }
+        : { amount: mine, ...(shared && { sharedTotal: amount }) }
     const expenseId = await addExpense({
       ...money,
       category: fixed.category,
