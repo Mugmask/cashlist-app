@@ -33,7 +33,7 @@ notas), tarjeta, análisis mensual y lista de compras. PWA offline-first.
 
 ## CI, entornos y ramas
 
-- `.github/workflows/checks.yml` en cada PR/push a `main` y `develop`: `verify` (format, lint,
+- `.github/workflows/preflight.yml` en cada PR/push a `main` y `develop`: `verify` (format, lint,
   typecheck, unit, size), `e2e` y `migrations` (aplica todas las migraciones desde cero en un
   Postgres local con el CLI de Supabase y corre `supabase db lint`).
 - **Modo local**: sin `VITE_SUPABASE_*` la app arranca sin login ni sync (usuario `local`, datos

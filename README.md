@@ -32,7 +32,8 @@ navegador. Así funcionan los previews de Vercel y los E2E, sin tocar la base de
 
 - `main` es producción (deploy en Vercel), `develop` es integración. Las features salen de
   `develop` y vuelven por PR.
-- En cada PR corre [checks.yml](.github/workflows/checks.yml): verify (formato, lint, typecheck,
+- En cada PR corre [preflight.yml](.github/workflows/preflight.yml): verify (formato, lint, typecheck,
   unit, size), e2e y migrations (todas las migraciones desde cero + `supabase db lint`).
 - Hooks de git (husky): pre-commit formatea y lintea lo staged; pre-push corre typecheck y tests.
-- Dependabot abre un PR semanal agrupado contra `develop`.
+- Dependabot abre un PR mensual con los minors y patches contra `develop`; las majors se hacen a
+  mano. Las security updates abren PR apenas aparece una vulnerabilidad, majors incluidas.

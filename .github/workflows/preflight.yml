@@ -1,4 +1,4 @@
-name: Checks
+name: Preflight
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 concurrency:
-  group: checks-${{ github.ref }}
+  group: preflight-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
