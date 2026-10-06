@@ -3,7 +3,7 @@ import type { FixedLine } from './overview'
 export type DueTone = 'muted' | 'warning' | 'danger'
 
 // Days ahead from which a due date is close enough to warn about
-export const DUE_SOON_DAYS = 3
+const DUE_SOON_DAYS = 3
 
 // UI copy for when a fixed expense still to pay is due, and its tone: gone by is danger,
 // within DUE_SOON_DAYS a warning

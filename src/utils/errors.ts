@@ -22,13 +22,13 @@ const NETWORK_MESSAGES = [
   'network request failed',
 ]
 
-export function isNetworkError(error: unknown) {
+function isNetworkError(error: unknown) {
   const message = getErrorMessage(error).toLowerCase()
   return NETWORK_MESSAGES.some((m) => message.includes(m))
 }
 
 // The session token was rejected (expired, revoked, or not valid for this project)
-export function isAuthError(error: unknown) {
+function isAuthError(error: unknown) {
   const code = field(error, 'code')
   const message = getErrorMessage(error).toLowerCase()
   return (
@@ -39,7 +39,7 @@ export function isAuthError(error: unknown) {
   )
 }
 
-export function isRateLimited(error: unknown) {
+function isRateLimited(error: unknown) {
   return field(error, 'status') === '429' || field(error, 'code') === 'over_request_rate_limit'
 }
 

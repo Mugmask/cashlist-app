@@ -75,9 +75,6 @@ export const CATEGORY_ICONS: Record<string, { icon: LucideIcon; label: string }>
 
 export const DEFAULT_ICON = 'tag'
 
-// The chart palette: every category color is one of these, so charts stay readable
-export const CATEGORY_COLOR_COUNT = 8
-
 // The ones offered when picking: all but green (6), the hardest to tell from aqua (3) and the
 // app's own green. Seven plus "Personalizado" fit one row. Those already green keep it.
 export const PICKABLE_COLORS = [1, 2, 3, 4, 5, 7, 8] as const

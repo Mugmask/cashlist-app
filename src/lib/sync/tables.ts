@@ -94,7 +94,7 @@ interface IncomeRow {
   synced_at: string
 }
 
-export const incomesTable: SyncedTable<Income, IncomeRow> = {
+const incomesTable: SyncedTable<Income, IncomeRow> = {
   name: 'incomes',
   local: db.incomes,
   columns: 'id, amount, received_at, name, note, updated_at, deleted, synced_at',
@@ -167,7 +167,7 @@ interface RecipeRow {
   synced_at: string
 }
 
-export const recipesTable: SyncedTable<Recipe, RecipeRow> = {
+const recipesTable: SyncedTable<Recipe, RecipeRow> = {
   name: 'recipes',
   local: db.recipes,
   columns: 'id, name, ingredients, updated_at, deleted, synced_at',
@@ -249,7 +249,7 @@ interface FixedExpenseRow {
   synced_at: string
 }
 
-export const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
+const fixedExpensesTable: SyncedTable<FixedExpense, FixedExpenseRow> = {
   name: 'fixed_expenses',
   local: db.fixedExpenses,
   columns:
@@ -295,7 +295,7 @@ interface ProfileRow {
   synced_at: string
 }
 
-export const profileTable: SyncedTable<Profile, ProfileRow> = {
+const profileTable: SyncedTable<Profile, ProfileRow> = {
   name: 'profiles',
   local: db.profile,
   columns: 'id, name, monthly_income, aisle_names, updated_at, deleted, synced_at',

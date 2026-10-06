@@ -5,7 +5,7 @@ import { Alert, Button, IconButton, Stack, TextField, useToast } from '@/ui'
 import { passwordErrorMessage } from '@/utils/errors'
 import styles from './ProfileButton.module.css'
 
-export const MIN_PASSWORD_LENGTH = 8
+const MIN_PASSWORD_LENGTH = 8
 
 // Changing the password of the user signed in: closed behind a button, since it's rare.
 // Needs a connection; Supabase may refuse a weak one, or the same one again.

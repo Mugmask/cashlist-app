@@ -11,7 +11,7 @@ export interface DollarRate {
   at: string // ISO, when dolarapi.com last updated it
 }
 
-export const RATE_LABEL: Record<ExchangeRateKind, string> = {
+const RATE_LABEL: Record<ExchangeRateKind, string> = {
   tarjeta: 'dólar tarjeta',
   blue: 'dólar blue',
   oficial: 'dólar oficial',
