@@ -1,5 +1,5 @@
 import { claimLocalData, db, SYNCED_ONCE_KEY } from '@/lib/db'
-import { supabase } from '@/lib/supabase'
+import { LOCAL_USER_ID, supabase } from '@/lib/supabase'
 import { SYNCED_TABLES } from './tables'
 
 let inFlight: Promise<void> | null = null
@@ -52,7 +52,12 @@ export function runSync(): Promise<void> {
 }
 
 async function syncAll() {
-  if (!supabase) return
+  if (!supabase) {
+    // Local mode: nothing to sync, the data is just claimed so screens stop waiting for it
+    syncingFor = LOCAL_USER_ID
+    await claimLocalData(LOCAL_USER_ID)
+    return
+  }
   const { data } = await supabase.auth.getSession()
   if (!data.session) return
   syncingFor = data.session.user.id

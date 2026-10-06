@@ -5,7 +5,7 @@ import { AddExpenseProvider, useCategories } from '@/features/expenses'
 import { MonthProvider, MonthSwitcher } from '@/features/month'
 import { ProfileButton } from '@/features/profile'
 import { requestPersistentStorage } from '@/lib/db'
-import { supabase } from '@/lib/supabase'
+import { LOCAL_USER_ID, supabase } from '@/lib/supabase'
 import { useAutoSync, useFirstSync } from '@/lib/sync'
 import { Alert, cx, PageLoader, PrimaryActionProvider, ToastProvider } from '@/ui'
 import { UpdatePrompt } from '../UpdatePrompt'
@@ -37,11 +37,7 @@ export function RootLayout() {
   return (
     <ToastProvider>
       {!supabase ? (
-        <AuthShell>
-          <Alert tone="danger">
-            Falta configurar Supabase (VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY).
-          </Alert>
-        </AuthShell>
+        <AppShell userId={LOCAL_USER_ID} />
       ) : session === undefined ? (
         <SplashScreen />
       ) : session ? (
@@ -98,6 +94,11 @@ function AppShell({ userId, email }: { userId: string; email?: string }) {
               </div>
             </header>
             <main ref={mainRef} className={styles.main}>
+              {!supabase && (
+                <Alert>
+                  Modo local: sin cuenta ni sync, los datos quedan solo en este navegador.
+                </Alert>
+              )}
               {syncError && <Alert tone="danger">{syncError}</Alert>}
               {/* Screens off the bottom nav go back to the one they were opened from */}
               {back && !NAV_PATHS.has(pathname) && <BackLink target={back} />}

@@ -3,6 +3,7 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 import { useLocation } from 'react-router'
 import { signOut, unsyncedBeforeSignOut } from '@/features/auth'
 import type { Profile } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
 import { runSync } from '@/lib/sync'
 import { Alert, Button, cx, Sheet, Spinner, Stack, TextField, useToast } from '@/ui'
 import { amountInputChange, amountToInput, parseAmount } from '@/utils/currency'
@@ -61,12 +62,15 @@ function ProfileContent({ profile, email }: { profile: Profile | null; email?: s
       <Section title="Apariencia">
         <AccentPicker />
       </Section>
-      <Section title="Cuenta">
-        <div className={styles.list}>
-          <ChangePassword />
-          <SignOutRow />
-        </div>
-      </Section>
+      {/* Local mode has no account */}
+      {supabase && (
+        <Section title="Cuenta">
+          <div className={styles.list}>
+            <ChangePassword />
+            <SignOutRow />
+          </div>
+        </Section>
+      )}
     </Stack>
   )
 }
