@@ -54,12 +54,7 @@ export function IncomeForm({ income, onSaved }: IncomeFormProps) {
     <form onSubmit={handleSubmit}>
       <Stack gap={4}>
         {/* The amount first, like the expense form */}
-        <AmountField
-          label="Monto"
-          value={amount}
-          onValueChange={setAmount}
-          required
-        />
+        <AmountField label="Monto" value={amount} onValueChange={setAmount} required />
         <TextField
           label="De qué es (opcional)"
           hideLabel // the examples say what it is, like the expense form's name

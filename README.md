@@ -1,32 +1,38 @@
-# React + TypeScript + Vite
+# Cashlist
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+App personal de finanzas: gastos, ingresos, gastos fijos, tarjeta, análisis del mes y lista de
+compras. PWA offline-first (React + Vite, Dexie, sync con Supabase).
 
-Currently, two official plugins are available:
+## Arrancar
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+pnpm install
+cp .env.example .env.local   # URL y anon key del proyecto de Supabase
+pnpm dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Sin `.env.local` la app corre igual en **modo local**: sin cuenta ni sync, los datos quedan en el
+navegador. Así funcionan los previews de Vercel y los E2E, sin tocar la base de producción.
+
+## Scripts
+
+| Comando         | Qué hace                                                     |
+| --------------- | ------------------------------------------------------------ |
+| `pnpm dev`      | Dev server                                                   |
+| `pnpm check`    | Gate completo: typecheck, lint, formato, tests y size budget |
+| `pnpm test`     | Tests unitarios (Vitest)                                     |
+| `pnpm test:e2e` | E2E con Playwright en modo local (`test:e2e:ui` para debug)  |
+| `pnpm size`     | Build + presupuesto de 230 KB gzip del JS inicial            |
+| `pnpm db:start` | Supabase local en Docker, con todas las migraciones          |
+| `pnpm db:reset` | Recrea la base local desde las migraciones                   |
+| `pnpm db:new`   | Migración nueva vacía                                        |
+| `pnpm db:lint`  | Lint del schema de la base local                             |
+
+## Ramas y CI
+
+- `main` es producción (deploy en Vercel), `develop` es integración. Las features salen de
+  `develop` y vuelven por PR.
+- En cada PR corre [checks.yml](.github/workflows/checks.yml): verify (formato, lint, typecheck,
+  unit, size), e2e y migrations (todas las migraciones desde cero + `supabase db lint`).
+- Hooks de git (husky): pre-commit formatea y lintea lo staged; pre-push corre typecheck y tests.
+- Dependabot abre un PR semanal agrupado contra `develop`.

@@ -1,3 +1,6 @@
 dist
 dev-dist
 pnpm-lock.yaml
+dist-e2e
+playwright-report
+test-results
