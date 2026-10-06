@@ -55,7 +55,42 @@ para trabajar con Claude.
   se usa Supabase local (`pnpm db:start`, requiere Docker). Una migración tiene que aplicar en una
   base vacía: nada que dependa de objetos que solo existen en el proyecto cloud.
 - Ramas: `develop` es integración, `main` es producción. Las features van por PR a `develop`
-  (`feature/<descripcion>`). Las ramas las crea Fran.
+  (`feature/<descripcion>`). Claude no crea ramas por su cuenta: Fran la nombra o aprueba el
+  nombre que Claude propone.
+
+## Flujo de trabajo (seguirlo sin que haga falta pedirlo)
+
+1. **Rama** desde `develop` actualizado: `git switch develop && git pull`, después
+   `git switch -c feature/<descripcion>`.
+2. **Desarrollar** con `pnpm dev` (modo local). Si toca login o sync: `pnpm db:start` +
+   `pnpm dev:sync`. Cambios visuales: screenshot con Playwright en viewport de celular, en modo
+   local (nunca contra prod).
+3. **Si cambia el modelo**: `pnpm db:new <nombre>` en `supabase/migrations/` + versión nueva de
+   Dexie en `src/lib/db/index.ts` con su test + `src/lib/sync/tables.ts` si es tabla nueva.
+   Probar con `pnpm db:reset` + `pnpm dev:sync`.
+4. **Antes de commitear**: `pnpm check` en verde. Commits chicos y con sentido propio.
+5. **PR contra `develop`** con el template (`gh pr create --base develop`). Esperar los checks
+   **del PR** (`gh pr checks <n> --watch`), no los de un push previo: la protección rechaza el
+   merge si los del PR siguen corriendo. Merge con **squash** + `--delete-branch`. Después:
+   `git switch develop && git pull` y `git branch -D` de la rama local (con squash, `-d` no la
+   reconoce como mergeada).
+6. **Release a producción**, solo cuando Fran lo pide:
+   1. Si hay migraciones nuevas: `pnpm db:push:check`, mostrarle qué se aplica, y con su OK
+      `pnpm db:push`. **Antes** del merge a `main`: la app nueva tiene que encontrar la base lista.
+   2. PR `develop` → `main` (`release: …`), mergeado con **merge commit** (`gh pr merge --merge`,
+      nunca squash: las ramas divergirían).
+   3. Confirmar el deploy: el status `Vercel` del commit de merge en GitHub tiene que dar
+      `success`, y https://cashlist-app.vercel.app tiene que responder 200.
+
+### Referencias
+
+- GitHub `Mugmask/cashlist-app` (público). El token de `gh` necesita el scope `workflow` para
+  mergear PRs que tocan `.github/workflows/` (Dependabot de actions, por ejemplo).
+- Supabase: proyecto `juxvyttkoubunlqzadlz` (cashlist-app), linkeado en la máquina de Fran.
+- Vercel: proyecto `prj_SXDRHy8VKBLn019d7y5IdbDPzfft`, team `team_ftz3Cep2eBNzvxgxYd20bcpt`. Las env
+  de Supabase están solo en Production y Development (los previews no deben tenerlas).
+- Dependabot abre un PR mensual contra `develop`: si el CI está verde se mergea como cualquier
+  otro. Las majors no las abre: se hacen a mano cuando valen la pena.
 
 ## Convenciones
 
