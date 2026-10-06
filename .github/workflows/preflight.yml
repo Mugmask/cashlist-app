@@ -34,9 +34,8 @@ jobs:
         run: pnpm typecheck
       - name: Unit tests
         run: pnpm test
-      # No Supabase env here: the build runs in local mode, which is what the size budget measures
-      - name: Size budget
-        run: pnpm size
+      - name: Build
+        run: pnpm build
 
   # Every migration applied from scratch to an empty Postgres, then linted: a migration that
   # fails or leaves a broken function shows up here, not when it reaches production

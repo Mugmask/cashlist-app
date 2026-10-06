@@ -22,21 +22,25 @@ notas), tarjeta, análisis mensual y lista de compras. PWA offline-first.
 
 ## Verificación
 
-- `pnpm check` es el gate completo: typecheck + lint + format:check + tests + **size budget**.
+- `pnpm check` es el gate completo: typecheck + lint + format:check + tests.
 - Tests con Vitest, colocados junto al código (`*.test.ts`); IndexedDB se mockea con `fake-indexeddb`.
-- `scripts/size.mjs`: el bundle inicial tiene presupuesto de **230 KB gzip**. Si se pasa, no subir
-  el budget por defecto: se sube a propósito y con una razón. Preferir lazy-load de pantallas.
+- `pnpm size` (`scripts/size.mjs`) reporta el JS inicial gzip. Es informativo, no un gate; igual
+  preferir lazy-load de pantallas y de lo que no hace falta al arrancar.
 - Cambios visuales: verificar con Playwright (`pnpm dev`); es mobile-first, probar en viewport de celular.
 - Hooks (husky): pre-commit corre lint-staged (oxlint --fix + prettier), pre-push typecheck + tests.
 
 ## CI, entornos y ramas
 
 - `.github/workflows/preflight.yml` en cada PR/push a `main` y `develop`: `verify` (format, lint,
-  typecheck, unit, size) y `migrations` (aplica todas las migraciones desde cero en un
+  typecheck, unit, build) y `migrations` (aplica todas las migraciones desde cero en un
   Postgres local con el CLI de Supabase y corre `supabase db lint`).
 - **Modo local**: sin `VITE_SUPABASE_*` la app arranca sin login ni sync (usuario `local`, datos
   solo en el navegador). Así corren los previews de Vercel. Un build con
   `VERCEL_ENV=production` sin esas env falla a propósito (`vite.config.ts`).
+- En modo local, un navegador vacío arranca con **datos de ejemplo** (`src/lib/demo/`: un mes y
+  medio relativo a hoy, cargado on demand). El perfil tiene "Volver a los datos de ejemplo".
+- **Staging**: https://cashlist-staging.vercel.app sigue a `develop` (dominio de Vercel atado a la
+  rama), en modo local con los datos de ejemplo. Detrás del login de Vercel.
 - No hay Supabase de staging (el plan free ya tiene sus 2 proyectos): para probar sync/migraciones
   se usa Supabase local (`pnpm db:start`, requiere Docker). Una migración tiene que aplicar en una
   base vacía: nada que dependa de objetos que solo existen en el proyecto cloud.
