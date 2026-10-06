@@ -2,4 +2,4 @@
 export { FixedHomeCard } from './components/FixedHomeCard'
 // The screen loads when it's first opened, not with the app: see app/router.tsx
 export const loadFixedPage = () => import('./FixedPage').then((m) => ({ Component: m.FixedPage }))
-export { type FixedOverview, useFixedOverview } from './useFixedOverview'
+export { useFixedOverview } from './useFixedOverview'
