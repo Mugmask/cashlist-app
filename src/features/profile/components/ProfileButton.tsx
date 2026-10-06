@@ -1,4 +1,4 @@
-import { LogOut, UserRound } from 'lucide-react'
+import { LogOut, RotateCcw, UserRound } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useLocation } from 'react-router'
 import { signOut, unsyncedBeforeSignOut } from '@/features/auth'
@@ -62,7 +62,14 @@ function ProfileContent({ profile, email }: { profile: Profile | null; email?: s
       <Section title="Apariencia">
         <AccentPicker />
       </Section>
-      {/* Local mode has no account */}
+      {/* Local mode has no account, but demo data to go back to */}
+      {!supabase && (
+        <Section title="Datos de ejemplo">
+          <div className={styles.list}>
+            <ResetDemoRow />
+          </div>
+        </Section>
+      )}
       {supabase && (
         <Section title="Cuenta">
           <div className={styles.list}>
@@ -138,6 +145,33 @@ function DataForm({ profile }: { profile: Profile | null }) {
 
 // Signing out clears this device's data. If some change couldn't be uploaded, it warns
 // first and only a second tap signs out anyway.
+// Local mode (previews, staging): undoes whatever was tried out
+function ResetDemoRow() {
+  const toast = useToast()
+  const [busy, setBusy] = useState(false)
+
+  async function handleClick() {
+    setBusy(true)
+    const { resetDemo } = await import('@/lib/demo') // only local mode ever needs it
+    await resetDemo()
+    setBusy(false)
+    toast('Volviste a los datos de ejemplo')
+  }
+
+  return (
+    <button
+      type="button"
+      className={styles.row}
+      disabled={busy}
+      aria-busy={busy || undefined}
+      onClick={handleClick}
+    >
+      {busy ? <Spinner size={18} /> : <RotateCcw aria-hidden />}
+      <span>Volver a los datos de ejemplo</span>
+    </button>
+  )
+}
+
 function SignOutRow() {
   const toast = useToast()
   const [unsynced, setUnsynced] = useState(0)
