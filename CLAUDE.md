@@ -2,7 +2,8 @@
 
 App personal de finanzas: ingresos, gastos, gastos fijos (compartidos, con día de vencimiento y
 notas), tarjeta, análisis mensual y lista de compras. PWA offline-first.
-(El README es el boilerplate de Vite; la fuente de verdad es este archivo + el código.)
+El README es la guía para cualquier dev (ambientes, flujo, scripts); esto es lo que además importa
+para trabajar con Claude.
 
 ## Stack
 
@@ -11,6 +12,8 @@ notas), tarjeta, análisis mensual y lista de compras. PWA offline-first.
   sincronizan con **Supabase** con un motor propio (`src/lib/sync/`: `engine.ts`, `tables.ts`,
   `useAutoSync`, `useFirstSync`). Cualquier tabla nueva tiene que pasar por el sync y su migración.
 - Migraciones: Dexie (`src/lib/db`, con tests de migración) + Supabase (`supabase/migrations/`).
+  En producción se aplican a mano (SQL Editor o `apply_migration` del MCP), nunca con
+  `supabase db push`: el historial remoto tiene otras versiones que los archivos y las reaplicaría.
 - Sin Tailwind: componentes propios en `src/ui/<Componente>/` (una carpeta por componente).
 - Lint con **oxlint** (no ESLint), formato con Prettier. Deploy en Vercel.
 
@@ -18,7 +21,8 @@ notas), tarjeta, análisis mensual y lista de compras. PWA offline-first.
 
 - `src/features/<dominio>/` — analysis, auth, card, expenses, fixed, home, incomes, month, profile, shopping.
 - `src/app/` — layout (barra con notch, header glass), errores, reload de la app.
-- `src/lib/` — db, sync, supabase, cotización del dólar (`exchangeRates`, `useDollarRate`).
+- `src/lib/` — db, sync, supabase, demo (datos de ejemplo), cotización del dólar (`exchangeRates`,
+  `useDollarRate`).
 
 ## Verificación
 
@@ -27,6 +31,10 @@ notas), tarjeta, análisis mensual y lista de compras. PWA offline-first.
 - `pnpm size` (`scripts/size.mjs`) reporta el JS inicial gzip. Es informativo, no un gate; igual
   preferir lazy-load de pantallas y de lo que no hace falta al arrancar.
 - Cambios visuales: verificar con Playwright (`pnpm dev`); es mobile-first, probar en viewport de celular.
+- `pnpm dev` corre en **modo local** con los datos de ejemplo (`.env.development` vacía las env de
+  Supabase y le gana a `.env.local` solo en dev). `pnpm dev:sync` va contra Supabase local
+  (`scripts/dev-sync.mjs`, crea `dev@cashlist.local` / `cashlist-dev`). `pnpm dev:prod` va contra
+  producción: solo si Fran lo pide.
 - Hooks (husky): pre-commit corre lint-staged (oxlint --fix + prettier), pre-push typecheck + tests.
 
 ## CI, entornos y ramas
@@ -37,8 +45,8 @@ notas), tarjeta, análisis mensual y lista de compras. PWA offline-first.
 - **Modo local**: sin `VITE_SUPABASE_*` la app arranca sin login ni sync (usuario `local`, datos
   solo en el navegador). Así corren los previews de Vercel. Un build con
   `VERCEL_ENV=production` sin esas env falla a propósito (`vite.config.ts`).
-- En modo local, un navegador vacío arranca con **datos de ejemplo** (`src/lib/demo/`: un mes y
-  medio relativo a hoy, cargado on demand). El perfil tiene "Volver a los datos de ejemplo".
+- En modo local, un navegador vacío arranca con **datos de ejemplo** (`src/lib/demo/`: tres meses
+  relativos a hoy, cargados on demand). El perfil tiene "Volver a los datos de ejemplo".
 - **Staging**: https://cashlist-staging.vercel.app sigue a `develop` (dominio de Vercel atado a la
   rama), en modo local con los datos de ejemplo. Detrás del login de Vercel.
 - No hay Supabase de staging (el plan free ya tiene sus 2 proyectos): para probar sync/migraciones
@@ -50,5 +58,6 @@ notas), tarjeta, análisis mensual y lista de compras. PWA offline-first.
 ## Convenciones
 
 - Commits: conventional commits en **inglés**, sin scope (`feat: shared fixed expenses`).
-- `.env.local` tiene las claves de Supabase: no imprimir sus valores.
+- `.env.local` tiene las claves de Supabase de producción (las usan los builds y `dev:prod`): no
+  imprimir sus valores.
 - Repo personal (GitHub `Mugmask`): no aplica el flujo de Educabot (ODD/Jira/pub).
