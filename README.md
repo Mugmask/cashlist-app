@@ -76,13 +76,15 @@ Los datos existen en dos lados y tienen que cambiar juntos:
    aplicar sobre una base vacía (el CI lo verifica).
 2. Versión nueva de Dexie en `src/lib/db/index.ts`, con su test de migración.
 3. Si es una tabla nueva, sumarla al sync en `src/lib/sync/tables.ts`.
-4. Probarla con `pnpm db:start` + `pnpm dev:sync`.
-5. Aplicarla en producción recién cuando el cambio sale a `main`, a mano: el SQL del archivo en el
-   SQL Editor de Supabase (o `apply_migration` desde el MCP de Supabase).
+4. Probarla con `pnpm db:reset` (o `pnpm db:start`) + `pnpm dev:sync`.
+5. Aplicarla en producción recién cuando el cambio sale a `main`: `pnpm db:push:check` muestra qué
+   se aplicaría, y `pnpm db:push` la aplica. Las dos necesitan el proyecto linkeado una vez:
+   `pnpm exec supabase link --project-ref juxvyttkoubunlqzadlz` (pide la contraseña de la base).
 
-> **No usar `supabase db push`.** En producción las migraciones quedaron registradas con otros
-> números de versión que los archivos, así que el CLI las vería todas como pendientes y trataría
-> de aplicarlas de nuevo.
+La migración más vieja es `20261005000024_baseline.sql`: todo el schema hasta esa fecha, unificado
+desde las migraciones anteriores y verificado igual a producción. No se edita: los cambios van en
+migraciones nuevas. Nunca aplicar SQL a mano en producción (SQL Editor, MCP): el historial de
+migraciones dejaría de coincidir con los archivos y `db push` volvería a ser peligroso.
 
 ## Flujo de trabajo
 
@@ -105,21 +107,23 @@ lint`).
 
 ## Scripts
 
-| Comando         | Qué hace                                                        |
-| --------------- | --------------------------------------------------------------- |
-| `pnpm dev`      | Dev server en modo local (ver [Ambientes](#ambientes))          |
-| `pnpm dev:sync` | Dev server contra el Supabase local                             |
-| `pnpm dev:prod` | Dev server contra producción                                    |
-| `pnpm check`    | Lo mismo que `verify` en el CI: typecheck, lint, formato, tests |
-| `pnpm test`     | Tests (Vitest; `test:watch` en modo watch)                      |
-| `pnpm lint:fix` | oxlint con autofix                                              |
-| `pnpm format`   | Prettier sobre todo el repo                                     |
-| `pnpm build`    | Build de producción                                             |
-| `pnpm size`     | Build + tamaño gzip del JS que carga al arrancar (informativo)  |
-| `pnpm db:start` | Supabase local en Docker, con todas las migraciones             |
-| `pnpm db:stop`  | Lo apaga                                                        |
-| `pnpm db:reset` | Recrea la base local desde las migraciones                      |
-| `pnpm db:new`   | Migración nueva vacía                                           |
-| `pnpm db:lint`  | Lint del schema de la base local                                |
+| Comando              | Qué hace                                                        |
+| -------------------- | --------------------------------------------------------------- |
+| `pnpm dev`           | Dev server en modo local (ver [Ambientes](#ambientes))          |
+| `pnpm dev:sync`      | Dev server contra el Supabase local                             |
+| `pnpm dev:prod`      | Dev server contra producción                                    |
+| `pnpm check`         | Lo mismo que `verify` en el CI: typecheck, lint, formato, tests |
+| `pnpm test`          | Tests (Vitest; `test:watch` en modo watch)                      |
+| `pnpm lint:fix`      | oxlint con autofix                                              |
+| `pnpm format`        | Prettier sobre todo el repo                                     |
+| `pnpm build`         | Build de producción                                             |
+| `pnpm size`          | Build + tamaño gzip del JS que carga al arrancar (informativo)  |
+| `pnpm db:start`      | Supabase local en Docker, con todas las migraciones             |
+| `pnpm db:stop`       | Lo apaga                                                        |
+| `pnpm db:reset`      | Recrea la base local desde las migraciones                      |
+| `pnpm db:new`        | Migración nueva vacía                                           |
+| `pnpm db:lint`       | Lint del schema de la base local                                |
+| `pnpm db:push:check` | Qué migraciones se aplicarían en producción (dry run)           |
+| `pnpm db:push`       | Aplica las migraciones pendientes en producción                 |
 
 Los tests van junto al código (`*.test.ts`); IndexedDB se simula con `fake-indexeddb`.

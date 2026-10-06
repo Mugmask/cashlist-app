@@ -23,6 +23,8 @@
     "db:reset": "supabase db reset",
     "db:new": "supabase migration new",
     "db:lint": "supabase db lint --level error",
+    "db:push:check": "supabase db push --linked --dry-run",
+    "db:push": "supabase db push --linked",
     "prepare": "husky"
   },
   "dependencies": {
