@@ -53,9 +53,12 @@ export function runSync(): Promise<void> {
 
 async function syncAll() {
   if (!supabase) {
-    // Local mode: nothing to sync, the data is just claimed so screens stop waiting for it
+    // Local mode: nothing to sync. The data is claimed so screens stop waiting for it, and an
+    // empty browser gets the demo data (loaded on demand: the real app never needs it)
     syncingFor = LOCAL_USER_ID
     await claimLocalData(LOCAL_USER_ID)
+    const { seedDemoIfEmpty } = await import('@/lib/demo')
+    await seedDemoIfEmpty()
     return
   }
   const { data } = await supabase.auth.getSession()
