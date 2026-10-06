@@ -24,8 +24,6 @@ notas), tarjeta, análisis mensual y lista de compras. PWA offline-first.
 
 - `pnpm check` es el gate completo: typecheck + lint + format:check + tests + **size budget**.
 - Tests con Vitest, colocados junto al código (`*.test.ts`); IndexedDB se mockea con `fake-indexeddb`.
-- E2E con Playwright en `e2e/` (`pnpm test:e2e`): build de prod en **modo local** (env de Supabase
-  vacías), viewport Pixel 7. No tocan la DB real.
 - `scripts/size.mjs`: el bundle inicial tiene presupuesto de **230 KB gzip**. Si se pasa, no subir
   el budget por defecto: se sube a propósito y con una razón. Preferir lazy-load de pantallas.
 - Cambios visuales: verificar con Playwright (`pnpm dev`); es mobile-first, probar en viewport de celular.
@@ -34,10 +32,10 @@ notas), tarjeta, análisis mensual y lista de compras. PWA offline-first.
 ## CI, entornos y ramas
 
 - `.github/workflows/preflight.yml` en cada PR/push a `main` y `develop`: `verify` (format, lint,
-  typecheck, unit, size), `e2e` y `migrations` (aplica todas las migraciones desde cero en un
+  typecheck, unit, size) y `migrations` (aplica todas las migraciones desde cero en un
   Postgres local con el CLI de Supabase y corre `supabase db lint`).
 - **Modo local**: sin `VITE_SUPABASE_*` la app arranca sin login ni sync (usuario `local`, datos
-  solo en el navegador). Así corren los previews de Vercel y los E2E. Un build con
+  solo en el navegador). Así corren los previews de Vercel. Un build con
   `VERCEL_ENV=production` sin esas env falla a propósito (`vite.config.ts`).
 - No hay Supabase de staging (el plan free ya tiene sus 2 proyectos): para probar sync/migraciones
   se usa Supabase local (`pnpm db:start`, requiere Docker). Una migración tiene que aplicar en una
