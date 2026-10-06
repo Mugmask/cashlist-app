@@ -5,7 +5,6 @@
 ## Cómo se probó
 
 - [ ] `pnpm check` en verde
-- [ ] E2E (`pnpm test:e2e`) si toca flujos de la UI
 - [ ] Probado en el preview de Vercel (modo local, viewport de celular) si es visual
 
 ## Datos

@@ -5,8 +5,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 const BACKGROUND = '#0e1014' // --color-bg
 
-// Without these the app runs in local mode (no account, no sync). Fine for previews and E2E,
-// never for production: a production deploy that lacks them fails instead
+// Without these the app runs in local mode (no account, no sync). Fine for previews, never
+// for production: a production deploy that lacks them fails instead
 const REQUIRED_IN_PRODUCTION = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY']
 if (process.env.VERCEL_ENV === 'production') {
   const missing = REQUIRED_IN_PRODUCTION.filter((key) => !process.env[key])
