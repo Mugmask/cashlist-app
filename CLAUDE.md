@@ -12,8 +12,10 @@ para trabajar con Claude.
   sincronizan con **Supabase** con un motor propio (`src/lib/sync/`: `engine.ts`, `tables.ts`,
   `useAutoSync`, `useFirstSync`). Cualquier tabla nueva tiene que pasar por el sync y su migración.
 - Migraciones: Dexie (`src/lib/db`, con tests de migración) + Supabase (`supabase/migrations/`).
-  En producción se aplican a mano (SQL Editor o `apply_migration` del MCP), nunca con
-  `supabase db push`: el historial remoto tiene otras versiones que los archivos y las reaplicaría.
+  La primera es `20261005000024_baseline.sql` (las 24 originales unificadas, verificadas iguales
+  a prod); no se edita. En producción se aplican con `pnpm db:push` (proyecto linkeado), nunca a
+  mano ni con `apply_migration` del MCP: desincroniza el historial. `pnpm db:push` escribe en
+  producción: correrlo solo si Fran lo pide, y antes `pnpm db:push:check`.
 - Sin Tailwind: componentes propios en `src/ui/<Componente>/` (una carpeta por componente).
 - Lint con **oxlint** (no ESLint), formato con Prettier. Deploy en Vercel.
 
