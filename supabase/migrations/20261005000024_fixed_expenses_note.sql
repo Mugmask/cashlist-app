@@ -1,3 +1,0 @@
--- A note on a fixed expense, shown when paying it: a customer number, the landlord's CBU...
-alter table public.fixed_expenses
-  add column note text;
