@@ -12,7 +12,7 @@ pnpm dev
 ```
 
 Sin `.env.local` la app corre igual en **modo local**: sin cuenta ni sync, los datos quedan en el
-navegador. Así funcionan los previews de Vercel y los E2E, sin tocar la base de producción.
+navegador. Así funcionan los previews de Vercel, sin tocar la base de producción.
 
 ## Scripts
 
@@ -21,7 +21,6 @@ navegador. Así funcionan los previews de Vercel y los E2E, sin tocar la base de
 | `pnpm dev`      | Dev server                                                   |
 | `pnpm check`    | Gate completo: typecheck, lint, formato, tests y size budget |
 | `pnpm test`     | Tests unitarios (Vitest)                                     |
-| `pnpm test:e2e` | E2E con Playwright en modo local (`test:e2e:ui` para debug)  |
 | `pnpm size`     | Build + presupuesto de 230 KB gzip del JS inicial            |
 | `pnpm db:start` | Supabase local en Docker, con todas las migraciones          |
 | `pnpm db:reset` | Recrea la base local desde las migraciones                   |
@@ -32,7 +31,8 @@ navegador. Así funcionan los previews de Vercel y los E2E, sin tocar la base de
 
 - `main` es producción (deploy en Vercel), `develop` es integración. Las features salen de
   `develop` y vuelven por PR.
-- En cada PR corre [checks.yml](.github/workflows/checks.yml): verify (formato, lint, typecheck,
-  unit, size), e2e y migrations (todas las migraciones desde cero + `supabase db lint`).
+- En cada PR corre [preflight.yml](.github/workflows/preflight.yml): verify (formato, lint, typecheck,
+  unit, size) y migrations (todas las migraciones desde cero + `supabase db lint`).
 - Hooks de git (husky): pre-commit formatea y lintea lo staged; pre-push corre typecheck y tests.
-- Dependabot abre un PR semanal agrupado contra `develop`.
+- Dependabot abre un PR mensual con los minors y patches contra `develop`; las majors se hacen a
+  mano. Las security updates abren PR apenas aparece una vulnerabilidad, majors incluidas.

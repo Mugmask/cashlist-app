@@ -2,8 +2,7 @@
 // The screen loads when it's first opened, not with the app: see app/router.tsx
 export const loadAnalysisPage = () =>
   import('./AnalysisPage').then((m) => ({ Component: m.AnalysisPage }))
-export { carryOver, type CarryOver } from './carryOver'
-export { type MonthBalance, monthBalance } from './monthBalance'
+export { type CarryOver } from './carryOver'
 export { useMonthBalance } from './useMonthBalance'
 export { changeByCategory, variableChange } from './comparison'
 export { Change } from './components/Change'

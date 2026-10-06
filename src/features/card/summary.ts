@@ -10,7 +10,7 @@ export interface CardSummary {
   upcoming: number
 }
 
-export function isCard(expense: Expense) {
+function isCard(expense: Expense) {
   return expense.paymentMethod === 'card'
 }
 
