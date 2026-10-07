@@ -9,7 +9,7 @@ import {
   useMonthBalance,
   variableChange,
 } from '@/features/analysis'
-import { CardHomeCard, useCardSummary } from '@/features/card'
+import { CardHomeCard, type MonthPayments, useCardSummary } from '@/features/card'
 import {
   CategoryIcon,
   ExpenseDetailSheet,
@@ -37,7 +37,7 @@ import {
   Stack,
   VisuallyHidden,
 } from '@/ui'
-import { formatMonthName, fromPeriod, shiftMonth } from '@/utils/dates'
+import { formatDayMonth, formatMonthName, fromPeriod, shiftMonth } from '@/utils/dates'
 import styles from './HomePage.module.css'
 
 const TOP_CATEGORIES = 3 // a glance; the whole breakdown is one tap away
@@ -115,7 +115,8 @@ export function HomePage() {
           monthName={monthName}
           income={income}
           carry={carry}
-          spent={total}
+          spent={balance.spent}
+          payments={balance.payments}
           committed={committed}
         />
       )}
@@ -243,18 +244,21 @@ function HomeSection({
 // The month's answer: what's left (or how much over) and, right under it, what's really free
 // once the fixed expenses still to pay are paid. A bar splits what came in into spent, fixed
 // and free; the lines below add it up, signed, each leading to where it comes from. What came
-// in counts what the months before left over or overspent.
+// in counts what the months before left over or overspent. Counted by cash: what left in cash
+// or debit, and the card statements due this month (bought the month before), each its own line.
 function MonthBalance({
   monthName,
   income,
   carry,
   spent,
+  payments,
   committed,
 }: {
   monthName: string
   income: number
   carry: CarryOver | null
   spent: number
+  payments?: MonthPayments
   committed: number
 }) {
   const available = income + (carry?.amount ?? 0)
@@ -310,13 +314,37 @@ function MonthBalance({
             <Signed value={carry.amount} tone={carry.amount < 0 ? 'danger' : 'default'} />
           </li>
         )}
-        <li>
-          <Link to="/expenses" className={styles.balanceLink}>
-            <span>Gastaste</span>
-            <Signed value={-spent} />
-            <ChevronRight aria-hidden />
-          </Link>
-        </li>
+        {payments && payments.cards.length > 0 ? (
+          <>
+            <li>
+              <Link to="/expenses?pago=efectivo" className={styles.balanceLink}>
+                <span>Efectivo y débito</span>
+                <Signed value={-payments.cash} />
+                <ChevronRight aria-hidden />
+              </Link>
+            </li>
+            {payments.cards.map((p) => (
+              <li key={p.cardId}>
+                <Link to="/expenses?pago=tarjeta" className={styles.balanceLink}>
+                  <span>
+                    {p.name}, vence {p.estimated && '~'}
+                    {formatDayMonth(p.dueOn)}
+                  </span>
+                  <Signed value={-p.amount} />
+                  <ChevronRight aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </>
+        ) : (
+          <li>
+            <Link to="/expenses" className={styles.balanceLink}>
+              <span>Gastaste</span>
+              <Signed value={-spent} />
+              <ChevronRight aria-hidden />
+            </Link>
+          </li>
+        )}
       </ul>
     </Card>
   )

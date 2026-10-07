@@ -22,8 +22,6 @@ export {
 export const loadExpensesPage = () =>
   import('./ExpensesPage').then((m) => ({ Component: m.ExpensesPage }))
 export {
-  chargedAfter,
-  chargeOn,
   installmentsOf,
   MAX_INSTALLMENTS,
   type MonthExpense,
@@ -31,6 +29,6 @@ export {
 } from './installments'
 export { PAYMENT_METHOD_OPTIONS } from './paymentMethods'
 export { ShareField } from './components/ShareField'
-export { isValidPart, partOf, SHARE_CHIPS, shareOf, type ShareOption } from './shared'
+export { chargedOf, isValidPart, partOf, SHARE_CHIPS, shareOf, type ShareOption } from './shared'
 export { firstTrackedPeriod, isFixed, totalsByCategory } from './selectors'
 export { useMonthExpenses } from './useMonthExpenses'

@@ -123,3 +123,44 @@ export function formatShortMonth(date: Date, thisYear: number) {
   const name = capitalize(shortMonthName.format(date).replace('.', ''))
   return date.getFullYear() === thisYear ? name : `${name} ${date.getFullYear()}`
 }
+
+// Calendar-day arithmetic on day keys ("2026-09-28"), free of time zones and daylight saving
+function keyToUtc(dayKey: string) {
+  const [year, month, day] = dayKey.split('-').map(Number)
+  return Date.UTC(year, month - 1, day)
+}
+
+function utcToKey(ms: number) {
+  return new Date(ms).toISOString().slice(0, 10)
+}
+
+// "2026-09-28" + 5 → "2026-10-03"
+export function addDays(dayKey: string, days: number) {
+  return utcToKey(keyToUtc(dayKey) + days * DAY_MS)
+}
+
+// Days from one day key to another, backwards negative
+export function daysBetween(from: string, to: string) {
+  return Math.round((keyToUtc(to) - keyToUtc(from)) / DAY_MS)
+}
+
+// The same day `months` months away, clamped to that month's length: Jan 31st + 1 → Feb 28th
+export function addMonthsToDay(dayKey: string, months: number) {
+  const [year, month, day] = dayKey.split('-').map(Number)
+  const target = new Date(Date.UTC(year, month - 1 + months, 1))
+  const last = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate()
+  target.setUTCDate(Math.min(day, last))
+  return utcToKey(target.getTime())
+}
+
+// The last day of a "2026-09" period, as a day key
+export function lastDayOf(period: string) {
+  const [year, month] = period.split('-').map(Number)
+  return utcToKey(Date.UTC(year, month, 0))
+}
+
+// "2026-10-29" → "29/10"
+export function formatDayMonth(dayKey: string) {
+  const [, month, day] = dayKey.split('-')
+  return `${Number(day)}/${month}`
+}

@@ -1,9 +1,15 @@
-/* The whole tile is a link: no link styling, a press like a button */
+/* The whole tile is a button: no button styling, a press like one */
 .link {
   display: block;
+  width: 100%;
   height: 100%;
+  padding: 0;
+  font: inherit;
   color: inherit;
-  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: 0;
   border-radius: var(--radius-lg);
   transition: transform var(--duration-fast) var(--ease-out);
 }
@@ -51,4 +57,28 @@
   line-clamp: 2;
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+}
+
+.sheetText {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.sheetText strong {
+  color: var(--color-text);
+}
+
+.sheetLink {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  align-self: center;
+  font-weight: var(--weight-semibold);
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.sheetLink svg {
+  width: 18px;
+  height: 18px;
 }

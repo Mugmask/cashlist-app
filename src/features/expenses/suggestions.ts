@@ -7,6 +7,7 @@ export interface NameSuggestion {
   name: string // as written the last time
   category: string
   paymentMethod: PaymentMethod
+  cardId?: string // the card, when it went on one
   currency: 'ARS' | 'USD'
   amount: number // the last one, in its currency (dollars for a dollar expense)
   count: number // how many times it was used
@@ -33,6 +34,7 @@ export function buildSuggestions(expenses: readonly Expense[]): NameSuggestion[]
       name: e.name.trim(),
       category: e.category,
       paymentMethod: e.paymentMethod ?? 'cash',
+      ...(e.paymentMethod === 'card' && e.cardId && { cardId: e.cardId }),
       currency: dollars ? 'USD' : 'ARS',
       amount: dollars ? e.foreignAmount! : e.amount,
       count,
