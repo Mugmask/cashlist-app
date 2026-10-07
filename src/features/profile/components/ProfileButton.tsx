@@ -2,6 +2,7 @@ import { LogOut, RotateCcw, UserRound } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useLocation } from 'react-router'
 import { signOut, unsyncedBeforeSignOut } from '@/features/auth'
+import { CardsSettings } from '@/features/card'
 import type { Profile } from '@/lib/db'
 import { supabase } from '@/lib/supabase'
 import { runSync } from '@/lib/sync'
@@ -58,6 +59,9 @@ function ProfileContent({ profile, email }: { profile: Profile | null; email?: s
       </div>
       <Section title="Tus datos">
         <DataForm profile={profile} />
+      </Section>
+      <Section title="Tarjetas">
+        <CardsSettings />
       </Section>
       <Section title="Apariencia">
         <AccentPicker />

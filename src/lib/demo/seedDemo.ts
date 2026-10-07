@@ -14,6 +14,8 @@ const dataTables = () => [
   db.recipes,
   db.profile,
   db.categories,
+  db.cards,
+  db.cardCycles,
 ]
 
 // Local mode only (no Supabase): fills a browser that has nothing yet
@@ -43,6 +45,8 @@ async function writeDemo(now: Date) {
     await db.fixedExpenses.bulkAdd(data.fixedExpenses)
     await db.shoppingItems.bulkAdd(data.shoppingItems)
     await db.recipes.bulkAdd(data.recipes)
+    await db.cards.bulkAdd(data.cards)
+    await db.cardCycles.bulkAdd(data.cardCycles)
     await db.syncState.put({ key: SEEDED_KEY, value: now.toISOString() })
   })
 }

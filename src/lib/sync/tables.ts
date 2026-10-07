@@ -1,4 +1,6 @@
 import {
+  type Card,
+  type CardCycle,
   db,
   type CustomCategory,
   type ExchangeRateKind,
@@ -30,6 +32,7 @@ interface ExpenseRow {
   exchange_rate_kind: ExchangeRateKind | null
   installments: number | null
   shared_total: number | string | null
+  card_id: string | null
   updated_at: string
   deleted: boolean
   synced_at: string
@@ -39,7 +42,7 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
   name: 'expenses',
   local: db.expenses,
   columns:
-    'id, amount, category, spent_at, name, note, fixed_expense_id, fixed_period, payment_method, currency, foreign_amount, exchange_rate, exchange_rate_kind, installments, shared_total, updated_at, deleted, synced_at',
+    'id, amount, category, spent_at, name, note, fixed_expense_id, fixed_period, payment_method, currency, foreign_amount, exchange_rate, exchange_rate_kind, installments, shared_total, card_id, updated_at, deleted, synced_at',
   toRow: (e) => ({
     id: e.id,
     amount: e.amount,
@@ -56,6 +59,7 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
     exchange_rate_kind: e.exchangeRateKind ?? null,
     installments: e.installments ?? null,
     shared_total: e.sharedTotal ?? null,
+    card_id: e.cardId ?? null,
     updated_at: e.updatedAt,
     deleted: e.deleted,
   }),
@@ -77,6 +81,7 @@ export const expensesTable: SyncedTable<Expense, ExpenseRow> = {
     }),
     ...(row.installments !== null && { installments: row.installments }),
     ...(row.shared_total !== null && { sharedTotal: Number(row.shared_total) }),
+    ...(row.card_id !== null && { cardId: row.card_id }),
     updatedAt: row.updated_at,
     deleted: row.deleted,
     pending: 0,
@@ -319,6 +324,61 @@ const profileTable: SyncedTable<Profile, ProfileRow> = {
   }),
 }
 
+interface CardRow {
+  id: string
+  name: string
+  updated_at: string
+  deleted: boolean
+  synced_at: string
+}
+
+const cardsTable: SyncedTable<Card, CardRow> = {
+  name: 'cards',
+  local: db.cards,
+  columns: 'id, name, updated_at, deleted, synced_at',
+  toRow: (c) => ({ id: c.id, name: c.name, updated_at: c.updatedAt, deleted: c.deleted }),
+  fromRow: (row) => ({
+    id: row.id,
+    name: row.name,
+    updatedAt: row.updated_at,
+    deleted: row.deleted,
+    pending: 0,
+  }),
+}
+
+interface CardCycleRow {
+  id: string
+  card_id: string
+  closes_on: string // a Postgres date: "2026-10-29"
+  due_on: string
+  updated_at: string
+  deleted: boolean
+  synced_at: string
+}
+
+const cardCyclesTable: SyncedTable<CardCycle, CardCycleRow> = {
+  name: 'card_cycles',
+  local: db.cardCycles,
+  columns: 'id, card_id, closes_on, due_on, updated_at, deleted, synced_at',
+  toRow: (c) => ({
+    id: c.id,
+    card_id: c.cardId,
+    closes_on: c.closesOn,
+    due_on: c.dueOn,
+    updated_at: c.updatedAt,
+    deleted: c.deleted,
+  }),
+  fromRow: (row) => ({
+    id: row.id,
+    cardId: row.card_id,
+    closesOn: row.closes_on,
+    dueOn: row.due_on,
+    updatedAt: row.updated_at,
+    deleted: row.deleted,
+    pending: 0,
+  }),
+}
+
 // Every synced table; each one syncs independently of the others
 export const SYNCED_TABLES = [
   toSyncTask(expensesTable),
@@ -328,4 +388,6 @@ export const SYNCED_TABLES = [
   toSyncTask(recipesTable),
   toSyncTask(fixedExpensesTable),
   toSyncTask(profileTable),
+  toSyncTask(cardsTable),
+  toSyncTask(cardCyclesTable),
 ]

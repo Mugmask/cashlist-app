@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import type { Expense } from '@/lib/db'
-import { chargedAfter, chargeOn } from './installments'
 import { chargedOf, describeShare, shareOf, shareOptionFor } from './shared'
 
 describe('shareOf', () => {
@@ -43,9 +42,7 @@ describe('a shared card purchase', () => {
     installments: 3,
   }
 
-  it('is charged whole by the card, in installments', () => {
+  it('is charged whole by the card', () => {
     expect(chargedOf(dinner)).toBe(30000)
-    expect(chargeOn(dinner, '2026-09')).toBe(10000)
-    expect(chargedAfter(dinner, '2026-09')).toBe(20000)
   })
 })

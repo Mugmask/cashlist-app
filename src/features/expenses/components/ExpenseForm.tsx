@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react'
+import { cardIdOf, useCards } from '@/features/card'
 import type { Expense } from '@/lib/db'
 import { convertAmount, fitsInPesos, toPesos } from '@/lib/exchangeRates'
 import { runSync } from '@/lib/sync'
 import { useConversionRate } from '@/lib/useDollarRate'
 import { AmountField, Button, ChipGroup, DayField, NoteField, Stack, TextField } from '@/ui'
 import { amountToInput, formatCurrencyShort, parseAmount, type Currency } from '@/utils/currency'
-import { nowOnDay, toDayKey, withDayKey } from '@/utils/dates'
+import { formatDayMonth, nowOnDay, toDayKey, withDayKey } from '@/utils/dates'
 import { capitalize } from '@/utils/text'
 import { BUILT_IN_CATEGORIES, getCategory } from '../categories'
 import { INSTALLMENT_OPTIONS, splitInstallments } from '../installments'
@@ -74,6 +75,17 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
     const current = String(expense?.installments ?? 1)
     return INSTALLMENT_OPTIONS.find((n) => n === current) ?? '1'
   })
+  const cards = useCards()
+  // Which card: the expense's own; for a new one, the last one used, else the first (see
+  // cardIdOf); none while loading
+  const [pickedCard, setPickedCard] = useState<string | undefined>(expense?.cardId)
+  const cardId =
+    pickedCard ??
+    (cards
+      ? expense
+        ? cardIdOf(expense, cards.cards)
+        : (cards.preferred ?? cardIdOf({}, cards.cards))
+      : '')
   const [today] = useState(() => toDayKey(new Date())) // read once: the form is short-lived
   // A new expense: names used before, picked to fill the form as it was loaded the last time
   const named = useNameSuggestions()
@@ -83,6 +95,7 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
     setName(s.name)
     setCategory(getCategory(s.category).id)
     setPaymentMethod(s.paymentMethod)
+    if (s.cardId) setPickedCard(s.cardId)
     // An amount already typed stays, in the currency it was typed in: maybe it cost something
     // else this time. Switching the currency under it would read 15.000 pesos as US$ 15.000.
     if (amount === '') {
@@ -163,6 +176,8 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
       ...money,
       category,
       paymentMethod,
+      // Only card purchases name a card; undefined clears it (paid in cash now)
+      cardId: paymentMethod === 'card' && cardId !== '' ? cardId : undefined,
       // Only card purchases go in installments; undefined clears them
       installments: inInstallments ? Number(installments) : undefined,
       name: capitalize(name.trim()) || undefined,
@@ -264,6 +279,15 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
           value={paymentMethod}
           onChange={setPaymentMethod}
         />
+        {paymentMethod === 'card' && cards && cards.live.length > 1 && (
+          <ChipGroup
+            label="Tarjeta"
+            showLabel
+            options={cards.live.map((c) => ({ value: c.id, label: c.name }))}
+            value={cardId}
+            onChange={setPickedCard}
+          />
+        )}
         {paymentMethod === 'card' && (
           <div>
             <ChipGroup
@@ -278,6 +302,7 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
                 {installments} cuotas de {formatCurrencyShort(installment)}
               </p>
             )}
+            {cards && day !== '' && <DueNote cardId={cardId} day={day} cards={cards} />}
           </div>
         )}
         <ShareField
@@ -296,5 +321,26 @@ export function ExpenseForm({ expense, defaults, submitLabel, onSaved }: Expense
         </Button>
       </Stack>
     </form>
+  )
+}
+
+// When the purchase is paid: the statement its day falls in, whose month's money pays it
+function DueNote({
+  cardId,
+  day,
+  cards,
+}: {
+  cardId: string
+  day: string
+  cards: NonNullable<ReturnType<typeof useCards>>
+}) {
+  const schedule = cards.schedules(cardId)
+  const { dueOn, estimated } = schedule.cycleOf(day)
+  return (
+    <p className={styles.installments}>
+      Se paga con el resumen que vence el {estimated && '~'}
+      {formatDayMonth(dueOn)}
+      {schedule.unsure(day) && ', o con el siguiente si cerró antes'}
+    </p>
   )
 }

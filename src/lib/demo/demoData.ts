@@ -1,4 +1,6 @@
 import type {
+  Card,
+  CardCycle,
   Expense,
   FixedExpense,
   Income,
@@ -8,7 +10,7 @@ import type {
   ShoppingItem,
 } from '@/lib/db'
 import { toPesos } from '@/lib/exchangeRates'
-import { daysInMonth, shiftMonth, toPeriod } from '@/utils/dates'
+import { addDays, daysInMonth, shiftMonth, toDayKey, toPeriod } from '@/utils/dates'
 
 // A believable month and a half for local mode (Vercel previews, staging), so every screen has
 // something to show. Dates are relative to `now`: this month only up to today, the two before
@@ -23,6 +25,8 @@ export interface DemoData {
   fixedExpenses: FixedExpense[]
   shoppingItems: ShoppingItem[]
   recipes: Recipe[]
+  cards: Card[]
+  cardCycles: CardCycle[]
 }
 
 interface VariableExpense {
@@ -31,6 +35,7 @@ interface VariableExpense {
   category: string
   amount: number // pesos, or dollars with `usd`
   card?: boolean
+  mercadoPago?: boolean // on the second card; the rest of the card ones go on the Visa
   usd?: boolean
   installments?: number
   sharedWith?: number // paid whole, split between this many
@@ -63,10 +68,19 @@ const VARIABLE: Record<number, VariableExpense[]> = {
       category: 'personal',
       amount: 189_000,
       card: true,
+      mercadoPago: true,
       installments: 3,
     },
     { day: 11, name: 'Nafta', category: 'transport', amount: 45_000, card: true },
-    { day: 13, name: 'Sushi', category: 'delivery', amount: 46_000, card: true, sharedWith: 2 },
+    {
+      day: 13,
+      name: 'Sushi',
+      category: 'delivery',
+      amount: 46_000,
+      card: true,
+      mercadoPago: true,
+      sharedWith: 2,
+    },
     { day: 15, name: 'Súper', category: 'groceries', amount: 71_900, card: true },
     { day: 17, name: 'Regalo cumple', category: 'other', amount: 35_000 },
     { day: 19, name: 'Steam', category: 'personal', amount: 15, card: true, usd: true },
@@ -121,6 +135,14 @@ const FIXED: FixedSeed[] = [
   { name: 'Luz', category: 'utilities', amount: 41_000, dueDay: 20, note: 'Cliente N° 4417-2290' },
 ]
 
+// Like real statements: the Visa closes around the end of the month, a different day every
+// month, and Mercado Pago on the 5th. Months back from now (-1: next month's, already announced
+// by the last statement) → closing day, as a day of that month (32: the 1st of the next one).
+const VISA_CLOSINGS: Record<number, number> = { 3: 28, 2: 30, 1: 32, 0: 29, [-1]: 27 }
+const VISA_DUE_DAYS = 9
+const MERCADO_PAGO_CLOSING = 5
+const MERCADO_PAGO_DUE_DAYS = 8
+
 const SHOPPING: Omit<ShoppingItem, 'id' | 'updatedAt' | 'deleted' | 'pending'>[] = [
   { name: 'Yerba', quantity: 1, status: 'in_stock', timesBought: 7 },
   { name: 'Arroz', quantity: 1, status: 'in_stock', timesBought: 4 },
@@ -166,6 +188,31 @@ export function buildDemoData(now = new Date()): DemoData {
     return date <= now ? date.toISOString() : null
   }
 
+  // A day `monthsBack` months ago as a day key, whether it came or not; a day past the month's
+  // end is in the next one
+  const dayKeyOf = (monthsBack: number, day: number) => {
+    const month = shiftMonth(now, -monthsBack)
+    return addDays(toDayKey(month), day - 1)
+  }
+  const visa = record({ name: 'Visa' })
+  const mercadoPago = record({ name: 'Mercado Pago' })
+  const cardCycles: CardCycle[] = [-1, 0, 1, 2, 3].flatMap((back) => {
+    const visaClosing = dayKeyOf(back, VISA_CLOSINGS[back])
+    const mpClosing = dayKeyOf(back, MERCADO_PAGO_CLOSING)
+    return [
+      record({
+        cardId: visa.id,
+        closesOn: visaClosing,
+        dueOn: addDays(visaClosing, VISA_DUE_DAYS),
+      }),
+      record({
+        cardId: mercadoPago.id,
+        closesOn: mpClosing,
+        dueOn: addDays(mpClosing, MERCADO_PAGO_DUE_DAYS),
+      }),
+    ]
+  })
+
   const expenses: Expense[] = []
   for (const [back, list] of Object.entries(VARIABLE)) {
     for (const seed of list) {
@@ -190,6 +237,7 @@ export function buildDemoData(now = new Date()): DemoData {
             : { amount: mine }),
           ...(seed.sharedWith && { sharedTotal: seed.amount }),
           ...(seed.installments && { installments: seed.installments }),
+          ...(seed.card && { cardId: seed.mercadoPago ? mercadoPago.id : visa.id }),
         }),
       )
     }
@@ -210,6 +258,7 @@ export function buildDemoData(now = new Date()): DemoData {
           fixedExpenseId: fixed.id,
           fixedPeriod: toPeriod(shiftMonth(now, -back)),
           paymentMethod: fixed.paymentMethod ?? 'cash',
+          ...(fixed.paymentMethod === 'card' && { cardId: visa.id }),
           ...(fixed.currency === 'USD'
             ? {
                 amount: toPesos(whole, DOLLAR_RATE),
@@ -244,5 +293,7 @@ export function buildDemoData(now = new Date()): DemoData {
     fixedExpenses,
     shoppingItems,
     recipes,
+    cards: [visa, mercadoPago],
+    cardCycles,
   }
 }

@@ -39,6 +39,9 @@ export interface Expense extends Syncable {
   // and this is the whole bill in pesos, what the card statement charges. With dollars,
   // `foreignAmount` is my part too.
   sharedTotal?: number
+  // Which of the user's cards a card purchase went on. Missing: their first card (or the only
+  // one), so purchases from before cards had names need no migration.
+  cardId?: string
 }
 
 // Money that comes in apart from the profile's monthly income (a transfer back, a sale...):
@@ -103,6 +106,22 @@ export interface FixedExpense extends Syncable {
   note?: string
 }
 
+// A credit card the user pays with ("Visa Santander", "Mercado Pago"). Its closing and due dates
+// change every month, so they aren't kept here but in its cycles.
+export interface Card extends Syncable {
+  name: string
+}
+
+// One statement period of a card: purchases after the previous cycle's closing and up to
+// `closesOn` are paid on `dueOn`. Local calendar days ("2026-10-29"). Each bank statement says
+// its own dates and the next ones, so they're loaded from it (or typed in); months without
+// one are estimated from the ones known.
+export interface CardCycle extends Syncable {
+  cardId: string
+  closesOn: string
+  dueOn: string
+}
+
 export type ShoppingItemStatus = 'in_stock' | 'to_buy' | 'in_cart'
 
 // A product in the pantry. One row per product, cycling in_stock → to_buy → in_cart → in_stock:
@@ -128,6 +147,8 @@ export const db = new Dexie('cashlist') as Dexie & {
   recipes: EntityTable<Recipe, 'id'>
   shoppingItems: EntityTable<ShoppingItem, 'id'>
   fixedExpenses: EntityTable<FixedExpense, 'id'>
+  cards: EntityTable<Card, 'id'>
+  cardCycles: EntityTable<CardCycle, 'id'>
   profile: EntityTable<Profile, 'id'>
   syncState: EntityTable<SyncState, 'key'>
 }
@@ -331,6 +352,13 @@ db.version(16).stores({
 // looked up instead of read from the whole table
 db.version(17).stores({
   expenses: 'id, category, spentAt, updatedAt, pending, fixedPeriod, fixedExpenseId',
+})
+
+// v18: credit cards and their statement cycles (expenses need no migration: a card purchase
+// without a card is the user's first one)
+db.version(18).stores({
+  cards: 'id, pending',
+  cardCycles: 'id, cardId, pending',
 })
 
 // A local change (pending) always gets an updatedAt later than the version it changes, even
